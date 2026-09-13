@@ -1,6 +1,6 @@
 # Atlas rules
 
-Confirmed editorial and repository decisions, consolidated on 12 September 2026.
+Confirmed editorial and repository decisions, updated on 13 September 2026.
 This is the authoritative policy document. Current category names, quotas and
 focus choices live in the linked data registries. Dated research observations
 live in [research/review-notes.md](../research/review-notes.md) and individual
@@ -215,8 +215,8 @@ summaries neither certify current openness nor promote evidence levels.
 An individually justified disposition can set `review_outcome.complete` without
 inventing a theorem for an invalid extraction, subjective request or duplicate.
 Do not use this for a genuine problem that is merely difficult to formulate.
-Resolved and excluded records are hidden in the reader. Removed cards follow
-the ID-and-reason deletion workflow below; no restoration archive is maintained.
+Resolved and excluded records belong in the inactive archive. Deactivation
+preserves the complete card using the activity workflow below.
 
 ## Categories
 
@@ -345,13 +345,26 @@ Draft importance assessments do not change evidence or verify openness.
 
 Calibration decisions: the Path ORAM bucket-three/four-versus-five question
 TCS-0458 was judged too incremental, without excluding ORAM as a subject.
-TCS-0474 working-set heaps was explicitly removed. The request for more context
+TCS-0474 working-set heaps was explicitly removed on 11 September 2026 and
+restored by the user’s later request to add the researcher-linked problem list on
+13 September 2026; see [the restoration audit](../research/researcher-problems-20260913/README.md).
+The request for more context
 about distributed OR TCS-0464 did not approve its exclusion. Preserve these
 distinctions when applying broad pruning criteria.
 
 ## Authoring and publication
 
-Each `data/cards/TCS-XXXX.json` is the complete editable source for its problem:
+Cards have two editorial activity states, determined by directory placement:
+**active** in `data/cards/` and **inactive** in `data/archive/cards/`. Activity is
+separate from scientific `status`, evidence, importance and formulation review.
+Every routine editorial task, source search, improvement pass, validation,
+ranking, selection and publication operates on active cards only. Treat the
+archive as absent from the working atlas. Do not recursively include it when
+searching for cards, allocate review effort to it, repair old archive schemas,
+or use it to fill category quotas. Consult or reactivate an inactive card only
+when explicitly requested by the user.
+
+Each active `data/cards/TCS-XXXX.json` is the complete editable source for its problem:
 statement, definitions, sources, category, importance, history and summary stay
 together. `context_blocks` owns paragraph text and citations when present;
 publication derives searchable `context`. Without blocks, retain `context`.
@@ -361,12 +374,19 @@ focus are derived. Legacy `rank`, `classification_method` and top-level
 Do not maintain override layers or edit generated catalogues to change content.
 
 Keep stable IDs and historical source-key mappings in `data/id_registry.json`.
-Deleted IDs and keys remain reserved. For removal, save only the ID and specific
-reason in `data/deleted_records.json`, remove the card file and adjust any focus
-selection. Stale source files and exports must never restore deleted identities.
-An explicit later user instruction may authorize reconsideration and restoration:
-keep the same identity, record the superseding decision, remove only its deletion
-entry, and revalidate the restored canonical card and any focus selection.
+Inactive IDs and keys remain reserved. Use `scripts/archive_cards.py` with an ID
+and specific reason to deactivate a card: it moves the complete file to
+`data/archive/cards/`, records the reason in `data/archive/index.json`, and removes
+any focus selection without choosing a replacement. Never discard card content
+as part of pruning, deduplication or resolution. Ordinary imports, including
+`--replace`, and stale files cannot reactivate an archived identity.
+An explicit later user instruction may authorize reconsideration and restoration.
+Use `--restore` after checking the requested card against current active-card
+requirements; keep its identity and record the superseding decision. The activity
+log preserves the previous archival and restoration decisions. Historical IDs
+whose content predates recoverable repository history stay reserved in the index;
+do not invent replacement content. This supersedes the former ID-only deletion
+policy on 13 September 2026.
 See [data/README.md](../data/README.md) for import and editing commands.
 
 `web/` contains source assets. `make publish` validates data and builds the complete

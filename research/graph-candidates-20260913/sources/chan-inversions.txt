@@ -1,0 +1,929 @@
+       Counting Inversions, Ofﬂine Orthogonal Range Counting, and
+                            Related Problems
+                                    Timothy M. Chan                 Mihai Pǎtraşcuy
+
+                                                      July 7, 2009
+
+
+
+                                                        Abstract
+                             p
+            We give an O(n lg n)-time algorithm for counting the number of inversions in a permutation on n
+        elements. This improves a long-standing previous bound of O(n lg n= lg lg n) that followed from Dietz’s
+        data structure [WADS’89], and answers a question of Andersson and Petersson [SODA’95]. As Dietz’s
+        result is known to be optimal for the related dynamic rank problem, our result demonstrates a signiﬁcant
+        improvement in the ofﬂine setting.
+            Our new technique is quite simple: we perform a “vertical partitioning” of a trie (akin to van Emde
+        Boas trees), and use ideas from external memory. However, the technique ﬁnds numerous applications:
+        for example, we obtain
+              in d dimensions, an algorithm to answer n ofﬂine orthogonal range counting queries in time
+               O(n lgd 2+1=d n);
+              an improved construction time for online data structures for orthogonal range counting;
+              an improved update time for the partial sums problem;
+              faster Word RAM algorithms for ﬁnding the maximum depth in an arrangement of axis-aligned
+               rectangles, and for the slope selection problem.
+             As a bonus, we also give a simple (1 + ")-approximation algorithm for counting inversions that runs
+        in linear time, improving the previous O(n lg lg n) bound by Andersson and Petersson.
+
+
+1      Introduction
+1.1     A Complexity Theoretic View
+The standard model of computation enshrined in all widely used programming languages (like C, Java,
+Python, etc.) allows the following assumptions:
+
+       the memory consists of words, and permits random access.
+       machine words can be manipulated in constant time by a standard set of operations (including arith-
+        metic, shift, bitwise, and logical operations).
+
+       the machine word is large enough to represent pointers and indices to the data.
+   Cheriton School of Computer Science, University of Waterloo, Waterloo,           Ontario N2L 3G1,    Canada (tm-
+chan@uwaterloo.ca). Work supported by NSERC.
+  y
+    IBM Almaden Research Center, San Jose CA, USA (mip@alum.mit.edu).
+
+
+
+                                                            1
+    In theory, this model has been formalized as the Word RAM. Understanding the power of this model has
+been a very active direction after Fredman and Willard’s seminal result [FW93] demonstrating that sorting
+can be done in o(n lg n) operations.
+    Concentrating on ofﬂine problems, the main ﬂavors of algorithmic improvement achieved in the Word
+RAM model seem to be:
+
+       “accidental” problems with a linear-time solution, such as the classic algorithm of Rabin for planar
+        closest pair [Rab76] or Thorup’s algorithm for undirected single-source shortest paths [Tho99].
+
+       sorting, and the myriad problems reducible to it, which have a current bound of O(nplg lg n) due to
+        Han and Thorup [HT02].
+                                                                                  p n
+       problems related to ofﬂine point location, with a current bound of n  2O (   lg lg )
+                                                                                      [CP07].
+
+       problems with complexity O(n lg n= lg lg n), stemming from the use of data structures with slightly
+        sublogarithmic performance (including the problems addressed in this paper).
+
+       logarithmic improvements to algorithms with a polynomial running time, from the classic “four Rus-
+        sians trick” to computing all-pairs shortest paths [Cha07].
+
+    In this paper, we introduce an algorithmic innovation that creates a new “level” in this hardness classiﬁca-
+tion. In particular, we show that counting the number of inversions in a permutation, and, more generally, 2-d
+ofﬂine orthogonal range counting are not limitedp by the complexity of the associated online data structures.
+Instead, these problems can be solved in O(n lg n) time.
+    Our algorithmic idea (in instantiations of varying technical difﬁculty) leads to improved results for an array
+of problems, including static and dynamic data structures. These results are summarized in Section 1.3. Before
+that, however, we take the opportunity to discuss our approach in the simplest possible setting: counting
+inversions.
+
+1.2     Counting Inversions
+The number of inversions in a permutation  is deﬁned as the number of pairs i < j with  (i) >  (j ). This is
+a natural and frequently-used measure for the sortedness of the data. The number of inversions between two
+permutations, called the Kendall tau distance, is a classic distance measure between two orders. In [DKNS01],
+it is argued that the Kendall tau distance is especially important for rank aggregation in large Internet-related
+applications.
+
+History. Counting inversions in O(n lg n) time (e.g., by mergesort) is a textbook problem. For a faster
+solution, one can reduce to ofﬂine dominance counting in two dimensions: given a set of n points, how many
+other points does each point dominate? A point dominates another if each one of its coordinates is (strictly)
+larger. The problem in turn reduces to ofﬂine orthogonal range counting.
+    Until now, the fastest way to solve ofﬂine dominance counting in d dimensions was to treat one coordinate
+as “time,” turning the problem into dynamic dominance counting in d 1 dimensions. In one dimension,
+dominance counting is more commonly known as “dynamic ranking” or “the partial sums problem.” This
+problem is solved in O(lg n= lg lg n) time for operation by Dietz’s well known data structure, dating back to
+WADS’89 [Die89]. Thus, counting inversions can be done in O(n lg n= lg lg n) time.
+    Another classic result due to Fredman and Saks [FS89] states that (lg n= lg lg n) time is needed for
+dynamic ranking, even in the cell-probe model. Since counting inversions is so inherently tied to this problem,
+one is tempted to believe that the bound for counting inversions might also be optimal.
+
+                                                        2
+    In SODA’95, Andersson and Petersson [AP98] attacked the approximate version of the problem and asked
+whether Dietz’s bound can be improved for pexact counting. Their algorithm runs in time O(n lg lg n) and ﬁnds
+a (1 + ")-approximation for any " = (1= lg lg n).
+    In recent years, the problem has received renewed attention from the streaming community [AJKS02,
+GZ03]. In 2007, the status of the problem was sufﬁciently entrenched that, when discussing segment in-
+tersection counting, we [CP07] wrote: “Note that this problem is no easier than counting inversions in a
+permutation, so, in some sense, the best bound one would hope to get is O(n lglglgnn ).”
+                                                                                             p
+    However, as we show here, counting the exact number of inversions can be done in O(n lg n) time. In
+Section 4, we also show how to improve the results of Andersson and Petersson for approximate counting. In
+particular, we obtain an O(n)-time algorithm that ﬁnd a (1 + ")-approximation to the count, for any constant
+" > 0.
+
+
+The improved exact solution (a quick sketch). The starting point of our solution is the following simple
+variation of external-memory radix sort. Consider a sequence of n numbers of L bits each. In the exter-
+nal memory model with B words per page, we can count the number of inversions in the sequence using
+O(nL=B ) I/O operations. This is easy to see: We maintain a running count of the number of inversions. We
+begin by partitioning the elements into those beginning with a zero bit, and those beginning with a one bit.
+For each zero element, we add to the inversion count the number of preceding elements starting with a one.
+This partition takes O(n=B ) operations. Finally, we recurse into each of the subarrays, with L decremented.
+    This algorithm can be simulated on a Word RAM, but how do we obtain the ability to manipulate B
+elements in constant time? By packing multiple elements in a single word. If B = w=L where w denotes the
+word size, the above algorithm would run in time O(nL=B ) = O(nL2=w). For w  lg np           , we can simulate
+word operations in constant time by table lookup. The running time is thus O(n) for L  lg n. We remark
+that the word packing idea is also a key ingredient in several previous algorithms that solve ofﬂine problems
+faster than their online counterparts (e.g., for sorting [FW93, AHNR98] and point location [CP07]).
+    How can we use the above subroutine to solve the original problem where the elements can be lg n bits
+long? We use a trick similar to the van Emde Boas data structure [vEBKZ77]: for each element, break its
+word into multiple components. Formally, consider a trie of depth (lg n)=L over the alphabet [2L].1 Each
+node is associated with the elements of the permutation that fall under the node (they start with the preﬁx
+leading to the node). For a given node of the trie, consider the sequence of the ﬁrst letters after the common
+preﬁx of the elements associated with the node (these letters are L-bit numbers). We compute the number of
+inversions in this sequence by the above subroutine and add to the running count. Finally, we recurse into
+each child of the node.
+    The trie can be built in O(n) time per level, by bucketing.
+                                                                         p
+                                                                     L  lg n, the subroutine calls cost O(n)
+                                                           p     For
+per level. Since the depth is (lg n)=L, we obtain an O(n lg n)-time algorithm.
+    A more precise description of the algorithm, in a more general setting, is provided in Section 2.1.
+
+1.3      Applications
+Though our solution idea is quite simple, the end result remains surprising. In fact, more powerful instantia-
+tions of this basic idea yield a handful of improved algorithms and data structures.
+
+Ofﬂine orthogonal range counting. pA slightly trickier version (Section 2.2) of our initial algorithm can
+solve a more general problem in O(n lg n) time in 2-d: given n red/blue points, compute the number of
+red points dominated by each blue point. One can easily observe that this problem is equivalent to 2-d ofﬂine
+  1
+                                           f
+      Throughout this paper, [n] denotes 0; 1; : : : ; n   1g.
+
+
+                                                                 3
+orthogonal range counting: given n points and n axis-aligned rectangles, compute the number of points inside
+each rectangle. The problem has an immediate application to 2-d orthogonal segment intersection counting:
+given n horizontal/vertical line segments, count the number of their intersections.
+     The ofﬂine orthogonal range counting result can be extended to any constant dimension d, as shown in
+Section 3, where we get running time O(n lgd 2+1=d n). Previous known (online) algorithms require at least
+O(n(lg n= lg lg n)d 1 ) time (even if preprocessing cost is ignored) [JMS04]. Of course, orthogonal range
+searching is a well-loved topic in computational geometry and countless results have appeared in the literature,
+e.g., see [AE99, AAL09, ABR00, ABR01, Cha88, Cha90a, Cha90b, Cha97, JMS04, Pǎt07]. One should not
+confuse counting problems with their reporting analogs, though, and we have exploited special features of
+counting problems to get results better than for range searching in a more abstract group or semigroup model.
+
+Ofﬂine dynamic ranking and selection. As another immediate corollary, we can solve an ofﬂine version
+of the dynamic ranking problem in 1-d: maintain a set of numbers under insertions and deletions so that we
+                                                         p
+can determine the rank of any query point. Under the assumption that the sequence of updates and queries is
+known in advance, we obtain a total running time of O(n lg n).
+    Selection queries (the “inverse” of ranking) require more effort: given a query value k, we want to ﬁnd
+                                     p
+the k-th smallest element in the current set. We show in Section A.1 that an ofﬂine sequence of updates and
+selection queries can be done in O(n lg n lg1=4 lg n) expected time.
+
+Online orthogonal range counting. The space/time tradeoffs possible for 2-d online orthogonal range
+counting are well understood: with space O(n polylog n), the best possible query time is (lg n= lg lg n)
+[Pǎt08, Pǎt07]. Furthermore, it is possible to achieve query time O(lg n= lg lg n) with space O(n) [JMS04].
+     Given this precise understanding, it now makes sense to look at the preprocessing time more carefully.
+Unfortunately, it is not known how to construct a data structure with optimal query performance in linear
+time. For instance, the data structure of [JMS04] requires O(n lg n) preprocessing time; even the earlier
+O(n)-space data structure of Chazelle [Cha88] with O(lg n) query time, or the (even earlier) standard range
+tree, requires O(n lg n) preprocessing time.
+     In Section 2.3, we offer a 2-dpdata structure of linear size and optimal O(lg n= lg lg n) query time, which
+can be constructed faster in O(n lg n) time.
+     The generalization of the result in dimension d has O(n lgd 2+1=d n) preprocessing time,
+O(n(lg n= lg lg n)d 2 ) space, and O((lg n= lg lg n)d 1 ) query time.
+
+
+Online partial sums and dynamic ranking and selection. As we have mentioned, Dietz’s data structure
+solved the online partial sum or online dynamic ranking problem in O(lg n= lg lg n) update time and query
+time. Although the query time matches known lower bounds, we show that curiously the update time can be
+improved—this is the ﬁrst improvement since 1989. In Section A.4, we give a new online data structure for
+partial sums and dynamic ranking/selection with O(lg0:5+" n) update time and O(lg n= lg lg n) query time
+for an arbitrarily small constant " > 0. Interestingly this solution exploits further techniques from external
+memory, namely, buffer trees [Arg03].
+
+Range median. A series of recent papers [KMS05, HPM08, GS09] studied the following problem: prepro-
+cess a sequence of numbers a1; : : : ; an so that given any i; j , return the median of the subsequence ai ; : : : ; aj .
+The best result known, by Gfeller and Sanders [GS09], p     achieved O(n lg n) preprocessing time, O(n) space,
+and O(lg n) query time. In Section A.3, we obtain O(n lg n) preprocessing time, O(n) space, and O(lg n)
+query time. Our observation is that certain data structures for 2-d orthogonal range counting can already an-
+swer range median queries efﬁciently; only the query algorithm needs to be changed. (The linear-space data
+
+
+                                                           4
+structure from [GS09], for instance, is essentially identical to Chazelle’s data structure for 2-d orthogonal
+range counting [Cha88], and their simple O(n log n)-space data structure is just a standard 2-d range tree in
+disguise.)
+
+
+                                                                                               p
+More applications in computational geometry. Many further consequences follow. For example, given
+n axis-aligned rectangles in 2-d, we can ﬁnd the maximum depth in the arrangement in O(n lg n) time, as
+shown in Section A.2.
+    There are applications even to nonorthogonal problems. For example, consider the slope selection prob-
+lem: given a set P of n points in 2-d and an integer k, ﬁnd the k-th smallest slope formed by the n2 lines
+through P . In the Real RAM model, several O(n lg n)-time algorithms have been proposed for this problem
+[BC98, CSSS89, KS97]; in particular, in the known randomized algorithms [DMN92, Mat91], the dominant
+                                                                            p
+cost lies in counting inversions. It can be checked that with our inversion-counting subroutine, these random-
+sampling-based algorithms can solve the slope selection problem in O(n lg n) expected time on the Word
+RAM for points with integer coordinates.
+
+Remark. All of our results for orthogonal problems on the Word RAM hold not only for integer input but
+also for ﬂoating-point numbers, since the known Word RAM sorting algorithms [HT02] are applicable to
+ﬂoats. The only main assumption is that the word size is at least as large as both lg n and the maximum size
+of an input number (i.e., each input number should ﬁt in one word). In fact, in all of our algorithms, if the
+input numbers have been pre-sorted, we only need RAM operations on lg n-bit words—which are standard
+and commonly assumed in analysis of algorithms. For results where the claimed time bounds exceed n lg n
+(such as our result on ofﬂine orthogonal range counting for dimension d  3), the pre-sorting assumption is
+not even needed, since we can afford to use a comparison-based sorting algorithm.
+
+
+2     2-d Ofﬂine Orthogonal Range Counting
+2.1    The basic approach
+We start by describing our technique for the 2-d ofﬂine red/blue dominance counting problem, which includes
+inversion counting as a special case (and also 2-d ofﬂine orthogonal segment intersection counting, by adding
+and subtracting a constant number of counts).
+
+Theorem 2.1 Given n red/blue points in the plane, we can count the number of pairs of points (p; q ) where
+                                                         p
+the red point p is dominated by the blue point q , in O(n lg n) time.
+
+Proof:    Algorithm template. The basic strategy is a standard divide-and-conquer. Suppose that the input
+                                                                                                   [2 ]
+n-point set P is given in sorted x-order, has distinct x-coordinates, and has y -coordinates from ` . Divide
+IR   [0 2 )    2                             2
+        ; ` into h horizontal strips of height ` h for some parameter h. Let Pi be the subset of points in the
+i-th strip. Round each point p immediately downward to a point pe on a horizontal dividing line and let Pe be
+the set of rounded points. Recursively solve the subproblems for the Pi ’s and for Pe . The overall count for P
+is just the sum of the counts for Pi ’s and the count for Pe . Note that by translation and scaling, we can make
+                             [2 ]                                [2 ]
+the Pi ’s y -coordinates lie in ` h and Pe ’s y -coordinates lie in h .
+     We now describe the choices of input representation and the parameter h, and elaborate on the details and
+analysis of the various steps. Fix a value L, to be set later.
+Case 1: `  L. For each point p, we record its color and its y -coordinate p:y (but not its x-coordinate) using
+L + 1 bits. We store the input point set P as a list of records in x-order, packed into O(nL=w) words, each
+holding O(w=L) points. We choose h = 1, i.e., use a 2-way divide-and-conquer.
+
+                                                       5
+     We can split the list P into the two sublists P0 and P1 in O(nL=w) time, by repeated use of the following
+word operation: given a word z holding O(w=L) points and the number `, output the word z 0 (resp. z 00)
+                                       e = 0 (resp. p:y
+holding the sublist of points p with p:y              e = 1), retaining the same ordering in the sublist.
+     We can solve the subproblem for P directly in O(nL=w) time: given the list of words z0 ; z1; : : :, we can
+                                         e
+compute (i) the number ri of red points p in zi with pe:y = 0, (ii) the number bi of blue points q in zi with
+qe:y = 1, and (iii) the number ci of red-blue dominating pairs within zi , by word operations. The count for Pe
+   P        P     P
+is i ci + i bi j<i rj , which is computable in time linear in the number of words.
+     As a result, we get the following recurrence for the running time:
+
+                     ( ) = T (n ; ` 1) + T (n ; ` 1) + O(nL=w) 8`  L
+                      T n; `            0                    1                                   (1)
+
+for some n ; n with n + n = n, where T (n; 1) = O(nL=w) for the base case. This yields T (n; L) =
+           0   1          0    1
+O(nL =w).
+      2
+
+
+Case 2: ` > L. Here, we store the given points P naively in O(n) words, but we choose h = L instead.
+We can split the list P into the sublists P0 ; : : : ; P2L 1 , while retaining the same ordering in the sublists, in
+O(n) time by using an array of 2L buckets. We can generate Pe in O(n) time, convert it into the packed-word
+representation, and compute the count for Pe in O(nL2 =w) time by Case 1.
+    We get the following recurrence:
+                                            L
+                                            2X1
+                                   ( )=
+                               T n; `              (
+                                                  T ni ; `       L   ) + O(n(1 + L =w));
+                                                                                  2
+                                                                                                                (2)
+                                            i=0
+                      P                                                                                  pw gives
+                p i ni = n. This yields T (n; `) = O(n(`=L)(1 + L =w)). Setting L =
+                                                                                      2
+for some ni ’s with
+T (n; `) = O(n`= w).
+
+Initialization. We can pre-sort both the x- and the y -coordinates by known Word RAM sorting algorithms,
+for example, in O(n lg lg n) deterministic time [Han04]. By normalization, we can make the x- (resp. y -
+)coordinates distinct and lie in [n], so initially ` = lg n. To support the above word operations in constant
+time, we can precompute tables storing the output of the operations on every input combination, in time 2O(w) .
+                                                                                         p
+Setting w = " lg n for some constant " > 0, we get the ﬁnal time bound of O((n lg n)= w) = O(n lg n).
+                                                                                                      p
+                                                                                                                 2
+Corollary 2.2 Given a permutation over [n], we can count the number of inversions in O(n
+                                                                                                 plg n) time.
+
+               p n horizontal/vertical line segments in the plane, we can count the number of their inter-
+Corollary 2.3 Given
+sections in O(n lg n) time.
+
+2.2   Individual counts
+For the version of the ofﬂine dominance counting problem where we want a separate count for each query
+point, we need to work a little harder. Ofﬂine orthogonal range counting reduces to this problem (by adding
+and subtracting a constant number of counts per query point).
+
+                  p
+Theorem 2.4 Given n red/blue points in the plane, we can count the number of red points dominated by each
+blue point, in O(n lg n) total time.
+
+Proof: We follow the same algorithm template as in the proof of Theorem 2.1. Here, for each blue point p,
+if p 2 Pi , the count for p in P is just the sum of the count for p in Pi and the count for pe in Pe .
+
+                                                             6
+      As output representation becomes an issue, some modiﬁcations are needed and one more case arises.
+Case 10: `  L and n  2L . The record for each point p 2 P now stores an extra ﬁeld for the output count
+(initially, this ﬁeld is nil). Since n  2L , the counts are only O(L)-bit long, so the point set P can still be
+packed into O(nL=w) words. We choose h = 1.
+     Splitting of P into P1 and P2 can be done as before. The subproblem for Pe can be solved using O(nL=w)
+number of similarly deﬁned word operations. To combine the output, we ﬁrst need to “unsplit” P1 and P2 to
+get back P with the count ﬁelds ﬁlled in. Unsplitting can be done in O(nL=w) time, e.g., by repeated use of
+the following word operation: given a word z holding O(w=L) points, a number `, and a word z 0 (resp. z 00)
+                                       e = 0 (resp. p
+holding the sublist of points p with p:y               e:y = 1), output a modiﬁed version of z with the count
+ﬁelds copied from the corresponding counts in z (resp. z 00 ). We can then add the individual counts computed
+                                                   0
+for Pe to the counts for P , again with O(nL=w) word operations.
+     As a result, we get the same recurrence (1) and obtain O(nL2 =w) running time.
+Case 100: `  L and n > 2L . This time, we form the subsets Pi by using vertical dividing lines instead, with
+each subset containing n=2h points. We form Pe by rounding leftward. We choose h = lg n L.
+    We can easily generate the Pi ’s and Pe in O(n) time. We can solve the subproblem for each Pi in
+O(nL2 =w) time by Case 10. We can solve the subproblem for Pe directly in O(n) time, since the rounded
+points lie in a grid [2h ]  [2L], which has size O(n) (it is easy to compute all the counts in Pe from the
+multiplicities of all the grid points). Thus, we get a time bound of O(n(1 + L2 =w)).
+Case 2: ` > L. At this stage, we can proceed exactly as in the proof of Theorem 2.1 and obtain the recurrence
+                                    p
+(2) and the ﬁnal time bound of O(n lg n).                                                                  2
+Corollary 2.5 Given nppoints and n axis-aligned rectangles in the plane, we can count the number of points
+inside each box in O(n lg n) total time.
+
+2.3     Adding online queries
+Although we cannot improve the query time for the corresponding online problems, we can apply our ap-
+proach to improve the preprocessing time of online data structures. We will need some extra ideas similar to
+techniques from succinct data structures (which were also used in Chazelle’s previous data structure [Cha88]).
+                                                                 p
+Theorem 2.6 We can preprocess n points in the plane in O(n lg n) time, using a data structure with O(n)
+words of space, so that we can count the number of points dominated by a query point in O(lg n= lg lg n)
+time.
+
+Proof: We follow the same algorithm template as in the proof of Theorem 2.1 (but ignoring colors). Here,
+the count for a query point q in P is just the sum of the count for q in Pi and the count for qe in Pe . We assume
+that in the query algorithm, we are given the x-rank of q in P . Let A and H be parameters to be set later.
+Case 00: `  H and n  2A . Here, we solve the problem directly without recursion. We store the given
+point set P as a sequence of O(nH=w) words z0 ; z1; : : :, each holding g = O(w=H ) points of P , in x-
+order. For each i and each j 2 [2H ], let cij be the number of points p in z0 ; : : : ; zi 1 with p:y < j . These
+O(nH=w  2H ) numbers are A bits long and can thus be packed in O(nH=w  2H  A=w) words. We can
+bound the preprocessing time by O(nH=w  2H ) and space by O(nH=w + nH=w  2H  A=w).
+     Given a query point q with x-rank r, we can compute the count for q in P as follows: letting i = br=gc
+and j = q:y , we compute the number of points p in zi that are dominated by q by a word operation, and add
+cij to the count. The query time is O(1).
+
+
+
+                                                        7
+Case 000: `  H and n > 2A . We form the subsets Pi by using vertical dividing lines instead, with each
+subset containing n=2h points. We form Pe by rounding leftward. We choose h = lg n A. For Pe , we
+explicitly build a table containing all answers, in O(n=2A  2H ) time and space. The total preprocessing time
+O(2H nH=w + n=2A H ), and space is O(nH=w + 2H n(A=w)(H=w) + n=2A H ).
+   Given a query point q with x-rank r, we can compute the count for q in P as follows: letting i = br=gc,
+we recursively compute the add for q in Pi , look up the count for qe in Pe from the table, and return the sum.
+The query time is O(1).
+Case 1: H < `  L. We represent the given point set P as a sequence of O(nL=w). We return to dividing
+by horizontal lines. Previously we chose h = 1 for this case, but we now choose h = H .
+     Recall that we can split P into two sublists in O(nL=w) time. By applying this procedure recursively, we
+can split the list P into the 2H sublists P0 ; : : : ; P2H 1 in O(nHL=w) time.
+     We build the data structure for Pe by Cases 00 and 000. We then recursively build the data structure for the
+Pi ’s.
+     Given a query point q with x-rank r, we can compute the count for qe in Pe by Cases 00 and 000, and
+recursively compute the count for q in Pi with i = qe:y . Before the recursion, we need to determine the x-rank
+of q in Pi , which can be done in two queries on Pe : just take the number of points dominated by (qe:x; qe:y + 1)
+minus the number of points dominated by (qe:x; qe:y ) in Pe .
+     As a result, we get the following recurrences for the preprocessing time, space, and query time:
+                                         X
+                 ( ) =
+               P n; `                            (
+                                             P ni ; `       H   ) + O(nH L=w + 2H nH=w + n=2A H )
+                                         i
+                                         X
+                 ( ) =
+                S n; `                           (
+                                             S ni ; `       H) + O(nH=w + 2H n(A=w)(H=w) + n=2A H )
+                                         i
+                 ( ) = max
+               Q n; `
+                        i
+                           Q(ni ; `                          H ) + O(1)       8`  L
+                      P
+for some ni ’s with i ni         =
+                         n. This yields P (n; L) = O(nL =w +2H nL=w +(n=2A H )(L=H )), S (n; L) =
+                                                                              2
+
+O(nL=w + 2     ( )( ) + ( 2 )(L=H )), and Q(n; L) = O(L=H ).
+              H n A=w L=w
+                               n= A H
+
+Case 2: ` > L. Here, we store the given points P naively in O(n) words, but we choose h = L instead. We
+build the data structure for Pe by Case 1 and build the data structure for the Pi ’s recursively. Given a query
+point q with x-rank r, we can compute the count for qe in Pe by Case 1, and recursively compute the count for
+q in Pi with i = q:y
+                  e . Before recursion, we determine the x-rank of q in Pi , which can be done in O(1) time
+by two queries on Pe as before.
+    We get the following recurrences:
+                                 X
+               ( ) =
+             P n; `                          (
+                                         P ni ; `       L   ) + O(n + nL =w + 2H nL=w + (n=2A H )(L=H ))
+                                                                          2
+
+                                     i
+                                 X
+               ( ) =
+             S n; `                          (
+                                         S ni ; `       ) + O(nL=w + n(A=w)(L=w) + (n=2A H )(L=H ))
+                                                        L
+                                     i
+               ( ) = max
+             Q n; `
+                      i
+                         Q(ni ; `                       L    ) + O(L=H ):
+                      P
+for some ni ’s with        = n. This yields P (n; `) = O((`=L)[n + nL =w +2H nL=w +(n=2A H )(L=H )]),
+                          i ni
+                                                                                   2
+
+S (n; `) = O(`=L)[nL=w + 2H n(A=w)(L=w) + (n=2A H )(L=H )]), and Q(n; `) = O(`=H ). Setting L =
+p                                                                             p
+  w, w = " lg n, A = (1 + ") lg w, and H = " lg w gives P (n; lg n) = O(n lg n), S (n; lg n) = O(n), and
+Q(n; lg n) = O(lg n= lg lg n).
+                                                                                                         p
+    Note that initially we can determine the x-rank of the query point by predecessor search, e.g., in O( lg n)
+time [FW93].                                                                                                 2
+
+                                                                      8
+3    Higher Dimensions
+We can generalize the results in Section 2 to higher dimensions. In fact, the improvement gets closer to a full
+logarithmic factor as the dimension increases.
+
+Theorem 3.1 Given n red/blue points in a constant dimension d  3, we can count the number of red points
+dominated by each blue point, in O(n lgd 2+1=d n) total time.
+
+Proof: We generalize the algorithm template in the proof of Theorems 2.1 and 2.4 in the obvious way.
+Suppose that the input point set P is given in sorted order with respect to the last coordinate, has distinct last
+coordinates, and has j -th-coordinates from [2`j ] for j = 1; : : : ; d 1.
+     In Case 10, we assume that `1; : : : ; `d 1  L and n  2(d 1)L . The point set can still be packed into
+O(nL=w) words. By dividing with respect to the j -th coordinate, we get the following analog of recurrence
+(1):
+                                       1
+                                       X
+            (
+          T n; `1; : : :; `d 1   ) =           (
+                                             T ni; `1; : : : ; `j       1 ; `j        1; `j ; : : : ; `d )
+                                                                                             +1              1
+                                       i=0
+                                  + T (ni; ` ; : : : ; `j ; 1; `j ; : : : ; `d )
+                                                       1            1                +1               1
+
+                                  + O(nL=w)                  8` ; : : : ; `d  L; 8j 2 f1; : : :; d 1g
+                                                                                 1                1
+
+
+for some n ; n with n + n = n, where T (n; 1; : : : ; 1) = O(nL=w). This yields T (n; ` ; : : : ; `d ) =
+           1        2        1    2                                                                                     1   1
+O(n`    `d L=w) = O(nLd =w).
+     1          1
+    In Case 100, we remove the assumption about n. After resetting h to lg n (d 1)L, we get the time
+bound O(n(1 + Ld =w)).
+    In Case 2, the recurrence (2) modiﬁes to
+                                       L
+                                       2X1
+            (
+          T n; `1; : : :; `d 1   ) =               (
+                                              T ni ; `1; : : : ; `j       1 ; `j          L; `j +1 ; : : : ; `d 1   )
+                                       i=0
+                                     + T (ni; ` ; : : : ; `j ; L; `j ; : : : ; `d )
+                                                       1            1                +1               1
+
+                                     + O(nL=w)                 8` ; : : : ; `d  L; 8j 2 f1; : : :; d 1g
+                                                                                 1                1
+
+                     P
+for some ni ’s with i ni = n, where T (n; L; : : : ; L) = O(n(1 + Ld =w)). This yields T (n; ` ; : : : ; `d ) =         1   1
+O(n(` =L)   (`d =L)(1 + Ld =w)). Setting L = w =d and w = " lg n gives T (n; lg n; : : : ; lg n) =
+      1                 1
+                                                                          1
+
+O(n[(lg n)=w =d]d ) = O(n[(lg n)
+                1        1              1 1
+                                            ] ) = O(n lgd =d n).
+                                          =d d         1                      2+1
+
+    In initialization, we can afford to use any standard O(n lg n) sorting algorithm in place of known Word
+RAM results.                                                                                                  2
+Corollary 3.2 Given n points and n axis-aligned boxes in a constant dimension d  3, we can count the
+number of points inside each box, in O(n lgd 2+1=d n) total time.
+
+    The above result leads to some interesting new time bounds for a few applications. For example:
+
+     The 2-d ofﬂine dynamic orthogonal range counting problem reduces to 3-d ofﬂine (static) orthogonal
+      range counting (by adding time as the third coordinate and subtracting counts for points deleted from
+      counts for points inserted). It can thus be solved in O(n lg4=3 n) total time, i.e., O(lg4=3 n) amortized
+      update/query time. In contrast, the best 2-d online dynamic orthogonal range counting result with
+      O(polylog n) update time has O((lg n= lg lg n)2 ) query time [Nek09].
+
+
+                                                                9
+     The following rectangle enclosure problem has been studied by several researchers [PS85, LP82,
+      GJSD97]: given n axis-aligned rectangles in the plane, report all pairs of rectangles (r ; r ) where
+                                                                                                        1   2
+      r1 is strictly contained in r2. The counting version of the problem reduces to 4-d ofﬂine orthogonal
+                                                                                                   ( lg
+      range counting (by mapping each rectangle to a 4-d point) and can thus be solved in O n 2:25 n time.      )
+   We can also obtain a generalization of the online data structure in Theorem 2.6 (the proof is similar enough
+and hence is omitted):
+
+Theorem 3.3 We can preprocess n points in a constant dimension d  3 in O(n lgd 2+1=d n) time, using
+a data structure with O(n(lg n= lg lg n)d 2 ) words of space, so that we can count the number of points
+dominated by a query point in O((lg n= lg lg n)d 1 ) time.
+
+
+4    Approximation
+In this ﬁnal section, we turn to approximation results, speciﬁcally, for our initial problem: counting inversions.
+We present a nice, simple linear-time algorithm that improves over known (1 + ")-approximation algorithms.
+We ﬁrst solve a modiﬁed version of the approximation problem in which we are given a “threshold” parameter
+K . We will describe our solution in setting of 2-d ofﬂine dominance counting:
+
+Theorem 4.1 Given m red and n blue points in [m + n]2, let K  denote the (unknown) number of pairs
+(p; q) where the red point p is dominated by the blue point q. Given K , we can either report K  > K or
+approximate K  to within an additive error of "K , in O(m + n) time.
+
+Proof: The algorithm. Let k = 2K=n. We sweep the points from left to right. Let S be the (dynamic) set of
+all red points to the left of the sweep line, ordered by y -coordinates. Let fp1; : : : ; pbg be a set of “approximate
+quantiles”, with b = d20="e, satisfying the property that pi has rank in [ik=b; ik=b +0:05"k) in S at all times.
+Such approximate quantiles can be maintained easily in O(1) amortized time as follows: initialize T to ;;
+whenever the sweep line passes through b0:05"kc red points, insert these points to T , eliminate all points of
+y -rank exceeding k from T , and reset each pi to be the (ik=b)-th lowest point in T , computable in O(k) time
+by a linear-time selection algorithm.
+     Whenever the sweep line passes through a blue point q , we do the following: If q:y > pb , then we
+mark q as bad. Otherwise, if pi :y  q:y < pi+1 :y , then the number of red points dominated by q lies in
+[ik=b; (i + 1)k=b + 0:05"k)  [ik=b; ik=b + 0:1"k), and we add ik=b to the total count.
+     Observe that each bad red point dominates at least k blue points. Thus, if the number of bad red points
+exceed n=2, then K  > nk=2 = K and we can quit. Otherwise, we recurse over all bad blue points and all
+red points, with "      0:8" and the colors swapped.
+Analysis. The additive error incurred by the non-bad blue points is at most 0:1"kn  0:2"K . The additive
+error from the recursive call is at most 0:8"K by hypothesis. So, the total error is indeed at most "K as
+claimed.
+    The running time satisﬁes the recurrence
+
+                              (    )  T (n=2; m; 0:8") + O((m + n)=")
+                            T m; n; "
+                                       T (m=2; n=2; 0:64") + O((m + n)=");
+which expands to a decreasing geometric series, yielding T (m; n; ") = O((m + n)=").              2
+Corollary 4.2 Given a permutation  over [n] and any constant " > 0, we can compute a factor-(1 + ")
+approximation to the number of inversions in O(n) time.
+
+                                                         10
+                                        P
+Proof: It is known that the quantity i j (i) ij gives a factor-2 approximation on the number of inver-
+sions [DG77], and can be found in linear time. Thus, we can ﬁnd a K such that K   K < 2K . We can
+then apply Theorem 4.1 to get a factor-(1 + O(")) approximation.                                     2
+    We have not optimized the "-dependencies in the running time, to keep the algorithm simple. It is not
+difﬁcult to get O(n lg(1=")) time by using extra data structures to maintain the approximate quantiles (we
+can even get O(n) time for " = (1=polylog n) with more effort, by using fusion trees). We can also obtain
+randomized (1+ ")-approximation results for other related problems, for example, dynamic approximate rank
+queries. Due to lack of space, these results are deferred to the full version of the paper.
+
+
+References
+[AAL09]     Peyman Afshani, Lars Arge, and Kasper Dalgaard Larsen. Orthogonal range reporting in three and higher
+            dimensions. In Proc. 50th Annual Symposium on Foundations of Computer Science (FOCS), 2009. To
+            appear.
+[ABR00]     Stephen Alstrup, Gerth Stølting Brodal, and Theis Rauhe. New data structures for orthogonal range search-
+            ing. In Proc. 41st Annual Symposium on Foundations of Computer Science (FOCS), pages 198–207, 2000.
+[ABR01]     Stephen Alstrup, Gerth Stølting Brodal, and Theis Rauhe. Optimal static range reporting in one dimension.
+            In Proc. 33rd Annual ACM Symposium on Theory of Computing (STOC), pages 476–482, 2001.
+[AE99]      Pankaj K. Agarwal and Jeff Erickson. Geometric range searching and its relatives. In B. Chazelle, J. E.
+            Goodman, and R. Pollack, editors, Advances in Discrete and Computational Geometry, volume 223 of
+            Contemporary Mathematics, pages 1–56. American Mathematical Society, Providence, RI, 1999.
+[AHNR98] Arne Andersson, Torben Hagerup, Stefan Nilsson, and Rajeev Raman. Sorting in linear time? Journal of
+         Computer and System Sciences, 57(1):74–93, 1998. See also STOC’95.
+[AJKS02]    Miklós Ajtai, T. S. Jayram, Ravi Kumar, and D. Sivakumar. Approximate counting of inversions in a data
+            stream. In Proc. 34th ACM Symposium on Theory of Computing (STOC), pages 370–379, 2002.
+[AP98]      Arne Andersson and Ola Petersson. Approximate indexed lists. Journal of Algorithms, 29(2):256–276,
+            1998. See also SODA’95.
+[Arg03]     Lars Arge. The buffer tree: A technique for designing batched external data structures. Algorithmica,
+            37(1):1–24, 2003. See also WADS’95.
+[BC98]      Hervé Brönnimann and Bernard Chazelle. Optimal slope selection via cuttings. Computational Geometry:
+            Theory and Applications, 10(1):23–29, 1998.
+[BCD+ 02] Michael A. Bender, Richard Cole, Erik D. Demaine, Martin Farach-Colton, and Jack Zito. Two simpliﬁed
+          algorithms for maintaining order in a list. In Proc. 10th European Symposium on Algorithms (ESA), pages
+          152–164, 2002.
+[Cha88]     Bernard Chazelle. A functional approach to data structures and its use in multidimensional searching.
+            SIAM Journal on Computing, 17:427–462, 1988. See also FOCS’85.
+[Cha90a]    Bernard Chazelle. Lower bounds for orthogonal range searching: I. The reporting case. Journal of the
+            ACM, 37:200–212, 1990. See also FOCS’86.
+[Cha90b]    Bernard Chazelle. Lower bounds for orthogonal range searching: II. The arithmetic model. Journal of the
+            ACM, 37:439–463, 1990. See also FOCS’86.
+[Cha97]     Bernard Chazelle. Lower bounds for off-line range searching. Discrete and Computational Geometry,
+            17(1):53–66, 1997. See also STOC’95.
+[Cha99]     Timothy M. Chan. Geometric applications of a randomized optimization technique. Discrete and Compu-
+            tational Geometry, 22(4):547–567, 1999.
+
+                                                        11
+[Cha07]    Timothy M. Chan. More algorithms for all-pairs shortest paths in weighted graphs. In Proc. 39th ACM
+           Symposium on Theory of Computing (STOC), pages 590–598, 2007.
+                                                                                 p
+[CP07]     Timothy M. Chan and Mihai Pǎtraşcu. Voronoi diagrams in n  2O(       lg lg n)
+                                                                                              time. In Proc. 39th ACM
+           Symposium on Theory of Computing (STOC), pages 31–39, 2007.
+[CSSS89]   Richard Cole, Jeffrey S. Salowe, William L. Steiger, and Endre Szemerédi. An optimal-time algorithm for
+           slope selection. SIAM Journal on Computing, 18(4):792–810, 1989. See also ICALP’88.
+[Die89]    Paul F. Dietz. Optimal algorithms for list indexing and subset rank. In Proc. 1st Workshop on Algorithms
+           and Data Structures (WADS), pages 39–46, 1989.
+[DG77]     Persi Diaconis and Ronald L. Graham. Spearman’s footrule as a measure of disarray. J. Royal Statistical
+           Society Series B, 39:262–268, 1977.
+[DKNS01] Cynthia Dwork, Ravi Kumar, Moni Naor, and D. Sivakumar. Ranking aggregation methods for the web.
+         In Proc. 10th WWW, pages 613–622, 2001.
+[DMN92]    Michael B. Dillencourt, David M. Mount, and Nathan S. Netanyahu. A randomized algorithm for slope
+           selection. International Journal of Computational Geometry and Applications, 2:1–27, 1992.
+[DS87]     Paul F. Dietz and Daniel D. Sleator. Two algorithms for maintaining order in a list. In Proc. 19th ACM
+           Symposium on Theory of Computing (STOC), pages 365–372, 1987.
+[EE94]     David Eppstein and Jeff Erickson. Iterated nearest neighbors and ﬁnding minimal polytopes. Discrete and
+           Computational Geometry, 11:321–350, 1994.
+[FS89]     Michael L. Fredman and Michael E. Saks. The cell probe complexity of dynamic data structures. In Proc.
+           21st ACM Symposium on Theory of Computing (STOC), pages 345–354, 1989.
+[FW93]     Michael L. Fredman and Dan E. Willard. Surpassing the information theoretic bound with fusion trees.
+           Journal of Computer and System Sciences, 47(3):424–436, 1993. See also STOC’90.
+[GJSD97]   Prosenjit Gupta, Ravi Janardan, Michiel H. M. Smid, and Bhaskar DasGupta. The rectangle enclosure and
+           point-dominance problems revisited. International Journal of Computational Geometry and Applications,
+           7(5):437–455, 1997.
+[GS09]     Beat Gfeller and Peter Sanders. Towards optimal range medians. CoRR abs/0901.1761, 2009. See also
+           ICALP’09.
+[GZ03]     Anupam Gupta and Francis Zane. Counting inversions in lists. In Proc. 14th ACM/SIAM Symposium on
+           Discrete Algorithms (SODA), pages 253–254, 2003.
+[Han04]    Yijie Han. Deterministic sorting in O(n log log n) time and linear space. Journal of Algorithms, 50(1):96–
+           105, 2004. See also STOC’02.
+[HPM08]    Sariel Har-Peled and S. Muthukrishnan. Range medians. In Proc. 16th European Symposium on Algorithms
+           (ESA), pages 503–514, 2008.
+                                                                p
+[HT02]     Yijie Han and Mikkel Thorup. Integer sorting in O(n log log n) expected time and linear space. In Proc.
+           43rd IEEE Symposium on Foundations of Computer Science (FOCS), pages 135–144, 2002.
+[JMS04]    Joseph JáJá, Christian Worm Mortensen, and Qingmin Shi. Space-efﬁcient and fast algorithms for mul-
+           tidimensional dominance reporting and counting. In Proc. 15th International Symposium on Algorithms
+           and Computation (ISAAC), pages 558–568, 2004.
+[KMS05]    Danny Krizanc, Pat Morin, and Michiel H. M. Smid. Range mode and range median queries on lists and
+           trees. Nordic Journal of Computing, 12(1):1–17, 2005. See also ISAAC’03.
+[KS97]     Matthew J. Katz and Micha Sharir. An expander-based approach to geometric optimization. SIAM Journal
+           on Computing, 26:1384–1408, 1997.
+
+
+
+                                                       12
+[LP82]         D. T. Lee and Franco P. Preparata. An improved algorithm for the rectangle enclosure problem. Journal of
+               Algorithms, 3(3):218–224, 1982.
+[Mat91]        Jirí Matoušek. Randomized optimal algorithm for slope selection. Information Processing Letters, 39:183–
+               187, 1991.
+[Nek09]        Yakov Nekrich. Orthogonal range searching in linear and almost-linear space. Computational Geometry:
+               Theory and Applications, 42(4):342–351, 2009. See also WADS’07.
+[Pǎt07]       Mihai Pǎtraşcu. Lower bounds for 2-dimensional range counting. In Proc. 39th ACM Symposium on
+               Theory of Computing (STOC), pages 40–46, 2007.
+[Pǎt08]       Mihai Pǎtraşcu. (Data) STRUCTURES. In Proc. 49th IEEE Symposium on Foundations of Computer
+               Science (FOCS), pages 305–313, 2008.
+[PD06]         Mihai Pǎtraşcu and Erik D. Demaine. Logarithmic lower bounds in the cell-probe model. SIAM Journal
+               on Computing, 35(4):932–963, 2006. See also SODA’04 and STOC’04.
+[PS85]         F. P. Preparata and M. I. Shamos. Computational Geometry: An Introduction. Springer-Verlag, New York,
+               NY, 1985.
+[Rab76]        Michael O. Rabin. Probabilistic algorithms. In J. F. Traub, editor, Algorithms and Complexity, pages
+               21–30. Academic Press, 1976.
+[Tho99]        Mikkel Thorup. Undirected single-source shortest paths with positive integer weights in linear time. Jour-
+               nal of the ACM, 46(3):362–394, 1999. See also FOCS’97.
+[vEBKZ77] Peter van Emde Boas, R. Kaas, and E. Zijlstra. Design and implementation of an efﬁcient priority
+          queue. Mathematical Systems Theory, 10:99–127, 1977. Conference version by van Emde Boas alone
+          in FOCS’75.
+
+
+A     Appendix
+A.1        1-d ofﬂine dynamic ranking and selection
+In this section, we explore variants of our algorithms to solve several related problems. We ﬁrst consider the
+1-d dynamic ofﬂine ranking/selection problem. Here, we want to maintain a set P of numbers, under the
+following operations: P .insert(p) inserts a new element p to P ; P .delete(p) removes p from P ; P .rank(p)
+returns the rank of p; and P .select(k) returns the k-th element of P . We allow duplicate elements (i.e., P is a
+multiset). In the ofﬂine setting, the sequence of all update and query operations is given in advance.
+    It is easy to reduce ofﬂine dynamic ranking queries directly to 2-d ofﬂine red/blue dominance counting.
+For selection queries, we present a modiﬁcation of our algorithm:
+
+Theorem A.1 We p can perform an ofﬂine sequence of n updates and selection queries over a (multi)set of
+integers in O(n lg n lg1=4 lg n) expected total time.
+
+Proof:       Algorithm template. Suppose we are given an ofﬂine sequence S of n operations over a multiset
+P   [2`], and an initial multiset for P (we allow P to be initiallyjnonempty).
+                                                                            k
+    For each i 2 [2h ], let Pi be the multiset fp 2 P : p=2` h = ig. Let Pe be the multiset
+ j        k                                                                                            j       k
+f p=2` h : p 2 P g. To handle each operation P .insert(p) (resp. P .delete(p)), we compute i = p=2` h
+and invoke the operations Pi .insert(p) and Pe .insert(i) (resp. Pi .delete(p) and Pe .delete(i)). To handle the
+operation P .select(k), we ﬁrst invoke Pe .select(k) to get an intermediate output i, then invoke Pe :rank(i) to
+get another intermediate output k0 , and then invoke Pi .select(k k0 + 1) to get the ﬁnal output. Note that all
+
+
+                                                           13
+the invoked operations on Pe are to be executed collectively ﬁrst, before the operations on the Pi ’s. Also note
+that by translation, we can make Pi  [2` h ], and we know Pe  [2h].
+Case 10: `  L, n  2L , and the maximum multiplicity is at most O(2L ). For each operation in S , we create a
+record storing its type, its input parameter (an element p or an index k), and its (intermediate or ﬁnal) output.
+Since each index k can be at most 2L  2L by the multiplicity assumption, we can store the given sequence S ,
+together with the initial multiset, in O(nL=w) words. We choose h = 1.
+    We ﬁrst gather the sequence of invoked insert/delete/select operations on Pe and execute them directly.
+This can be done in O(nL=w) time by appropriate word operations. We then perform the sequence of invoked
+rank operations on Pe directly, also in O(nL=w) time (recall that ofﬂine dynamic rank queries reduce to red-
+blue dominance counting). We then split S (based on the intermediate output for each select operation) to get
+the sequence of invoked operations on P0 and the invoked operations on P1 . This again takes O(nL=w) time.
+After recursively handling these two sequences, we can unsplit to get back S with the ﬁnal output ﬁlled in.
+    As a result, we get the same recurrence (1) and obtain O(nL2 =w) running time.
+Case 100: `  L, without further restrictions. We divide the sequence S into O(n=2L) blocks, each containing
+2L 1 operations. Fix one block. At the beginning of the block, identify the “problematic” elements p0; p1; : : :
+that have initial multiplicity greater than 2L+1 . Let i and ri denote the initial multiplicity and rank of pi
+                             P
+respectively, and let di = j i (j 2L ). We can easily compute all these values in O(2L) time per block.
+Let P 0 be equal to P , except that the multiplicity of pi in P 0 is decreased by i 2L . Note that the multiplicities
+in P 0 lie in the range (0; 2L+1) at all times, since the block has fewer than 2L operations.
+    Updates to P are applied to P 0 . To ﬁnd the k-th smallest element in P , we ﬁrst ﬁnd i with ri + 2L  k <
+ri+1 + 2L by a predecessor search. Observe that at all times, the rank of pi in P is < ri + 2L  k, and the
+rank of pi+1 + 1 in P is > ri+1 + 2L+1 2L  k. So, the answer must lie between pi and pi+1 + 1. On the
+other hand, observe that for each p = pi + 1; : : :; pi+1, the rank of p in P 0 exactly equals the rank of p in P
+minus di . So, compute the (k di )-th smallest element q in P 0 . If q  pi , return pi ; if q  pi+1 + 1, return
+pi+1 + 1; otherwise, return q .
+    Note that for each block, the O(2L ) predecessor queries are given ofﬂine and are      p done to a static set of
+size O(2L ). Thus, they can be performed collectively by sorting, which takes O(2L lg lg 2L) expected time
+by the fastest known Word RAM algorithm [HT02]. The selection queries on P 0 take O(2LL2 =w) time by
+                                                                                                 p
+Case 10. Summing over all O(n=2L ) blocks, we get a total expected running time of O(n( lg L + L2 =w)).
+Case 2: ` > L. Here, we store the given sequence S naively in O(n) words, but we choose h = L instead. We
+handle the invoked insert/delete/select operations on Pe by Case 1, and the rank operations on Pe by dominance
+                                                p
+counting, and then recursively perform the invoked
+as (2), except that the overhead term is O(n( lg L + L2=w)). This yields T (n; `) =
+                                                                                                       p
+                                                     operations on the Pi ’s. We get almost the same recurrence
+                                                                                           O(n(`=L)( lg L +
+                        p                                     p                         p
+L2 =w)). Setting L = w lg1=4 w gives T (n; lg n) = O((n= w) lg n lg1=4 w) = O(n lg n lg1=4 lg n).
+    In initialization, we can again use a Word RAM sorting algorithm to convert the integers to lie in [n]. 2
+
+A.2    1-d ofﬂine dynamic depth
+Next, we turn to an ofﬂine version of the following problem: maintain the maximum depth in a set of intervals
+in 1-d, under insertions and deletions of intervals. Here, the depth of a point p with respect to a collection of
+objects (e.g., intervals) is deﬁned as the number of objects containing p, and the maximum depth refers to the
+maximum depth over all possible points.
+    We generalize the problem slightly and consider the maintenance of a set P of weighted integer points in
+1-d to support the following operation:
+
+
+
+                                                         14
+      P:preﬁx-update(p; Æ ), where Æ 2 f 1; +1g: add Æ to the weight of every element q  p in P ,
+      and output the change in the maximum weight in P (the change is either 0 or Æ ).
+Initially, we let P contain all the intervals’ endpoints (which can be normalized to lie in [2n] after call-
+ing a Word RAM sorting algorithm), and we set all the weights to 0. We can simulate an insertion (resp.
+deletion) of an interval [p; q ] by invoking P:preﬁx-update(q; +1) and P:preﬁx-update(p       1; 1) (resp.
+P:preﬁx-update(q; 1) and P:preﬁx-update(p 1; +1)); then the maximum depth corresponds to the maxi-
+mum weight.
+Theorem A.2 We can perform an ofﬂine sequence of n preﬁx-update() operations in O(n
+                                                                                            plg n) total time.
+Proof: Algorithm template. Suppose we are given the ofﬂine sequence S of n operations over a set P 
+[2`]. Divide P into 2h subsets Pi  [2` h i; 2` h(i + 1)). Create an extra set Pe , maintaining the invariant
+that the weight of i in Pe equals the maximum
+                                        j         weight
+                                                  k        of p in P over all p 2 Pi . To handle the operation
+P:preﬁx-update(p; Æ ), we compute i = p=2` h and invoke Pi :preﬁx-update(p; Æ ); if the output is 0, then
+                            j        k                                j       k
+we invoke Pe :preﬁx-update( p=2` h      1; Æ), else Pe :preﬁx-update( p=2` h ; Æ), to get the ﬁnal output. Note
+that by translation, we can make Pi  [2` h ], and we know Pe  [2h].
+Case 1: `  L. For each operation in S , we create a record storing its input parameters and a bit for
+(intermediate or ﬁnal) output. The given sequence S can be stored in O(nL=w) words. We choose h = 1.
+     We ﬁrst split S to get the sequence of invoked operations on P0 and the sequence of invoked operations on
+            (      )
+P1 , using O nL=w word operations. We execute these two sequences recursively and then unsplit. We next
+                                                               (     )
+generate the sequence of invoked operations on Pe , again in O nL=w time using appropriate word operations.
+                                                 (
+We can solve the subproblem for Pe directly in O nL=w time.)
+                                                           (        )
+     As a result, we get the same recurrence (1) and obtain O nL2 =w running time.
+Case 2: ` > L. Here, we store the sequence S naively in O(n) words, but we choose h = L instead. As in
+                                                                                              p
+the proof of Theorem 2.1, we get the same recurrence (2) and obtain the ﬁnal time bound of O(n lg n). 2
+
+Corollary A.3 We can maintain  p the maximum depth over a set of intervals under an ofﬂine sequence of n
+insertions and deletions in O(n lg n) total time.
+   We mention two immediate consequences:
+    We can compute the maximum depth in a 2-d arrangement of n axis-aligned rectangles in O(nplg n)
+      time. This follows by applying a standard plane-sweep algorithm.
+    Given n pointspin the plane and an integer k, we can ﬁnd the smallest axis-aligned square enclosing k
+     points in O(n lg n) expected time. This follows from the preceding item by applying a known random-
+      ized optimization technique [Cha99]. (Alternatively, by parametric or matrix searching techniques, we
+      get an O(n lg3=2 n)-time deterministic algorithm for this k-enclosing square problem, which improves
+      over the previous best deterministic algorithm running in O(n lg2 n) time [EE94].)
+
+A.3   Online range median
+Next, we consider range median queries. This problem can be viewed geometrically: for a set of n points
+2-d, we want to ﬁnd the point with the median y -coordinate among the points inside a query vertical slab. A
+decision version of the problem (deciding whether the median is less than a given value) is easily reducible
+to orthogonal range or dominance counting. We show that a simpler version of our online data structure for
+dominance counting queries with O(lg n) query time can answer range median queries in the same amount of
+time.
+
+                                                      15
+                                                                     p
+Theorem A.4 We can preprocess n points in the plane in O(n lg n) time, using a data structure with O(n)
+words of space, so that we can select the k-th lowest point among the points inside a query vertical slab for
+any given k in O(lg n) time.
+
+Proof: We use the same data structure as in the proof of Theorem 2.6 but with a different setting of parame-
+ters: H = 1 and A = lg n. Case 000 disappears, and Case 00 becomes     p trivial. Thus, in Case 1, we revert to a
+simpler 2-way divide-and-conquer. The preprocessing time is O(n lg n) and space is O(n).
+    Assume that we are a given the two x-ranks of the coordinates of the query slab  . To select the k-th
+lowest point of P \  , we (i) select the k-th lowest point qe of Pe \  , (ii) compute the y -rank k0 of qe in Pe \  ,
+and (iii) select the (k k0 + 1)-th lowest point of Pi \  with i = q:y  e .
+    In Case 1, step (i) takes O(1) time by computing the y -rank of only two y -values (since h = 1) in Pe \  ,
+which reduces to dominance counting in Pe . Step (ii) takes O(1) time, again by dominance counting in Pe .
+Step (iii) is done recursively. We thus get the same recurrence for the query time.
+    In Case 2, step (i) reduces to Case 1, step (ii) reduces to dominance counting in Pe , and step (iii) is done
+recursively. Again we get the same recurrence for the query time.
+    Note that initially the x-ranks can be determined more simply by binary search in O(lg n) time.                  2
+   An intriguing question we leave open is whether sublogarithmic (e.g., O(lg n= lg lg n)) query time is
+possible for range median with O(n polylog n) space.
+
+A.4    1-d online dynamic ranking and selection
+In this subsection, we give a data structure for online dynamic ranking and selection with an improved up-
+date time. Roughly speaking, we need to rework the ofﬂine algorithms from Section 2 or A.1 to handle an
+online sequence of updates. For convenience, we will deviate somewhat from notation of the earlier sections,
+however.
+    We begin by designing a better data structure for maintaining partial sums. In this problem, we are to
+maintain an array A[1 : : n] of positive integers under: incrementing or decrementing a location A[i]; asking
+                   P
+for a partial sum: ki=1 A[i]; and selection query: asking for the predecessor of some x among the partial
+                                P                  P +1
+sums. That is, ﬁnd k such that ki=1 A[i]  x < ki=1       A[i].
+    We can achieve an optimal O(lg n= lg lg n) query time, while improving the update time almost quadrati-
+cally:
+
+Theorem A.5 We can maintain partial sums with O(lg n= lg lg n) time per query, and O(lg0:5+" n) time per
+update.
+
+Proof: Let H = " lg w. If we can maintain partial sums with O(1) update and query time in an array of size
+2H , we can obtain O((lg n)=H ) time per operation overall. Indeed, consider a balanced tree with degree 2H
+spanning the array A. To each node, we associate the sum of all leaves in its subtree. A node stores a small
+partial sums data structure for the values associated to its children. An update translates into O((lg n)=H )
+updates on a root-to-leaf path, and a query into O((lg n)=H ) queries.
+    Let us ignore selection queries for now. To speed up the updates, we will maintain the partial sums data
+structure in a node with O(1) query time and subconstant amortized update time. Imagine ﬁrst that we are
+working in external memory, and B words (of w bits each) can be manipulated in constant time. Then we can
+use buffer trees [Arg03] to delay the updates. Each node will hold a buffer of B recent updates that concern
+leaves in its subtree. In addition, it will maintain the partial sums of its children before these recent updates.
+    As long as the buffer of the root is not full, we can simply insert a new update there. When it gets
+ﬁlled, we recompute the partial sums array (incorporating the B updates), and distribute the corresponding
+
+                                                          16
+updates down to the 2H children of the root. Recurse if any child’s buffer gets ﬁlled. Emptying a buffer
+takes O(2H ) time, and each of B updates is pushed down one level. Suppose n  2L . Overall, an update
+is pushed down at most O(L=H ) times, so its amortized cost is O(1 + (1=B )  2H L=H ). The queries are
+only slowed down by a constant factor, since the buffer of recent updates can be examined in constant time at
+each level. For B = w=L, we can indeed pack B elements into a word. Thus, we get amortized update cost
+O(1 + 2H L=H  L=w), which is at most O(1 + 2H L2 =w), and query cost O(L=H ).
+    To handle the case n > 2L , we solve the partial sums problem using a tree of depth (lg n)=L, and
+branching factor 2L . In each node, we are facing a small partial sums problem, which can be solved above.
+Overall, we get amortized update cost O((lg n)=L  [1 + 2H L2 =w]), and query cost O((lg n)=L  L=H ) =
+                              p
+O((lg n)=H ). Setting L = w, w = " log n, and H = " log w gives update time O(lg0:5+" n) and query
+time O(lg n= lg lg n).
+    Finally, we discuss the selection query. In each node of the 2H -ary tree, we maintain the partial sums array
+(ignoring recent updates) as a fusion data structure [FW93]. This allows for constant-time predecessor search.
+The reconstruction time is slowed down to 2O(H ), but this is inconsequential (except in the dependence on the
+constant ").
+    It is not immediately possible to answer the selection query based on the predecessor and the recent
+updates, but there is a standard trick to solve this issue [PD06]. In a packed word, we also remember the value
+of each child, capped to at most B + 1. The selection query can be answered from the predecessor and the
+capped values, since we are only considering B recent updates (see [PD06]). The capped values ﬁt in a word,
+since the only require O(2H lg B ) = O(lg0:5+2" n) bits.                                                       2
+    We now turn our attention to dynamic algorithms for the rank problem. The goal is to support a list of
+n elements under: querying the rank of a given element; querying for the k-th element (selection queries);
+deleting a given element; and inserting an element after a given element.
+
+Theorem A.6 There exists a data structure for dynamic rank supporting updates in O(lg0:5+" n) time and
+queries in O(lg n= lg lg n) time.
+
+Proof: This proceeds by reduction to partial sums. We recall the ordered ﬁle data structure of [DS87,
+BCD+ 02]. This data structure can maintain n objects inside an array of size O(n) under insertions and
+deletions, always preserving a strict ordering of the elements. At insertion time, an amortized O(lg2 n)
+elements are moved to create space for the inserted item.
+    We will group our list elements into buckets of (lg2 n) consecutive elements, each of which is main-
+tained as a balanced binary search tree. Each bucket is stored as an element in an ordered ﬁle data structure.
+On top of the O(n) array of the ordered ﬁle data structure, we store a partial sums data structure (the base
+elements are the exact size of each bucket).
+    To insert or delete an element, we ﬁrst insert/delete in the binary search tree of the bucket. Then, the
+count of the bucket size is updated in the partial sums structure. If the bucket has grown or shrunk by a
+constant factor, we break it or merge two consective buckets. An element must be inserted or removed into
+the ordered ﬁle structure. However, one such update is done for O(lg2 n) original updates, so the amortized
+cost is constant. Overall, the time is equal to the update in the partial sums structure, plus O(lg lg n).
+    To query the rank of the element, we ﬁrst run a partial sums query up to its bucket, and add the rank
+within the bucket. To select an element, we select in the partial sums data structure, and ﬁnish off in the
+corresponding bucket. In both cases, the query time is the partial sums query, plus O(lg lg n).             2
+
+
+
+                                                       17
+

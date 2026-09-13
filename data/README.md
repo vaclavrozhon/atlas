@@ -1,16 +1,26 @@
 # Canonical atlas data
 
-`cards/TCS-XXXX.json` is the only editable source for a problem. Each file contains
+`cards/TCS-XXXX.json` is the editable source for an **active** problem. Each file contains
 its statement, definitions, answer criterion, background, source references,
 review status, category, importance assessment and optional working summary.
 Drafts remain drafts: moving them into this directory does not certify their
 formulation or current open status. Follow [the atlas rules](../docs/RULES.md).
 
+**Inactive** cards live separately in `archive/cards/TCS-XXXX.json`. Preserve
+their complete contents, but exclude them from routine improvements, source
+checks, validation, selection, rankings, publication and imports. Search
+`cards/`, not all of `data/`, when doing editorial work. Archive contents are
+read only for explicitly requested archival work or reactivation; they need
+not meet today's active-card schema. Activity is determined by the folder and
+is separate from the scientific `status` field.
+
 - `categories.json`: category IDs, stable keys, labels, order and quotas.
 - `benchmark_selection.json`: ordered focus choices and their editorial reasons.
 - `criteria.json`: scientific selection criteria and labels.
 - `metadata.json`: dataset background and methodology.
-- `deleted_records.json`: deleted IDs mapped to removal reasons; no archived cards.
+- `archive/index.json`: inactive IDs mapped to archival reasons, including legacy removals.
+- `archive/cards/`: complete inactive cards, excluded from ordinary work and publication.
+- `archive/activity.jsonl`: archival and explicit restoration decisions.
 - `id_registry.json`: historical source-key-to-ID mappings. IDs remain reserved.
 
 The primary benchmark goal is 500 problems, with Top 100 as its priority subset
@@ -34,8 +44,8 @@ targets retain their specified matching-bound precision. See the
 [manifest](../docs/MANIFEST.md) and [rules](../docs/RULES.md).
 Related active problems are stored as stable IDs in `related_problem_ids`.
 The relation is symmetric: publication adds the reverse link automatically,
-without rewriting source cards, and omits links to deleted or retired problems.
-IDs must exist in the catalogue or deletion log; self-links and duplicates fail
+without rewriting source cards, and omits links to inactive problems.
+IDs must exist in the active catalogue or archive index; self-links and duplicates fail
 validation. The reader shows linked problem titles without explanations. The
 separate `related` field is reserved for bibliographic objects, not card IDs.
 When `context_blocks` exists, it owns the paragraph text and citations; searchable
@@ -57,21 +67,34 @@ and choose an existing category key from `categories.json`. Record review dates
 when the corresponding review is actually performed. Counts, category ranks,
 selection-group fields and `benchmark_focus` are generated, not authored fields.
 
-## Remove cards
+## Deactivate or reactivate cards
 
-Add the ID and a specific reason to `deleted_records.json`, remove its card file,
-and run `make publish`. Update a selected problem's entry in
-`benchmark_selection.json` when necessary; missing focus choices are reported.
-Deleted IDs and their historical import keys cannot be reimported. Even a stale
-card file copied back into `cards/` is ignored by publication. The IDs are never
-reallocated, including IDs absent from the historical registry. Live snapshots
-and deletion deltas remove the records from already open readers.
+```sh
+python3 scripts/archive_cards.py TCS-0123 --reason 'Specific editorial reason.'
+make publish
+```
 
-An explicitly user-authorized later restoration is a new editorial decision:
-record why the deletion is superseded, retain the original ID/key, remove that
-ID's deletion entry and validate its completed canonical card. Ordinary imports
-and stale files still cannot restore deleted IDs automatically.
+Archival moves the exact card file into `archive/cards/`, keeps its ID reserved,
+records the reason and removes it from focus selections. It does not choose
+replacement problems. Multiple IDs may be supplied for the same reason.
+Live snapshots and removal deltas also remove inactive cards from open readers.
+Do not delete card files or use resolved/excluded cards as an active backlog.
 
-The September 2026 cleanup removed 4,472 archived records. The deletion log also
-includes eight research directions deleted before that cleanup. Git history is
-unchanged; the working tree contains no restoration archive.
+Ordinary imports, even with `--replace`, reject inactive IDs and their historical
+source keys. A stale card copied into `cards/` cannot override the archive.
+Only a later explicit user request authorizes reactivation:
+
+```sh
+python3 scripts/archive_cards.py TCS-0123 --restore --reason 'Superseding editorial decision.'
+make publish
+```
+
+Restoration validates the requested card against current active requirements,
+preserves its complete file and identity, and records the decision. It does not
+restore former focus membership automatically. If validation fails, only that
+explicitly requested card may be prepared for reactivation.
+
+The 13 September 2026 migration superseded `deleted_records.json` with the
+archive index and recovered available historical card content from Git.
+Recovery provenance and any unavailable legacy contents are recorded in
+`archive/recovery.json`; missing historical content is not fabricated.

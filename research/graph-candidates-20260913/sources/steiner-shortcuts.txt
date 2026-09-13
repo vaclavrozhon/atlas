@@ -1,0 +1,1975 @@
+                                                              Reviving Thorup’s Shortcut Conjecture
+                                               Aaron Bernstein∗           Henry Fleischmann†             Maximilian Probst Gutenberg‡
+                                             Bernhard Haeupler§           Gary Hoppenworth¶             Yonggang Jiang‖          George Z. Li†
+                                                         Seth Pettie¶          Thatchaphol Saranurak¶               Leon Schiller∗∗
+arXiv:2510.24954v2 [cs.DS] 30 Oct 2025
+
+
+
+
+                                                                                         Abstract
+                                                 We aim to revive Thorup’s conjecture [Tho92] on the existence of reachability shortcuts with
+                                             ideal size-diameter tradeoffs. Thorup originally asked whether, given any graph G = (V, E) with
+                                             m edges, we can add m1+o(1) “shortcut” edges E+ from the transitive closure E ∗ of G so that
+                                             distG+ (u, v) ≤ mo(1) for all (u, v) ∈ E ∗ , where G+ = (V, E ∪ E+ ). The conjecture was refuted by
+                                             Hesse [Hes03], followed by significant efforts in the last few years to optimize the lower bounds
+                                             [HP21, LVWX22, BH23a, VXX24, HXX25].
+                                                 In this paper, we observe that although Hesse refuted the letter of Thorup’s conjecture,
+                                             his work [Hes03]—and all followup work [HP21, LVWX22, BH23a, VXX24, HXX25]—does not
+                                             refute the spirit of the conjecture, which should allow G+ to contain both new shortcut edges
+                                             and new Steiner vertices. Our results are as follows.
+                                                • On the positive side, we present explicit attacks that break all known shortcut lower
+                                                  bounds [Hes03, HP21, LVWX22, BH23a, VXX24, HXX25] when Steiner vertices are al-
+                                                  lowed.
+                                                • On the negative side, we rule out ideal m1+o(1) -size, mo(1) -diameter shortcuts whose
+                                                  “thickness” is t = o(log n/ log log n), meaning no path can contain t consecutive Steiner
+                                                  vertices.
+                                                • We propose a candidate hard instance as the next step toward resolving the revised version
+                                                  of Thorup’s conjecture.
+                                                Finally, we show promising implications. Almost-optimal parallel algorithms for computing
+                                             a generalization of the shortcut that approximately preserves distances or flows imply almost-
+                                             optimal parallel algorithms with mo(1) depth for exact shortcut paths and exact maximum flow.
+                                             The state-of-the-art algorithms have much worse depth of n1/2+o(1) [RHM+ 23a] and m1+o(1)
+                                             [CKL+ 22], respectively.
+
+
+
+
+                                         ∗
+                                            New York University
+                                         †
+                                            Carnegie Mellon University
+                                          ‡
+                                            ETH Zürich
+                                          §
+                                            INSAIT, Sofia University “St. Kliment Ohridski” and ETH Zürich
+                                          ¶
+                                            University of Michigan
+                                          ‖
+                                            MPI-INF and Saarland University
+                                         ∗∗
+                                            Hasso Plattner Institute, University of Potsdam
+Contents
+1 Introduction                                                                                        1
+  1.1 Reviving Conjecture 1 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     1
+  1.2 Contributions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   2
+
+2 Hesse’s Counterexample Graphs Gk                                                                    4
+  2.1 Warm-up Construction — Graph Family G1 . . . . . . . . . . . . . . . . . . . . . . .            5
+  2.2 Hesse’s Gk Family . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   6
+  2.3 Breaking Hesse’s Counterexamples using Steiner Vertices . . . . . . . . . . . . . . . .         8
+
+3 Necessity of Thick Steiner Shortcuts                                                              9
+  3.1 Basic Properties . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 10
+  3.2 Gk Needs Thick Steiner Shortcuts—Proof of Theorem 3.1 . . . . . . . . . . . . . . . 12
+  3.3 Gek Needs Thicker Steiner Shortcuts—Proof of Theorem 3.3 . . . . . . . . . . . . . . 13
+
+4 Generalized Shortcuts for Congestion and Length                                                     17
+  4.1 Formalization . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   17
+  4.2 Exact Shortest Paths via (1 + ϵ)-Approximate Distance Shortcuts . . . . . . . . . . .           19
+  4.3 Parallel Exact Max Flow via Õ(1)-Approximate Congestion Shortcuts . . . . . . . .              20
+
+A Lower Bounds for m1−ϵ -Sized Steiner Shortcuts                                                      25
+
+B Reachability Shortcuts as OR-circuit Depth Reduction                                                27
+
+C Steiner Shortcut for the Lower Bound of [VXX24]                                               30
+  C.1 Construction of [VXX24] Lower Bound . . . . . . . . . . . . . . . . . . . . . . . . . . 30
+  C.2 Steiner Shortcut to [VXX24] . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 31
+
+D Omitted Proofs                                                                                 33
+  D.1 Proof of Lemma 2.5 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 33
+1         Introduction
+One of the grand challenges in parallel computing is to overcome the transitive closure bottle-
+neck [KK93]: the observation that computing reachability in directed graphs apparently requires
+either superlinear work (iterated matrix squaring) to achieve polylog(n) depth, or nΩ(1) depth to
+achieve near-linear work. The problem of simultaneously achieving m1+o(1) work and mo(1) depth
+has remained an elusive goal for decades, for reachability and harder problems such as shortest
+paths and (min-cost) flows.
+    Naturally, researchers have tried to overcome this bottleneck in various ways. These efforts have
+been extremely fruitful, leading to the development of hopsets [Coh00] for computing approximate
+shortest paths, shortcuts [UY91] to achieve work-depth tradeoffs, min-sketches for estimating
+transitive closure size [Coh97], and attention to graph classes where the bottleneck does not exist,
+e.g., planar graphs [KK93]. In 1992, Thorup [Tho92] made a bold, purely combinatorial conjecture
+that was motivated by the transitive closure bottleneck.
+Conjecture 1 (Thorup’s Shortcut Conjecture [Tho92]). Let G∗ = (V, E ∗ ) be the transitive closure
+of an arbitrary directed graph G = (V, E), with m = |E|. There exists a shortcut E+ ⊂ E ∗ with
+|E+ | ≤ m such that G+ = (V, E ∪ E+ ) has polylog(n) diameter, that is, distG+ (u, v) = polylog(n),
+for every (u, v) ∈ E ∗ .
+    In other words, once the shortcut E+ is discovered in preprocessing, single-source reachability
+could be computed near-optimally, in Õ(m) work and Õ(1) depth. Conjecture 1 was known for
+rooted trees [Cha87] with a diameter1 of O(α(n, n)) and later confirmed for planar graphs [Tho95]
+with a diameter of O(α(n, n) log2 n).2 Thorup [Tho92] insisted on |E+ | ≤ m, but one could set any
+number of thresholds for the shortcut size, e.g., O(m), m1+o(1) , n1.5 , n1.99 , etc. In 2003 Hesse [Hes03]
+refuted Conjecture 1 and many weaker versions of it.
+Theorem 1.1 (Hesse [Hes03]). For any ϵ > 0 and n sufficiently large, there exist n-vertex graphs
+G = (V, E) and G′ = (V, E ′ ) with m, m′ edges, respectively, such that:
+        • m = Θ(n19/17 ) and any shortcut for G with o(n1/17 ) diameter must have Ω(mn1/17 ) edges.
+        • m′ = n1+ϵ and any shortcut for G′ with no(1) diameter must have Ω(n2−ϵ ) edges.
+    Theorem 1.1 precludes the most optimistic outcome, but it still leaves open many fascinating
+and potentially practical questions, such as: what diameter can be achieved with Õ(m)- or Õ(n)-
+size shortcuts? And can such shortcuts be computed efficiently? It is now known that the
+optimum diameters for Õ(n)- and Õ(m)-size shortcuts are in the ranges [Ω̃(n1/4 ), Õ(n1/3 )], and
+[Ω̃(n2/9 ), Õ(n2/3 /m1/3 )], respectively, and that the upper bounds can be attained in polynomial
+time. See Table 1 for details and references.
+
+1.1        Reviving Conjecture 1
+The shortcut problem, as Thorup [Tho92] originally defined it, is now well on its way to being
+completely solved, as we have narrowed down the correct exponent to a small range and just a
+couple plausible answers: 1/4 or 1/3.
+   However, Conjecture 1 is perhaps too strict from the algorithmic perspective. This is because
+the final goal is to somehow replace a directed graph G = (V, E) with any G+ of comparable size
+such that (1) the transitive closure of G can be extracted from the transitive closure of G+ , and (2)
+every (u, v) ∈ E ∗ is witnessed by a “short” u-v path in G+ . We propose the following small fix to
+Conjecture 1 by allowing G+ to introduce Steiner vertices.
+    1
+        The diameter of a directed graph is defined to be the largest finite distance.
+    2
+        A corollary of Thorup’s planar reachability oracle [Tho04] implies a shortcut with size O(n log n) and diameter 4.
+
+
+                                                              1
+           Shortcut Size   Diameter         Construction Time   Notes/Citation
+                              √                 √
+                           O( n)            Õ(m n)             [UY91]
+           Õ(n)           Õ(n2/3 )        Õ(m)               [Fin20] (Õ(n2/3 ) depth)
+                           n1/2+o(1)        Õ(m)               [JLS19] (n1/2+o(1) depth)
+                           O(n1/3 )         Õ(mn1/3 )          [KP23, KP22a, KP22b]
+                           Ω̃(n1/6 )                            [HP21]; see also [Hes03]
+                           Ω̃(n1/4 )                            [BH23b]
+                                √
+                           O(n/ m)          Õ(m3/2 )           [UY91]
+           Õ(m)           O(n2/3 /m1/3 )   Õ(m7/6 n1/6 )      [KP23, KP22a, KP22b]
+                           Ω̃(n1/11 )                           [HP21]; see also [Hes03]
+                           Ω̃(n1/8 )                            [LVWX22]
+                           Ω̃(n1/5 )                            [VXX24]
+                           Ω̃(n2/9 )                            [HXX25]
+
+  Table 1: Upper and lower bounds on diameter specialized to Õ(m)- and Õ(n)-size shortcuts.
+
+Conjecture 2 (Steiner Shortcut Conjecture). Let G∗ = (V, E ∗ ) be the transitive closure of a directed
+graph G = (V, E). There exists a graph G+ = (V ∪ V+ , E ∪ E+ ) such that
+   • G+ captures the transitive closure of G, i.e., for all (u, v) ∈ V × V , v is reachable from u in
+     G iff it is reachable from u in G+ .
+   • |E+ | = O(|E|);
+             e
+
+   • G+ has polylog(n) diameter, i.e., ∀(u, v) ∈ E ∗ , distG+ (u, v) = polylog(n).
+    We are not the first to propose the use of Steiner points. Berman, Bhattacharyya, Grigorescu,
+Raskhodnikova, Woodruff, and Yaroslavtsev [BBG+ 14] proved that if G is a DAG with dimension
+d, meaning there is a reachability-preserving embedding into the oriented hypergrid [n]d , then
+it has a diameter-2 graph G+ with O(n logd n) shortcuts. However, the prior work on Steiner
+shortcuts [BBG+ 14, Ras10] has no bearing on Conjecture 2.
+
+1.2   Contributions
+The purpose of this paper is to explore Conjecture 2 and the power of Steiner vertices more generally
+in constructing shortcuts. We are uncertain about the truth of Conjecture 2 and our goal is to raise
+it as an open problem. Although Conjecture 2 can be refuted using known techniques when the size
+of the Steiner shortcut is limited to |E+ | ≤ |E|1−ϵ for a constant ϵ (see Section A), once we permit
+|E+ | = O(|E|),
+         e      all known techniques become ineffective.
+    Indeed, our main contribution is to carefully demonstrate why the lower bounds of Hesse [Hes03],
+Huang and Pettie [HP21], Lu, Williams, Wein, and Xu [LVWX22], Williams, Xu, and Xu [VXX24],
+and Hoppenworth, Xu, and Xu [HXX25] fail catastrophically when Steiner vertices are allowed.
+These results are presented in Section 2.
+    Our second result, presented in Section 3, can be viewed as either partially refuting Conjecture 2
+or identifying the crucial property that the shortcut for Conjecture 2 must satisfy. Specifically, we
+show that the shortcut must have a sufficiently large thickness, defined as follows.
+Definition 1.2 (Thickness). Let G+ = (V ∪ V+ , E ∪ E+ ) be a Steiner shortcut graph for G = (V, E).
+We say G+ has thickness t (or is t-thick ) if every path in G+ has at most t − 1 consecutive Steiner
+vertices from V+ .
+
+                                                   2
+    For example, if V+ = ∅ (there are no Steiner vertices) then the thickness is 1, and all prior lower
+bounds [Hes03, HP21, LVWX22, VXX24, HXX25] are merely for 1-thick shortcut graphs. A 2-thick
+shortcut graph is one for which the in- and out-neighbors of V+ -vertices are all original V -vertices.
+    It turns out that almost all existing lower bounds – including the state of the art from [VXX24,
+HXX25] – break once we allow Steiner shortcuts of thickness two. Our main result in Section 3 is
+to show that thickness two is nonetheless insufficient for general graphs:
+
+Theorem 1.3. For t ≥ 1, there exists an m-edge graph G such that every t-thick Steiner shortcut
+graph G+ for G either has diameter mΩ(1/t) or m1+Ω(1/t) edges.
+
+     In other words, Theorem 1.3 refutes Conjecture 2 for any fixed t, and in fact the proof goes
+through for any t = o(log n/ log log n). This implies that any upper bound for Conjecture 2 would
+require a somewhat intricate connection between the Steiner vertices.
+     Roughly speaking, the “hard” graphs used to prove Theorem 1.3 are a family Gk , which are
+constructed as the k-fold product of a base graph, where k > t. This graph class is highly structured,
+which actually makes it too easy to shortcut with Steiner vertices; in particular, the k-fold product
+Gk can be shortcut with thickness t = k + 1. A natural and generic way to make this graph class
+more difficult to shortcut is to discard each edge with some probability p inversely proportional
+to the diameter; denote this noised class as Gek (p). It is an open problem whether Gek (p) suffices to
+refute Conjecture 2. As mild evidence of the hardness of this graph family, we show that, unlike Gk ,
+it is resistant to t-thick Steiner shortcuts for t ≤ 8k/7. See Section 3 for a more detailed discussion.
+
+Potential Implications. If Conjecture 2 turns out to be true, this would have exciting algorithmic
+applications. Most notably, it would suggest a promising approach for solving parallel directed
+reachability with near-linear work and polylog depth.
+    In the directed reachability problem, we are given as input a graph G and a vertex pair s, t, and
+asked to report whether there exists any path from s to t. While low-depth algorithms are known if
+we allow polynomial work, it is still unclear what depth is possible if we restrict ourselves to m1+o(1)
+work. A depth of n is trivial and was the best known for a long time. A breakthrough of Fineman
+in 2018 achieved depth n2/3 [Fin20], which was later improved to n1/2+o(1) [JLS19]. The n1/2+o(1)
+bound can also be generalized to exact shortest paths [CFR20, RHM+ 23b].
+    All known m1+o(1) -work algorithms with sublinear depth rely on the following basic approach: 1)
+compute a shortcut E+ with diameter h 2) run BFS from s in G+ = (V, E ∪ E ′ ). The existing work
+has focused on optimizing step 1, and there is still potential for further progress in this direction.
+But such progress has a hard barrier: even with the perfect hopset construction, the lower bounds
+of [HXX25] proves that this approach could never lead to depth o(n2/9 ).
+    Observe, however, that the framework would work just as well if we replaced E ′ with a Steiner
+shortcut. So if Conjecture 2 turned out to be true, this would suggest a natural approach for
+overcoming the above barrier and achieving polylog(n) depth. An analogous framework is also
+frequently used in other models of computation (dynamic, distributed, streaming), and in all those
+cases a Steiner shortcut would work just as well as a regular one.
+    The main body of the paper focuses exclusively on the simplest case of (Steiner) shortcuts for
+reachability because even here we are not sure if Conjecture 2 is true or false. But if the conjecture
+ends up being true, then one can state a natural generalization of the conjecture for shortest paths
+(a Steiner hopset) and maximum flow (a low-congestion Steiner shortcut): see Section 4 for more
+details.
+
+Connection to Circuit Complexity. While Steiner shortcuts are primarily motivated by the
+algorithmic applications mentioned above, they are also a natural combinatorial question in their own
+
+
+                                                   3
+right. Our Conjecture 2 can be recast in terms of circuit complexity. Consider a multi-input, multi-
+output circuit C consisting solely of unbounded fan-in OR gates. We would like to “compress” C into
+an equivalent circuit of comparable size but smaller depth. Conjectue 2 is equivalent to Conjecture 3
+below; none of the prior work on depth-reduction [Hås86, Sch82, Sch83, RM97, DRNV16, GKW21]
+directly applies to Conjecture 3.
+
+Conjecture 3. Suppose C : {0, 1}a → {0, 1}b is a circuit consisting solely of OR gates and m
+wires. There is a logically equivalent circuit C+ : {0, 1}a → {0, 1}b that has O(m)
+                                                                               e    wires and depth
+polylog(m).
+
+Organization. In Section 2 we give a self-contained exposition of Hesse’s lower bound for (non-
+Steiner) shortcuts, which we denote by graph family Gk ; we will later use this same graph for
+Theorem 1.3. We then show that the lower bound fails once Steiner vertices are allowed. In Section C
+we also show how Steiner vertices break the lower bound of [VXX24].3 All other existing lower
+bounds that we know of can be broken in a similar fashion using Steiner vertices, but we omit the
+details.
+    Section 3 contains our thickness lower bounds. We prove Theorem 1.3. We also formalize the
+noised graph family Gek —our candidate hard instance for Conjecture 2—and prove that shortcutting
+Gek requires strictly higher thickness than the one for Gk .
+    In Section 4 we discuss generalizations of Steiner shortcuts to Steiner hopsets and Steiner
+low-congestion shortcuts.
+
+
+2        Hesse’s Counterexample Graphs Gk
+In this section we review Hesse’s lower bound construction [Hes03] and illustrate why his argument
+breaks down when Steiner vertices are allowed.4 The attack presented for Hesse’s construction
+also applies, with suitable modifications, to all subsequent lower bound [HP21, LVWX22, VXX24,
+HXX25]; for details of how to do this with [VXX24] in particular, see Appendix C. The reason we
+describe Hesse’s counterexample in detail is that it is the basis for the lower bounds of Section 3.
+    Following [Hes03] we construct a family of graphs Gk , k ≥ 2. Each graph G = (V, E) ∈ Gk will
+have an associated set of critical vertex pairs P ⊆ V × V such that any reachability shortcut of G
+has size at least |P | or hop diameter at least poly(n) between some pair of vertices (s, t) ∈ P . The
+properties of graph family Gk can be summarized in the following theorem.
+
+Theorem 2.1 (Cf. [Hes03, Theorem 4.1]). Let k > 1 be an integer and ϵ = Ω(1/k). Gk is an infinite
+family of n-vertex, n1+O(1/k) -edge directed graphs. Each graph G = (V, E) ∈ Gk has an associated
+set of critical vertex pairs P ⊆ V × V of size |P | = Ω(n1.5−ϵ ). For any shortcut set E+ ⊆ E ∗ of G,
+where G∗ = (V, E ∗ ) is the transitive closure of G, either
+
+        • |E+ | ≥ |P |, or
+
+        • There is a pair of vertices (s, t) ∈ P such that distG+ (s, t) = nΩ(1/k) in G+ = (V, E ∪ E+ ).
+
+    In Section 2.3, we show that Hesse’s construction and argument fails in the presence of Steiner
+vertices, as captured by the following theorem.
+    3
+     The most recent Ω(n2/9 ) lower bound of [HXX25] is a slightly optimized version of [VXX24] and can be broken in
+the same way.
+   4
+     Technically, we consider a slight variation√of Hesse’s construction, decreasing the density of the graph to improve
+our achievable thickness lower bounds from log n to log n/ log log n. This modification has no significant effect on
+the analysis in the non-Steiner setting nor for breaking the construction via Steiner points.
+
+
+
+                                                           4
+Theorem 2.2. Let k ≥ 2 be an integer, and let G = (V, E) ∈ Gk be an n-vertex, n1+O(1/k) -edge graph
+with associated critical vertex pairs P ⊆ V × V . Then G admits a k-thick Steiner shortcut graph
+G+ = (V ∪ V+ , E ∪ E+ ) with |E+ | = |E|/nΩ(1/k) , such that every (s, t) ∈ P has distG+ (s, t) = k.
+Remark 2.3. All existing lower-bound constructions for (non-Steiner) shortcut sets have the same
+high-level structure: they tailor the construction to produce a set of critical vertex pairs P , and
+then show that these particular pairs are hard to shortcut. The constructions make no claims about
+other vertex pairs. For this reason, to show that these lower-bound proofs fail in our new setting, it
+is enough to show that the critical pairs in particular can be shortcut using Steiner vertices. We
+strongly believe that for all these constructions one can in fact use Steiner vertices to shortcut all
+pairs in the graph, but we did not think this would be instructive, since by design only the critical
+pairs have interesting structure.
+    In Section 3 we show that Theorem 2.2 is essentially tight for the family Gk , in that any t-thick
+Steiner shortcut set with t ≪ k must have size superlinear in m or diameter polynomial in m. Before
+reviewing Hesse’s construction of Gk we begin with G1 , which introduces some of the key ideas and
+is sufficient to prove lower bounds on Õ(n)-size shortcuts; see Huang and Pettie [HP21].
+
+2.1    Warm-up Construction — Graph Family G1
+We construct a graph family G1 that does not quite imply polynomial diameter lower bounds for
+Õ(m)-size shortcut sets. This will motivate some of the design choices introduced in the graph
+family Gk in Section 2.2.
+   Graph family G1 is parameterized by constants c ∈ R+ and d ∈ N+ . We denote a specific
+parameterization of G1 by G1 (c, d). The size of each graph G = (V, E) ∈ G1 (c, d) is controlled by a
+parameter r ∈ N+ .
+
+Vertex Set V . Let ℓ = rc . Graph G has ℓ + 1 layers, L0 , L1 , . . . , Lℓ . The vertices of each layer
+can be written as a collection of points in a d-dimensional grid. Formally, for i ∈ [0, ℓ], we define Li
+to be
+                                 Li = {i} × (−r(r + 1)ℓ, r(r + 1)ℓ]d ,
+and let V = ∪ℓi=0 Li .
+
+Edge Set E. Let B(r, d) ⊆ Zd denote the set of all integer vectors ⃗v in Zd of magnitude ∥⃗v ∥ ≤ r,
+where ∥ · ∥ denotes the standard Euclidean norm. Let B(r, d) ⊆ B(r, d) denote the set of extreme
+                                                                                                 d−1
+                                                                                           
+points of the convex hull of B(r, d). By Bárány and Larman [BL98], |B(r, d)| = Θ rd· d+1 . The
+edge set E of G consists of all (x, y) ∈ V × V where
+
+                                          x = (i, p) ∈ Li ,
+                                           y = (i + 1, p + ⃗v ) ∈ Li+1 ,
+                                      and ⃗v ∈ B(r, d).
+
+Critical Pairs and Critical Paths. We will define a collection of vertex pairs and associated
+paths in G that are particularly useful in the analysis of G. We first specify a set of source nodes
+S ⊆ L0 in the first layer of G that will be useful for defining our set of critical vertex pairs. Let S
+be the set
+                                       S = {0} × (−r2 ℓ, r2 ℓ]d .
+For each vertex s = (0, p) ∈ S and a vector ⃗v ∈ B(r, d), let t be the vertex t = (ℓ, p + ℓ⃗v ). Note that
+t is guaranteed to lie in Lℓ due to p ∈ (−r2 ℓ, r2 ℓ]d and ∥⃗v ∥ ≤ r. We call (s, t) a critical vertex pair ;
+
+                                                      5
+let P ⊆ S × Lℓ denote the set of all critical vertex pairs in G. Each (s, t) ∈ P is identified with the
+critical path Ps,t , defined as follows.
+
+                               Ps,t = ((0, p), (1, p + ⃗v ), . . . , (ℓ, p + ℓ⃗v )).
+
+Let P = {Ps,t | (s, t) ∈ P } be the set of critical paths.
+   We summarize several properties of graph G, critical pairs P , and critical paths P in the following
+lemma, which we state without proof.
+
+Lemma 2.4 (Cf. [HP21, Lemma 2.2 and 2.6]). Graph G and paths P have the following properties:
+                                           d−1                                         d−1
+Sizes. |V | = Θ(rc+2d+cd ), |E| = Θ(rd· d+1 · |V |), and |P | = |P| = Θ(r2d+cd+d· d+1 ).
+
+Uniqueness. Every path Ps,t ∈ P is a unique (s, t)-path in G.
+
+Disjointness. Paths in P are pairwise edge-disjoint.
+
+
+A remark on the geometry of graph G. Vertex set V and paths P have a very natural
+geometric interpretation as an arrangement of points and lines in Rd+1 . Notice that the vertices
+of each path Ps,t ∈ P lie on a line of the form {x · (1, ⃗v ) + (0, p) | x ∈ R} in Rd+1 for ⃗v ∈ B(r, d)
+and (0, p) ∈ S. Moreover, because B(r, d) consists only of extreme points, each such direction ⃗v
+cannot be expressed as a convex combination of other vectors in B(r, d). This geometric perspective
+is useful for interpreting the Uniqueness and Disjointness properties of Lemma 2.4.
+
+Implications and Limitations of G1 . Graph class G1 already gives an interesting lower bound:
+any O(n)-sized shortcut-set of G1 has diameter at least Ω(poly(n)). This follows almost immediately
+from Lemma 2.4: Since the critical paths are pairwise disjoint, a shortcut edge can only be relevant
+to a single critical path, so shortcutting every critical pair would require at least |P | edges; by the
+construction of G1 , we have |P | = Ω(n). Unfortunately it is impossible to have |P | = Ω(m) in G1 .
+In order to force |P | ≫ m, Hesse [Hes03] defines graph Gk to be a kind of k-fold product of G1 .
+
+Optimizing G1 for Steiner shortcut lower bounds. Technically, the construction we consider
+differs slightly from [Hes03] and [HP21], although the difference is essentially aesthetic for the
+non-Steiner parts of our discussion. We define Li = {i} × (−r(r + 1)ℓ, r(r + 1)ℓ]d as opposed to
+{i} × (−4rℓ, 4rℓ]d as in [Hes03]. Consequently, we can define S, the starting points of our critical
+paths, as {0} × (−r2 ℓ, r2 ℓ]d . S is instead defined as {0} × (−2rℓ, 2rℓ]d in [Hes03]. This means that
+in Hesse’s construction only a constant fraction of vertices in the starting layer are the first vertex in
+a critical path; for our modified construction, all but a vanishing fraction of the vertices are. When
+we prove
+     √ Theorem 1.3 via Theorem 3.1, this makes the difference between a thickness lower bound
+of o( log n) versus o(log n/ log log n).
+
+2.2    Hesse’s Gk Family
+Construction parameters. Graph family Gk is parameterized by constants c ∈ R+ and d ∈ N+ .
+We denote a specific parameterization of Gk by Gk (c, d). The size of each G = (V, E) in Gk is
+controlled by a parameter r ∈ N+ .
+
+
+
+
+                                                        6
+Vertex Set. Fix ℓ = rc . The vertex set V is partitioned into a collection of kℓ + 1 disjoint layers
+{Li }i∈[0,k·ℓ] . We will frequently use Li,j to denote layer Li·k+j , so for example Li,k is another name
+for Li+1,0 .
+      The vertices of Li,j are identified with tuples ((i, j), (p0 , . . . , pk−1 )), where each point
+p0 , . . . , pk−1 ∈ Zd is contained in the rectangle (−(r+1)rℓ, (r+1)rℓ]d . Let N = |Li,j | = (2(r+1)rℓ)kd ,
+so the total number of vertices is (kℓ + 1)N .
+
+Critical Subdirections. Recall that B(r, d) = {⃗v ∈ Zd | ∥⃗v ∥ ≤ r} is the radius-r ball in
+dimension d and B(r, d) ⊆ B(r, d) is the set of extreme points of the convex hull of B(r, d). Each
+vector in B(r, d) defines acritical subdirection and by [BL98] the number of critical subdirections is
+                          d−1
+                   
+∆ = |B(r, d)| = Θ rd· d+1 .
+
+Edge Set.       The edge set E consists of all (x, y) ∈ V × V where
+
+                                x = ((i, j), (p0 , . . . , pj , . . . , pk−1 )) ∈ Li,j ,
+                                y = ((i, j + 1), (p0 , . . . , pj + ⃗v , . . . , pk−1 )) ∈ Li,j+1 ,
+                           and ⃗v ∈ B(r, d).
+
+Naturally (i, j + 1) would be interpreted as (i + 1, 0) when j + 1 = k. In this way each vertex has
+out-degree at most ∆.
+
+Critical Directions, Critical Pairs, and Critical Paths. A critical direction is a k-tuple
+(⃗v0 , . . . , ⃗vk−1 ) ∈ (B(r, d))k of critical subdirections, so there are clearly ∆k critical directions. Define
+S ⊂ L0,0 to be a rectangle around the origin.
+
+               S = {((0, 0), (p0 , . . . , pk−1 )) ∈ L0,0 | pi ∈ (−r2 ℓ, r2 ℓ]d for each i ∈ [0, k)}.
+
+    For each vertex s = ((0, 0), (p0 , . . . , pk−1 )) ∈ S and a critical direction (⃗v0 , . . . , ⃗vk−1 ) ∈ (B(r, d))k ,
+let t be the vertex t = ((ℓ, 0), (p0 + ℓ⃗v0 , . . . , pk−1 + ℓ⃗vk−1 )) ∈ Lℓ,0 . We call (s, t) a critical vertex
+pair ; let P ⊆ S × Lℓ,0 denote the set of all critical vertex pairs in G.
+
+Lemma 2.5 (Cf. [Hes03]). Let G ∈ Gk with critical pair set P .
+                  k dk
+    • |P | = N ∆ r
+             (r+1)dk
+                     .
+
+    • Every critical pair (s, t) ∈ P has a unique s-t path Ps,t in G, called its critical path.
+
+    • If two critical paths intersect at u ∈ Li and v ∈ Li′ then i′ < i + k.
+
+    Lemma 2.5 has a similar geometric interpretation as Lemma 2.4. The main difference is that the
+division into subdirections allows for two critical paths to have small overlap, but they still cannot
+overlap in two layers at distance k, which implies the third property. See Section D.1 for formal
+proof.
+
+Definition 2.6 (Summary of Parameters). Let us summarize the relevant parameters of graph
+G ∈ Gk with size parameter r.
+
+    • G has kℓ + 1 = krc + 1 layers in total, each with N = (2(r + 1)rℓ)kd vertices, hence
+      |V | = O(kℓN ) = O(kℓ(2(r + 1)rℓ)kd ).
+
+
+
+                                                               7
+                                                              d−1 
+    • The outdegree of each vertex in G is at most ∆ = Θ rd· d+1 , and in fact the average degree
+      of G is Θ(∆), hence |E| = Θ(n∆) = Θ(kℓ∆N ).
+                                                               k dk 
+    • The number of critical pairs/critical paths is |P | = Θ N  ∆ r
+                                                               (r+1)dk
+                                                                       by Lemma 2.5.
+
+    We are now ready to prove that graph G and critical pairs P imply a polynomial lower bound
+for reachability shortcuts. We restate Theorem 2.1 for convenience.
+
+Theorem 2.1 (Cf. [Hes03, Theorem 4.1]). Let k > 1 be an integer and ϵ = Ω(1/k). Gk is an infinite
+family of n-vertex, n1+O(1/k) -edge directed graphs. Each graph G = (V, E) ∈ Gk has an associated
+set of critical vertex pairs P ⊆ V × V of size |P | = Ω(n1.5−ϵ ). For any shortcut set E+ ⊆ E ∗ of G,
+where G∗ = (V, E ∗ ) is the transitive closure of G, either
+
+    • |E+ | ≥ |P |, or
+
+    • There is a pair of vertices (s, t) ∈ P such that distG+ (s, t) = nΩ(1/k) in G+ = (V, E ∪ E+ ).
+
+Proof. Let E+ ⊆ E ∗ be the set of shortcut edges for G, where |E+ | < |P |. We say that an edge
+(u, v) ∈ E+ is short if (u, v) ∈ Li × Lj for some choice of i, j ∈ [0, k · ℓ] such that j < i + k, and long
+otherwise.
+     By Lemma 2.5, each long shortcut edge can only be used by one critical pair in P . Since
+|E+ | < |P |, by the pigeonhole principle there is some (s, t) ∈ P such that the shortest s-t path in
+G+ uses only original edges from E and short edges from E+ , hence distG+ (s, t) ≥ kℓ/(k − 1) > ℓ.
+    Treating k as constant, the quantitative claims follow by setting ℓ = rc = rO(ϵ) and d = Ω(1/ϵ), so
+that ∆ = Θ(rd(d−1)/(d+1)
+                      k )dk= r
+                                 (1−Θ(ϵ))d , n = Θ((2r)(2+c)kd r c ), m = O(n∆) = r (2+c)kd+c+(1−Ω(ϵ))d =
+
+n1+O(1/k) , |P | = Ω N  ∆ r
+                      (r+1)dk
+                                =r(2+c)kd+(1−Ω(ε))kd = Ω(n1.5−ϵ ).
+
+2.3     Breaking Hesse’s Counterexamples using Steiner Vertices
+In this section we will show how Steiner vertices break Hesse’s counterexample argument. We will
+achieve this by proving Theorem 2.2, restated for convenience.
+
+Theorem 2.2. Let k ≥ 2 be an integer, and let G = (V, E) ∈ Gk be an n-vertex, n1+O(1/k) -edge graph
+with associated critical vertex pairs P ⊆ V × V . Then G admits a k-thick Steiner shortcut graph
+G+ = (V ∪ V+ , E ∪ E+ ) with |E+ | = |E|/nΩ(1/k) , such that every (s, t) ∈ P has distG+ (s, t) = k.
+
+   Let G ∈ Gk be the given graph, parameterized by r ∈ N+ . Each critical pair (s, t) ∈ P is of the
+form (((0, 0), p), ((ℓ, 0), p + ℓ⃗v )), for some p = (p0 , . . . , pk−1 ) and critical direction ⃗v = (⃗v0 , . . . , ⃗vk−1 ).
+Rather than move from s to t by adding the k critical subdirections in a “round robin” format, we
+can add each all at once, walking through new Steiner vertices corresponding to points
+
+p → (p0 + ℓ⃗v0 , . . . , pk−1 ) → (p0 + ℓ⃗v0 , p1 + ℓ⃗v1 , . . . , pk−1 ) → (p0 + ℓ⃗v0 , p1 + ℓ⃗v1 , p2 + ℓ⃗v2 , . . . , pk−1 ),
+
+and so on. We now give the details.
+
+Constructing a Steiner shortcut. Let G+ = (V ∪ V+ , E ∪ E+ ) be the Steiner shortcut for G.
+The vertex set V+ is partitioned into a collection of k − 1 disjoint layers S1 , . . . , Sk−1 , where Si is
+the set of tuples (i, (p1 , . . . , pk−1 )), each point p1 , . . . , pk−1 ∈ Zd being contained in the rectangle
+(−(r + 1)rℓ, (r + 1)rℓ]d . Note that by definition, each Si has the same number of vertices as each
+Li,j : |Si | = |Li,j | = N .
+
+
+
+                                                               8
+   Recall that P ⊂ S × Lℓ,0 , where S ⊂ L0,0 is in the first layer. We include in E+ shortcut edges
+E0 ∪ E1 ∪ · · · ∪ Ek−1 of the following types. For each s = ((0, 0), (p0 , . . . , pk−1 )) ∈ S and each
+subdirection ⃗v0 ∈ B(r, d), we add edges of the following form to E0 .
+                                                                                     
+                       ((0, 0), (p0 , . . . , pk−1 )), (1, (p0 + ℓ⃗v0 , . . . , pk−1 ) ∈ S × S1
+
+Likewise, for each index i ∈ [1, k − 2], we include in Ei ⊆ Si × Si+1 all edges of the following form,
+                                                                                                      
+              (i, (p0 , . . . , pi , . . . , pk−1 )), (i + 1, (p0 , . . . , pi + ℓ⃗vi , . . . , pk−1 )) ∈ Si × Si+1
+
+where (i, (p1 , . . . , pk )) ∈ Si and ⃗vi ∈ B(r, d) is a critical subdirection. Finally, Ek−1 ⊆ Sk−1 × Lℓ,0
+contains all edges of the following form.
+                                                                                         
+                      (k − 1, (p0 , . . . , pk−1 )), ((ℓ, 0), (p1 , . . . , pk + ℓ⃗vk−1 )) ∈ Sk−1 × Lℓ,0 ,
+
+where (k − 1, (p1 , . . . , pk )) ∈ Sk−1 and ⃗vk−1 ∈ B(r, d) is a critical subdirection.
+   This completes the construction of our Steiner shortcut G+ . We now argue it is a valid Steiner
+shortcut (i.e., it does not change the transitive closure restricted to V × V ) and satisfies the size
+and distance claims of Theorem 2.2.
+
+Size of G+ . For each i ∈ [1, k − 1], |Si | = N , so |V+ | = kN = Θ(|V |/ℓ). Each vertex in V+ has
+indegree and outdegree at most |B(r, d)| = ∆. We conclude that |E+ | = O(|V+ |∆) = O(|V |∆/ℓ).
+Then |E+ | = O(|E|/ℓ) = |E|nΩ(1/(kd)) = |E|/nΩ(1/k) as claimed.
+
+Transitive closure and diameter. We now verify that the transitive closure of G+ restricted
+to the original vertices in G is identical to the transitive closure of G. By construction, for
+any (s, t) ∈ V × V , any s-t path in G+ that uses Steiner vertices V+ must be contained in
+W = S × S1 × S2 × · · · × Sk−1 × Lℓ,0 . Let s ∈ S ⊆ L0,0 and t ∈ Lℓ,0 be a pair of nodes
+such that there exists an s-t path in W . By construction of E+ = E0 ∪ · · · ∪ Ek−1 , this implies
+s = ((0, 0), p), t = ((ℓ, 0), p+ℓ⃗v ), where ⃗v = (⃗v0 , . . . , ⃗vk−1 ) are the critical subdirections corresponding
+to the edges along the path. In other words, (s, t) ∈ P was already in the transitive closure of
+G. Conversely, any such (s, t) ∈ P has a length-k path in W . We conclude that G+ is a valid
+reachability shortcut of G and that distG+ (s, t) = k for (s, t) ∈ P .
+
+
+3     Necessity of Thick Steiner Shortcuts
+This section has two goals. First, we show that if ideal Steiner shortcuts exist with size m1+o(1) and
+diameter mo(1) , then they must be thick on some graphs in the family Gk (c, d). Second, we prove
+that a certain randomized graph class Gek (c, d, p) defined shortly is strictly harder to shortcut than
+Gk (c, d), and argue that it may in fact be sufficient to refute Conjecture 3.
+    Our first result is that Gk cannot be shortcut by any t-thick Steiner shortcut unless t ≥ 0.99k.
+
+Theorem 3.1. For k ≥ 2, t ≤ 0.99k, and m = 2ω(k log k) , every t-thick Steiner shortcut for the
+m-edge graph G ∈ Gk requires either mΩ(1/k) diameter or m1+Ω(1/k) edges.
+
+    Theorem 3.1 rules out t-thick Steiner shortcuts for t = o(log n/ log log n) and will be proved in
+Section 3.2. Note that Theorem 3.1’s constraint on t is essentially sharp, as Theorem 2.2 shows that
+k-thick Steiner shortcuts can shortcut all the critical vertex pairs with length-k paths.
+
+
+
+                                                         9
+Noisy Version of Gk . We now introduce a noisy variant of the graph family Gk , which we call
+Gek (c, d, p). It is defined as Gek (c, d, p) = {G(p)
+                                                 e    | G ∈ Gk (c, d)}, where G(p)
+                                                                              e    denotes the (random)
+graph obtained from a given G when deleting each edge independently with probability p. Gek (c, d, p)
+is thus a family of random graphs that we obtain from the elements of Gk (c, d) by deleting each
+edge independently with probability p. Here p should not be thought of as an absolute constant,
+but a function of c, d, r that is inversely proportional to the diameter of G.
+     Intuitively, the problem with Gk is that it has an extremely rigid structure that can be exploited
+by Steiner shortcuts. By randomly deleting edges, Gek (c, d, p) destroys this structure. We highlight
+the following open problem, the resolution of which would either refute Conjecture 2 or contribute a
+significant step toward computing almost optimal Steiner shortcuts, either of which would be very
+exciting.
+
+Question 3.2. Are there parameters k ≥ 2, c, d, p for which any Steiner shortcut for an m-edge
+graph G ∈ Gek (c, d, p) cannot simultaneously have size m1+o(1) and diameter mo(1) ?
+
+    We report some partial progress towards answering Question 3.2 by showing, in a formal sense,
+that Gek (c, d, p) is indeed harder to shortcut than Gk (c, d). The following theorem, which will be
+proved in Section 3.3, shows that Gek (c, d, p) requires t-thick Steiner shortcuts for t > (1 + Ω(1))k.
+In contrast, Theorem 3.1 applies only when t ≤ 0.99k.
+
+Theorem 3.3. For k ≥ 2, there are parameters c, d, p such that with probability 1 − 1/poly(m),
+every t-thick Steiner shortcut for the m-edge graph G ∈ Gek (c, d, p) requires either diameter mΩ(1/k)
+or m1+Ω(1/k) edges, provided that 1.01t ≤ 87 k and m = 2ω(k log k) .
+
+3.1       Basic Properties
+We begin with some basic properties of Gk that are helpful for proving lower bounds. Let G ∈ Gk be
+a graph in this graph family with the parameters r, ℓ, etc. defined as usual; see Definition 2.6.
+     Suppose G+ = (V ∪ V+ , E ∪ E+ ) is a Steiner shortcut graph for G. For each critical pair
+(s, t) ∈ P , designate one shortest s-t path in G+ a critical shortest path.5 We call the shortcut edge
+set E+ normalized if it is contained in (Li × V+ ) ∪ (V+ × V+ ) ∪ (V+ × Lj ), for two layers Li , Lj ,
+i + k ≤ j. Lemma 3.4 shows that any shortcut edge set E+ can be replaced by the union of O((kℓ)2 )
+normalized shortcut sets, without increasing the diameter too much.
+
+Lemma 3.4. Let G ∈ Gk and G+ be a t-thick Steiner shortcut for G with M edges and diameter
+h. There is a t-thick Steiner shortcut G′ = (V ∪ V ′ , E ∪ E ′ ) for G such that E ′ is the union of less
+than (ℓk)2 normalized t-thick shortcut sets, each with at most M edges. The diameter of G′ is less
+than hk.
+                                        ′ be a copy of E restricted to (L ×V )∪(V ×V )∪(V ×L ).
+Proof. For i, j such that i+k ≤ j, let Ei,j             +                  i   +     +     +      +   j
+      ′                           ′
+Let E be the union of all such Ei,j , where each uses a disjoint copy of the Steiner vertices V+ . Every
+path in G+ from Li to Lj via V+ is preserved by an equivalent path in G′ , so long as i + k ≤ j.
+Thus, given a length-h path in G+ , we can find a corresponding length-h(k − 1) path in G′ , as every
+subpath from Li to Lj , via zero or more hops in V+ , with j < i + k may need to be replaced by a
+length-(j − i) path.
+
+Efficiency. Let G ∈ Gk and G′ = (V ∪V ′ , E ∪E ′ ) be a Steiner shortcut for G such that E ′ = Ei,j
+                                                                                                S ′
+                                                   ′ . We say that a critical shortest path Π in G′ is
+is the union of disjoint normalized shortcut sets Ei,j
+  ′ -respecting if a subpath of Π from L to L is contained in E ′ .
+Ei,j                                      i     j                 i,j
+   5
+       Note that G contains a unique critical path from s to t whereas G+ may contain many s-t paths.
+
+
+                                                         10
+Definition 3.5 (Efficiency). Fix G, G′ = (V ∪ V ′ , E ∪ E ′ ), and Ei,j
+                                                                    ′ as above, and fix the set of
+
+critical shortest paths.
+    • The efficiency of Ei,j
+                         ′ is the ratio of the number of E ′ -respecting critical shortest paths to
+                                                          i,j
+        ′ |.
+      |Ei,j
+
+    • The efficiency of a Steiner vertex u incident to Ei,j  ′ is the ratio between the number of
+       ′
+      Ei,j -respecting critical shortest paths passing through u to degEi,j
+                                                                        ′ (u).
+
+
+    Lemma 3.6 is a simple observation that follows from the definition of efficiency.
+Lemma 3.6. Let G ∈ Gk and G′ = (V ∪ V ′ , E ∪ E ′ ) be a Steiner shortcut, and Ei,j       ′ ⊂ E ′ be a
+
+normalized Steiner shortcut set from Li to Lj . Suppose u is a Steiner vertex incident to Ei,j′ , whose
+                                           ′           ′′
+efficiency is at most the efficiency of Ei,j . Obtain Ei,j by deleting u and its incident edges, and
+                                                                        ′′ is at least that of E ′ .
+rerouting critical shortest paths that used u. Then the efficiency of Ei,j                      i,j
+
+Proof. Suppose there are α many Ei,j      ′ -respecting critical shortest paths passing through u and
+                                         ′           ′                                             ′        ′
+degEi,j
+     ′ (u) = β. Suppose there are α total E
+                                                     i,j -respecting critical shortest paths and |Ei,j | = β .
+                     ′                      ′  ′                              ′′
+By Definition 3.5, Ei,j has efficiency α /β , and, after deleting u, Ei,j has an efficiency of at least
+(α′ − α)/(β ′ − β) ≥ α′ /β ′ , since α/β ≤ α′ /β ′ .
+
+    The following lemma is crucial for our analysis.
+                                                                        d−1
+Lemma 3.7. Recall from Definition 2.6 that ∆ = Θ(rd d+1 ) is the number of critical subdirections.
+Given a graph G ∈ Gk and a Steiner shortcut G′ = (V ∪ V ′ , E ∪ E ′ ) for G, the number of critical
+shortest paths passing through any Steiner vertex u ∈ V ′ is at most ∆k .
+Proof. By the pigeonhole principle, if there are more than ∆k critical shortest paths passing through
+u then two are associated with the same critical direction, say (⃗v0 , . . . , ⃗vk−1 ). Let the two critical
+pairs be (a, a′ ), (b, b′ ) ∈ P , where
+
+                                   a = ((0, 0), (a0 , . . . , ak−1 ))
+                                   b = ((0, 0), (b0 , . . . , bk−1 ))
+                                  a′ = ((ℓ, 0), (a0 + ℓ⃗v0 , . . . , ak−1 + ℓ⃗vk−1 ))
+                                  b′ = ((ℓ, 0), (b0 + ℓ⃗v0 , . . . , bk−1 + ℓ⃗vk−1 ))
+
+Since (a, a′ ) ̸= (b, b′ ), there must exist an index i⋆ such that ai⋆ ≠ bi⋆ . Since the two critical shortest
+paths go through u and the Steiner shortcut does not change the transitive closure on V , it follows
+that (a, b′ ), (b, a′ ) are also in the transitive closure E ∗ of G. For a to reach b′ there must exist ℓ
+critical subdirections ⃗u0 , ⃗u1 , . . . , ⃗uℓ−1 such that
+                                                         X
+                                                   ai⋆ +   ⃗uj = b′i⋆ .
+                                                       j∈[0,ℓ)
+
+Similarly, for b to reach a′ , there must exist ℓ critical subdirections ⃗u′0 , ⃗u′1 , . . . , ⃗u′ℓ−1 such that
+                                                 X
+                                          bi⋆ +        ⃗u′j = a′i⋆ .
+                                                       j∈[0,ℓ)
+
+Recall that a′i⋆ − ai⋆ = b′i⋆ − bi⋆ = ℓ⃗vi⋆ . Combining the equalities above, we get that
+                                             X
+                                                (⃗uj + ⃗u′j ) = 2ℓ⃗vi⋆ .
+                                             j∈[0,ℓ)
+
+
+                                                           11
+However, according to the definition of ⃗uj , ⃗u′j , ⃗vi⋆ ∈ B(r, d) (they are the extreme points of a convex
+hull), we must have ⃗uj = ⃗u′j = ⃗vi⋆ for every j ∈ [0, ℓ), for otherwise ⃗vi⋆ = 2ℓ     1 P
+                                                                                                     uj + ⃗u′j ),
+                                                                                            j∈[0,ℓ) (⃗
+contradicting the fact that ⃗vi⋆ is a extreme point, and contradicting the fact that ai⋆ ̸= bi⋆ .
+
+    This section is intended to prove that a normalized Steiner shortcut cannot have a large efficiency.
+Lemma 3.8. Fix a k ≥ 2, ϵ > 0. Let G ∈ Gk and G′ = (V ∪ V ′ , E ∪ E ′ ) be a t-thick Steiner shortcut
+                                                        ′ ⊆ E ′ has efficiency at most ∆k−1−ϵ .
+for G, where t ≤ (1 − ϵ)k. Any normalized shortcut set Ei,j
+Proof. Suppose that Ei,j    ′ has efficiency greater than ∆k−1−ϵ . Begin by deleting all Steiner vertices
+
+from Ei,j  ′ whose degrees are at least ∆1+ϵ , and let E ′′ be the resulting edge set. Notice that
+                                                                i,j
+according to Lemma 3.7, these vertices have efficiency at most ∆k /∆1+ϵ = ∆k−1−ϵ . According to
+Lemma 3.6, the efficiency of Ei,j  ′′ is at least as large as that of E ′ .
+                                                                          i,j
+                                      ′′ is the ratio of the number of E ′′ -respecting critical shortest paths
+     Recall that the efficiency of Ei,j                                  i,j
+       ′′ |. Thus, there must exist an edge e ∈ E ′′ such that at least ∆k−1−ϵ different E ′′ -respecting
+to |Ei,j                                              i,j                                         i,j
+critical shortest paths use e, and moreover, use e as the first edge in Ei,j     ′′ . Due to the t-thickness of
+  ′′ , every path in E ′′ has length at most t ≤ (1 − ϵ)k, which, with the degree bound ∆1+ϵ , implies
+Ei,j                    i,j
+that the total number of paths in Ei,j     ′′ using e as the first edge is at most
+
+
+                                 ∆(t−1)(1+ϵ) ≤ ∆((1−ϵ)k−1)(1+ϵ) < ∆k−1−ϵ .
+By the pigeonhole principle, there must be two Ei,j   ′′ -respecting critical shortest paths Π , Π that
+                                                                                              1   2
+                                 ′′
+take the same route through Ei,j , beginning with edge e. This implies that Π1 , Π2 share the same
+vertices vi ∈ Li and vj ∈ Lj . Notice that vi , vj must also be in the two corresponding critical paths
+in G, which follows from the uniqueness of critical paths (Lemma 2.5). By the definition of the
+normalized Steiner shortcut Ei,j′ , j ≥ i + k, and by the limited intersection property of Lemma 2.5,
+
+this implies that Π1 , Π2 are not distinct paths, but associated with the same critical pair in P , a
+contradiction.
+
+3.2    Gk Needs Thick Steiner Shortcuts—Proof of Theorem 3.1
+Proof of Theorem 3.1. Select G ∈ Gk = Gk (c, d), where c = 3, d = 20000. Let m and n be the
+number of edges and vertices in G, where m = exp(ω(k log k)). Suppose there exists a Steiner
+                                                                 2
+shortcut G+ = (V ∪ V+ , E ∪ E+ ) for G with |E+ | ≤ m1+ϵ0 /k edges and diameter mϵ0 /k , for a
+sufficiently small constant ϵ0 = ϵ0 (c, d). We will deduce a contradiction. Recall from Definition 2.6
+that we have
+                                        m = O(N kℓ∆) ≤ rk·f (c,d) ,
+where f (c, d) is a constant depending on c, d. We set ϵ0 < 1/f (c, d), so
+                                                        2
+                                         |E+ | = m1+ϵ0 /k ≤ m · rϵ0 .
+We now substitute for G+ a normalized shortcut graph G′ = (V ∪ V ′ , E ∪ E ′ ), where E ′ i,j Ei,j
+                                                                                                 ′ is
+                                                                                          S
+                           2                      ′                                   ′        2
+the union of less than (kℓ) normalized shortcuts Ei,j from Li to Lj . By Lemma 3.4, |E | < (kℓ) |E+ |
+and G′ has diameter upper bounded
+                              k · mϵ0 /k = O(k · rϵ0 ·f (c,d) ) ≤ O(k · rc/2 ) < kℓ.
+Since the diameter is less than the number of layers of G (which is kℓ), every critical pair must be
+connected by a critical shortest path Π that uses some E ′ edge, and therefore must be Ei,j
+                                                                                        ′ -respecting
+                  ′ . Recall from Definition 2.6 that the number of critical pairs is
+for at least one Ei,j
+
+                            N ∆k rdk
+                                      
+                                                                            2c
+                        Ω           dk
+                                         = Ω(m/kℓ) · ∆k−1 = Ω(m) · ∆k−1− d .
+                            (r + 1)
+
+                                                       12
+The first inequality follows from (1 − 1/(r + 1))dk = Ω(1) since r = Ω(k). This in turn is because
+         1
+r ≥ m k·g(c,d) , where g(c, d) is a constant depending on c and d, so we have g(c, d) · k log r ≥ log m.
+Then since m = exp(ω(k log k)), we have log m = ω(log k).
+     Next, remember that E ′ is partitioned into less than (ℓk)2 ≤ (r2c · k 2 ) normalized components
+   ′ }. Thus, there exists a component E ′ for which Ω(m) · ∆k−1− 6c
+{Ei,j                                                                 d /k 2 critical shortest paths are
+                                             i,j
+  ′ -respecting. The efficiency of E ′ is therefore at least
+Ei,j                                   i,j
+
+                                   6c
+                    Ω(m) · ∆k−1− d      k−1− 8c  2       k−1− 9c      k−1.01
+                       2      ϵ
+                                   ≥ Ω(∆     d /k ) ≥ Ω(∆     d ) > ∆        .
+                      k ·m·r 0
+   The second to last inequality is because k = O(r). The last inequality follows by plugging in
+c = 3, d = 20000 taking ∆ to be sufficiently large. We now apply Lemma 3.8 with ϵ = 0.01, which
+                                ′ is at most ∆k−1.01 , a contradiction.
+implies that the efficiency of Ei,j
+
+3.3    Gek Needs Thicker Steiner Shortcuts—Proof of Theorem 3.3
+In this subsection, we improve the bounds from Section 3.2 under the assumption that edges in Gk
+are deleted independently with probability p = 1/(kℓ). That is, we consider the (random) graphs
+from the family G(c,
+                   e d, p), where in this section c = 3, d = 20000. The introduction of this type of
+“noise” implies that each critical path remains present with constant probability but at the same
+time it limits the maximum efficiency of Steiner shortcuts which enables improved bounds on their
+thickness. Precisely, we show that after noising, no sufficiently efficient Steiner shortcut can survive.
+To this end, given any A ⊆ Li , B ⊆ Lj , we relate the number of critical paths going from A to B to
+the number of edges on these paths (i.e. their support size). Concretely, defining σ := max{|A|, |B|},
+we show that whenever there are ≫ σ 3/2 polylog(n) critical paths going from A to B, their support
+size is so large that with high probability at least one edge supporting our paths is deleted when
+applying noise. Using a union bound, this in turn implies that the number of critical paths between
+any pair of sets A ⊆ Vi , B ⊆ Vj is at most σ 3/2 , which is much smaller than the trivial bound of
+σ 2 . This limits the maximum efficiency any Steiner shortcut of a given thickness for G ∈ Gek (c, d, p)
+with high probability, and allows us to rule out shortcuts of thickness (8/7)k instead of just k as in
+Theorem 3.1.
+      Formally, our proof relies on the following two lemmas, the first of which connects the number
+of critical paths between A and B to their support size in a G ∈ Gk (c, d).
+
+Lemma 3.9. Consider any G ∈ Gk (c, d) and let i, j be such that |i − j| ≥ 4rk. Futher, let
+A ⊆ Li , B ⊆ Lj be two subsets of vertices in layers i and j, respectively. Then, if there is a set
+                3/2
+P of at least 2s√rk critical paths that connect a vertex in A to a vertex in B, the number of edges
+supported by the paths in P between the layers Li and Lj is at least s.
+
+Proof. Assume that the number of critical paths from A to B is at least ηs for some suitable η (η
+can be seen as the efficiency of a star shortcutting A to B). Suppose that the support size of these   √
+                                                                                                         s
+paths at most s across the layers Li , Li+1 , . . . , Lj . We show that a contradiction arises if η ≥ 2√rk .
+This shows that many critical paths between A, B imply a large support size.
+    Denote the set of critical paths with one vertex in A and one in B by P. Note that our
+assumption on the support size of the paths in P implies that the average number of outgoing edges
+associated to any path in P per layer in between A and B in G        e is at most s/|i − j|, so there must
+be a layer Lt , t ∈ [i, j − 1] with at most s/(4rk) supported outgoing edges incident to Lt . We let
+U1 be the set of vertices in Lt that are on a path in P and note that |U1 | ≤ s/(4rk) because the
+number of supported vertices is at most the number of supported outgoing edges of Lt .
+
+
+                                                    13
+    Since by assumption, there are ηs paths and each path passes through U1 while |U1 | ≤ s/(4rk),
+the average number of paths passing through a vertex in U1 is at least 4ηrk. Now, consider layer
+Lt−k or Lt+k , i.e., a layer prior to or subsequent to layer Lt by k steps. Denote the set of supported
+vertices in this layer by U2 . We consider the logical bipartite graph H = (U1 ⊔ U2 , EH ) obtained
+by connecting every vertex u ∈ U1 to all vertices in U2 that lie on a path in P passing through u.
+We denote the set of neighbors of u in H by NH (u) and its degree by degH (u) := |NH (u)|. For two
+vertices u1 , u2 , we write u1 ∼H u2 to denote thatP u1 , u2 are adjacent in H.
+    For each vertex u1 ∈ U1 , we define p(u1 ) := u2 ∈NH (u1 ) degH (u2 ) such that p(u1 ) is equal to
+the total number of critical paths passing through the neighbors of u1 in H. We show that there is
+a vertex u1 ∈ U1 with p(u1 ) ≥ 4rkη 2 . To this end, note that
+                          X             X      X
+                              p(u1 ) =                degH (u2 )
+                           u1 ∈U1                u1 ∈U1 u2 ∈NH (u1 )
+                                                  X X
+                                             =                   1(u1 ∼H u2 ) degH (u2 )
+                                                 u1 ∈U1 u2 ∈U2
+                                                  X X X
+                                             =                            1(u1 ∼H u2 )1(u2 ∼H u′1 )
+                                                 u1 ∈U1 u2 ∈U2 u′1 ∈U1
+                                                  X
+                                             =            degH (u2 )2 .
+                                                 u2 ∈U2
+
+Now, applying Cauchy-Schwarz,
+                                                                2
+                        X                              X
+                            degH (u2 )2  · |U2 | ≥    degH (u2 ) ,
+                                    u2 ∈U2                                   u2 ∈U2
+         P
+and since u2 ∈U2 degH (u2 ) = ηs and |U2 | ≤ s because we assumed that the total support of P is at
+most s, we get
+                                                                     !2
+                    X             X
+                                                2   1 X
+                        p(u1 ) =       degH (u) ≥            degH (u)   = η 2 s.
+                                                    s      ′
+                          u1 ∈U1             u2 ∈U2                          u∈U
+
+This in turn implies that the average of p(u1 ) over u1 ∈ U1 is
+                                                    1 X
+                                                         p(u1 ) ≥ 4rkη 2 ,
+                                                   |U1 |
+                                                          u1 ∈U1
+
+because |U1 | ≤ s/(4rk). We conclude that there exists some u ∈ U1 such that p(u) ≥ 4rkη 2 .
+    Note that the vertices corresponding to NH (u) have a pairwise Euclidean distance within the
+dk–dimensional grid associated to layer U of at most 2rk since all of them are reachable from u
+by following a critical direction, each of which has total Euclidean norm ≤ rk. We claim that
+following all critical paths incident to the vertices in NH (u) for > 2rk steps, we reach p(u) distinct
+vertices. Indeed, if there were a vertex v reachable from two distinct critical paths starting at two
+vertices u1 , u2 ∈ NH (u) after > 2rk steps, then ∥u⃗1 − u⃗2 ∥2 > 2rk contradicting the fact that the
+Euclidean distance between u1 , u2 is at most 2rk as required by the assumption that u1 , u2 are
+both neighbors of u in H.6 This uses that the critical directions are distinct vectors with integer
+coordinates. Accordingly, if |i − j| ≥ 4rk, then
+
+                                                              4rkη 2 ≤ s
+  6
+      For any u ∈ Li , let ⃗
+                           u denote the position of u in the dk-dimensional integer grid associated with layer Li .
+
+
+                                                                   14
+as otherwise, we obtain a contradiction to the assumption that √all paths are supported by at most s
+                                                                 s
+edges. Rearranging the above yields that that whenever η > 2√rk     , there is some layer on which all
+critical paths connecting A to B are supported by at least s edges.
+                                   3
+   With the above, (kℓσ log(n)) 2 critical paths between A and B yield a support size of at least
+kℓσ log(n). Using that each edge is deleted independently with probability p = 1/(kℓ) then implies
+that, for every such set, at least one critical path fails.
+
+Lemma 3.10. Consider any G ∈ Gk and let i, j be such that |i − j| ≥ 4rk. Let A ⊆ Li , B ⊆ Lj
+and define σ := max{|A|, |B|}. Then with probability 1 − 1/poly(n), for all such i, j, A, B in G e with
+at least (100σ log(n)ℓk) 3/2 critical paths connecting a vertex in A to a vertex in B, there is at least
+one such critical path that fails when passing from G to the noised version G. e
+
+Proof. Let γ := 100 log n. We show that for every choice of A ⊆ Li , B ⊆ Lj with more than
+(γσkℓ)3/2 critical paths, at least one path will fail after applying noise. Invoking Lemma 3.9, the
+support size of these paths between layers Li and Lj is at least γσkℓ. Furthermore, the number
+of all A, B with max{|A|, |B|} = σ is at most n2σ , and the probability that for fixed sets A, B no
+critical path connecting A to B fails is at most
+
+                                                    1 γσkℓ
+                                                      
+                                        γσkℓ
+                              (1 − p)          = 1−        ≤ exp(−γσ).
+                                                    kℓ
+                             1
+because we have chosen p = kℓ  . Applying a union bound yields that the probability that there is
+some A ⊆ Li , B ⊆ Lj with |i − j| ≥ 4rk and at least (γσkℓ)3/2 critical paths connecting A and B is
+at most
+                ∞                                  ∞
+                                   1 γσkℓ
+               X                                X
+                      2 2σ
+                  (ℓk) n     1−           ≤ (ℓk)2     exp (2σ log(n) − γσ)
+                                  ℓk
+                σ=1                                       σ=1
+                                                          X∞
+                                                ≤ (ℓk)2         exp (2σ log(n) − 100σ log(n))
+                                                          σ=1
+                                                          X∞
+                                                ≤ (ℓk)2         n−98σ ≤ n2 n−97 ≤ n−95 .
+                                                          σ=1
+
+This concludes that with probability 1 − 1/poly(n), there is no pair of sets A ⊆ Li , B ⊆ Lj such
+that |i − j| ≥ 4rk and such that there are more than (100s log(n)ℓk)3/2 critical paths connecting A
+and B.
+
+                                                                                                2
+Proof of Theorem 3.3. We show that there is no Steiner shortcut with diameter mϵ /k while using
+             2
+at most m1+ϵ /k edges and using thickness t such that 1.01t ≤ 87 k. Here, ϵ > 0 is a sufficiently small
+constant fixed later.
+   To this end, we suppose that there is a Steiner shortcut E ′ with the desired properties and then
+deduce a contradiction. We consider the family of random graphs Gek and set p = 1/(ℓk), and c = 3
+such that ℓ = r3 . Now, using that k = O(r), the number of critical pairs is
+
+                           N ∆k rdk
+                                    
+                      Θ                = Θ(N ∆) · ∆k−1 = Θ(m/(kℓ)) · ∆k−1 .
+                           (r + 1)dk
+
+
+
+
+                                                     15
+                            d−1
+Recalling that ∆ = Θ(rd d+1 ) allows us to set d = 2/ϵ such that r = O(∆2ϵ ) implying that the
+number of critical pairs becomes Ω(m)∆k−1−3ϵ . Furthermore, the number of edges in our graph is
+at most
+
+                         m = O(N kℓ∆) = O((2(r + 1)rℓ)kd kℓr2/ϵ ) = O(r7k/ϵ ).
+
+     Now, we convert the shortcut E ′ into the union E ′′ of O((ℓk)2 ) normalized shortcuts according
+                                            2
+to Lemma 3.4, each with at most m1+ϵ /k edges. According to the definition of thickness and by
+splitting edges by Steiner vertices, we can further assume that all components of E ′′ consist of t − 1
+layers out of which only the first and the last is adjacent to G. Under these assumptions, we can
+                                         2
+still assume that |E ′′ | = O(m)k 3 ℓ2 mϵ /k implying that the efficiency of |E ′′ | is at least
+
+                                      Ω(m) · ∆k−1−3ϵ                 2
+                               η :=     3 2  1+ϵ2 /k = Ω(∆k−1−8ϵ )m−ϵ /k
+                                       k ℓ m
+                                                     = Ω(∆k−1−9ϵ ),
+
+using that k = O(r), ℓ = O(r3 ), r = O(∆2ϵ ), and m = O(r7k/ϵ ). The diameter associated to E ′′ is
+               2
+at most kmϵ /k = kO(r7ϵ ) < kℓ, so, for every critical path, there is still a critical shortest path that
+uses at least one edge in E ′′ .
+    In fact, for each critical shortest path P , there is a component C of E ′′ such that P is C-
+respecting while C shortcuts two layers Li , Lj with |i − j| ≥ 4rk. Otherwise, the diameter we would
+                                                           ℓk
+achieve for the critical paths would be at least 4rk          = Ω(r2 ), which contradicts our assumption
+                                       2 /k
+that the achieved diameter is km      ϵ       = O(r  1+7ϵ ). We therefore delete all components from E ′′
+that introduce a shortcut between layers Li , Lj with |i − j| < 4rk and call the result E ′′′ . By the
+preceding discussion, we still know that every critical shortest path uses at least one edge in E ′′′ .
+Due to this fact and since |E ′′′ | ≤ |E ′′ |, the efficiency of E ′′′ does not decrease as compared to E ′′ .
+                                                                                      ′
+    We define ϵ′ := 9ϵ and delete all Steiner vertices with degree at least ∆1+ϵ from E ′′′ and call the
+                                                                                                           ′
+resulting shortcut E ∗ . According to Lemma 3.7 the efficiency of such vertices is at most ∆k−1−ϵ ,
+so according to Lemma 3.6 removing them does not decrease the efficiency of the shortcut. We
+recall that each component of E ∗ consists of t − 1 consecutive layers S1 , . . . , St−1 such that every
+C-respecting critical shortest path contains exactly one vertex in each layer Si . Denote by M the
+union of all Steiner vertices in the middle layers S⌊t/2⌋ across all components C in E ∗ .
+    We claim that there exists at least one vertex in M which also has efficiency at least η. To see
+this, denote by EM the set of edges incident to the vertices in M and by P the set of E ∗ -respecting
+critical shortest paths. By definition of efficiency, we know that |P|/|E ∗ | ≥ η, and since |EM | ≤ |E ∗ |,
+we get that |P|/|EM | ≥ η. Now, denote the efficiency of a vertex v ∈ M byPηv and assume for
+the sakeP  of contradiction that ηv < η for all v ∈ M . Then, noting that |P| ≤ v∈M ηv deg(v) and
+|EM | = v∈M deg(v) allows us to infer that
+                                                  P
+                                        |P|          v∈M ηv deg(v)
+                                               ≤ P                    < η,
+                                      |EM |            v∈M deg(v)
+
+which contradicts the fact that P/|EM | ≥ η.
+    We have thus proved that there is some v ∈ M with efficiency at least η = Ω(∆k−1−9ϵ ).
+Denote the number of E ∗ -respecting shortest paths passing through v by p(v) and note that
+p(v) ≥ η deg(v) by definition of efficiency. We show that p(v) is large. To this end, we note that
+                     ′
+p(v) ≤ deg(v)2 ∆(1+ϵ )(t−2) . The upper bound is the maximum number of pairs of vertices in G, one
+at the starting layer of C and one at the final layer, both reachable from v using only edges in the
+component C of E ∗ containing v. This bound uses our upper bound on the degree of remaining
+Steiner vertices. By uniqueness of critical paths (the third property of Lemma 2.5), the number of
+
+                                                     16
+critical shortest paths passing through v is at most as large as this number of such pairs. Using
+further that deg(v) ≤ p(v)/η then implies that
+
+                                                     ′           p(v)2 (1+ϵ′ )(t−2)
+                            p(v) ≤ deg(v)2 ∆(1+ϵ )(t−2) ≤             ∆             ,
+                                                                  η2
+which implies that
+
+                               η2                                  ′                    ′
+                 p(v) ≥                   = Ω(∆2k−2−(t−2)(1+ϵ )−18ϵ ) = Ω(∆2k−t(1+3ϵ ) ).
+                          ∆(t−2)(1+ϵ′ )
+On the other hand, we know that the critical E ∗ -respecting shortest paths passing through v
+correspond to critical paths passing through some A ⊆ Li and some B ⊆ Lj where Li , Lj are the
+layers shortcut by the component C of E ∗ that v belongs to. Due to the maximum degree restriction
+                                                                                  t      ′
+in E ∗ , and the fact that v ∈ M , we know that σ := max{|A|, |B|} ≤ ∆( 2 +1)(1+ϵ ) . Applying
+Lemma 3.10, we get that the number of critical paths with one vertex in A and the other in B
+                              3t   ′   ′             3t      ′
+is O((kℓσ log(n))3/2 ) = O(∆ 4 (1+ϵ )+ϵ +6ϵ+1 ) = O(∆ 4 (1+2ϵ ) ) since ℓ = O(r3 ) and r = O(∆2ϵ ). In
+total, we get that the following inequality must be true
+                                                 ′                     3t   ′
+                                     ∆2k−t(1+3ϵ ) ≤ p(v) ≤ ∆ 4 (1+2ϵ ) .
+
+This implies that
+                                                              3t
+                                       2k − t(1 + 3ϵ′ ) ≤        (1 + 2ϵ′ ).
+                                                              4
+Rearranging yields that
+                                    7                                8
+                                      (1 + 3ϵ′ )t ≥ 2k ⇔ (1 + 27ϵ)t ≤ k.
+                                    4                                7
+Using ϵ = 0.0001 and assuming that
+                                                        8
+                                                 1.01t ≤ k
+                                                        7
+would imply that the above inequality is violated. Hence, we have proved that no Steiner shortcut
+                           2                  2
+of thickness t, diameter mϵ /k , and with m1+ϵ /k edges can exist if 1.01 · t ≤ 87 k and ϵ = 0.0001.
+
+
+4     Generalized Shortcuts for Congestion and Length
+Let us refer to shortcuts in previous sections as reachability shortcuts. In this section, we formalize
+the generalization of reachability shortcut that also preserves congestion and length in Section 4.1.
+Then, we explain why the construction of these shortcuts would imply algorithmic breakthroughs
+in parallel algorithms for shortest paths and maximum flow in Section 4.2. For convenience, we
+assume lengths and capacities are polynomially bounded integers in this section.
+
+4.1   Formalization
+Here, we define a notion of length-constrained flow shortcuts (LC-flow shortcuts). This is a shortcut
+added to the graph so that every multi-commodity flow can be routed with approximately the same
+congestion and length, but all flow paths only require a small number of edges.
+   To formalize this, we need notation for multi-commodity flows. Let G = (V, E) be a graph
+with edge capacity c : E → R≥0 and edge length ℓ : E → R≥0 . A (multi-commodity) flow F in
+
+                                                         17
+G assigns value F (P ) ≥ 0 for each directed path P in G. P  We say that P is a flow path of F if
+                                                                   F (P )
+F (P ) > 0. The congestion on edge e of F is congF (e) = e∈P    c(e)      and the congestion of F is
+congF = maxe∈E congF (e). The length of F is the maximum total length overall flow paths of F , i.e.,
+maxP :F (P )>0 ℓ(P ). The hopbound of F is the maximum number of edges overall flow paths of F , i.e.,
+maxP :F (P )>0 |E(P )|. For any vertex set U , a demand D on U assigns a value D(u,
+                                                                                  P v) ≥ 0 for each
+vertex pair (u, v) ∈ U . The demand DF routed by F is defined as DF (u, v) := (u,v)-path P F (P ).
+We say that D is routable with length ℓ, congestion κ, and hopbound h if there exists a flow F with
+length ℓ, congestion κ, and hopbound h that routes D. When D is routable in G with congestion 1,
+we sometimes just say that D is routable in G. With this, we are ready to define LC-flow shortcuts.
+
+Definition 4.1 (Lengh-Constrained Flow Shortcuts). A shortcut G′ = (V ∪ V ′ , E ∪ E ′ ) is a
+length-constrained flow shortcut of G with hopbound h,7 congestion slack κ, and length slack s if:
+
+   1. Every demand on V routable in G with length λ and congestion 1 is routable in G′ with
+      length λs, congestion 1, and hopbound h, and
+
+   2. Every demand on V routable in G′ with length λ and congestion 1 is routable in G with
+      length λ and congestion κ.
+
+   The concept of LC-flow shortcut above was recently defined in undirected graphs [HHL+ 24].
+They show that, for any n-vertex undirected graph G with capacity and length at most poly(n)
+and a parameter k, there exists a flow
+                                    √
+                                         shortcut G′ with hopbound  √
+                                                                       h = O(k), length slack s = O(k),
+congestion slack poly(k log n)n O(1/  k)              ′
+                                         , and size |E | ≤ n 1+O(1/   k) poly(log n). It is an interesting
+open problem if an LC-flow shortcut with non-trivial guarantee exists.
+
+Reachability Shortcuts, Distance Shortcuts, and Congestion Shortcuts. Observe that a
+reachability shortcut is precisely an LC-flow shortcut when the constraints related to length and
+congestion in Definition 4.1 are removed.
+    We will use the terms distance shortcut and congestion shortcut to refer to an LC-flow shortcut
+when the respective constraint related to congestion and length in the definition of Definition 4.1 is
+removed.
+    More specifically, when focusing only on length, Definition 4.1 simplifies to distance shortcuts as
+follows. Let distG (s, t) denote the distance from s to t in G. Let disthG (s, t) denote the minimum
+length of paths with hopbound h from s to t in G.
+
+Definition 4.2 (Distance Shortcuts). A shortcut G′ = (V ∪ V ′ , E ∪ E ′ ) is a distance shortcut of G
+with hopbound h and length slack s if, for every vertex pair (s, t) ∈ V × V ,
+
+   1. If distG (s, t) ≤ λ, then disthG′ (s, t) ≤ λs and
+
+   2. If distG′ (s, t) ≤ λ, then distG (s, t) ≤ λ.
+
+      When focusing only on congestion, Definition 4.1 simplifies to congestion shortcuts as follows:
+
+Definition 4.3 (Congestion Shortcuts). A shortcut G = (V ∪ V ′ , E ∪ E ′ ) is a congestion shortcut
+of G with hop bound h and congestion slack κ if
+
+   1. Every demand on V routable in G is routable in G′ with hopbound h, and
+
+   2. Every demand on V routable in G′ is routable in G with congestion κ.
+  7
+    The hopbound in this section has the same purpose as the diameter in previous sections. We change to our
+terminology to hopbound to avoid confusion, because the graph here has edge lengths.
+
+
+                                                     18
+4.2   Exact Shortest Paths via (1 + ϵ)-Approximate Distance Shortcuts
+In this section, we observe that a near-optimal parallel algorithm for constructing a distance
+shortcut with length slack (1 + o(1/ log n)) would imply a near-optimal parallel algorithm for exact
+single-source shortest paths with Õ(m) work and polylog(n) depth.
+    In the SSSP problem, given a graph G and a vertex s, we need to output the exact distance
+d(u) from s to every other vertex u in G. For α-approximate SSSP, we are given a graph G and
+a vertex s, output an approximate distance d(u)˜    from s to every other vertex u in G, such that
+         ˜
+d(u) ≤ d(u) ≤ αd(u).
+    The reduction from parallel exact SSSP to distance shortcut construction follows from combining
+tools from [KS97] and [RHM+ 23b].
+
+Theorem 4.4. For any n, m, m′ , h, suppose there is an algorithm A which takes an O(m)-edge O(n)-
+vertex directed graph and computes a distance shortcut of hopbound O(h), length slack (1+o(1/ log n))
+and size O(m′ ). Then, there is an algorithm computing exact SSSP of an m-edges n-vertex directed
+graph with O                                   e (m + m′ ) work and O
+             e (1) calls to A, with additional O                    e (h) depth.
+
+   In undirected graphs, there exist distance shortcuts of hopbound no(1) , length slack (1 + 1/ log2 n)
+and size n1+o(1) (e.g. [Coh00, HP19]). Moreover, [EN19] showed how to construct them in m1+o(1)
+work and no(1) depth.
+   If this can be generalized to directed graphs even when the shortcut size is m1+o(1) , then
+Theorem 4.4 would imply an exact SSSP algorithm with m1+o(1) work and no(1) depth.
+
+Corollary 4.5. Suppose there is an algorithm that, given O(m)-edge O(n)-vertex directed graph,
+computes a distance shortcut of hopbound no(1) , length slack (1 + o(1/ log n)), and size m1+o(1) .
+Then, there is an algorithm for computing exact SSSP in an m-edge n-vertex directed graphs in
+m1+o(1) work and no(1) depth.
+
+    Indeed, in directed graphs, the state-of-the-art is still far from this goal, because the problem
+is even harder than reachability shortcut. There exist distance shortcuts of hopbound Õ(n1/3 ),
+length slack (1 + ϵ) and size Õ(n/ϵ2 ) [BW23], but they require large polynomial time to construct.
+[CFR20] showed a parallel algorithm with Õ(m/ϵ2 ) work and n0.5+o(1) depth to construct a distance
+shortcut of hopbound n1/2+o(1) , length slack (1 + ϵ) and size Õ(n/ϵ2 ).
+    Note that, since Theorem 4.4 is a work-efficient reduction, any improvement to to the n1/2+o(1)
+hopbound of [CFR20] would immediately improve the start-of-the-art for parallel exact SSSP
+problem which currently requires Õ(m) work and n1/2+o(1) depth [CFR20, RHM+ 23b].
+
+Proof of Theorem 4.4
+Proof. We first present an algorithm for computing (1 + o(1/ log n))-approximate SSSP in an
+                                                                      e (m + m′ ) time and O
+O(m)-edge, O(n)-vertex directed graph with 1 call to A and additional O                    e (h)
+depth. We then show how to solve exact SSSP of an m-edge n-vertex graph using O (1) calls to
+                                                                                    e
+the approximation algorithm with additional O e (m) work and O e (h) depth. Combining the two
+reductions finishes the proof.
+
+Approximate SSSP. Given a directed G with O(m) edges and O(n) vertices, we first compute a
+distance shortcut of size O(m′ ), denoted by G′ = (V ∪ V ′ , E ∪ E ′ ). We will apply [KS97, Lemma
+3.2], to G′ , which we state as follows.
+Lemma 4.6 ([KS97, Lemma 3.2]). Given a directed graph G, a vertex u and parameters h, ϵ,
+there is an algorithm computing a h-limited (1 + ϵ)-approximate shortest path d˜h defined as
+
+
+                                                  19
+∀v ∈ V, dh (v) ≤ d˜h (v) ≤ (1 +
+                               ϵ) · dh (v) where−1
+                                                  dh(v) is the shortest path distance restricted to only
+using h edges, in O mkϵ
+                    e      −1   work and O kϵ
+                                            e         depth.
+                                                                                               ′
+    We can compute an h-limited (1 + o(1/ log n))-approximate shortest path distances {d˜G (u)}u∈V
+in Oe (m + m′ ) work and O   e (h) depth (by setting the parameter p = m/k in their paper). We use
+    ′
+  ˜G
+{d (u)}u∈V as the output. This finishes the algorithm description, which uses 1 call to A with
+additional O e (m) work and O   e (1) depth.
+                                                                                               ′
+    In their definition, a h-limited (1 + o(1/ log n)-approximate shortest path distances {d˜G
+                                                                                             h (u)}u∈V
+                  ′          ′                          ′              ′
+satisfies that dG         ˜G                           G              G
+                h (u) ≤ dh (u) ≤ (1 + o(1/ log n))dh (u), where dh (u) is the shortest path distance
+restricted to only using h edges. According to Definition 4.2, if we write dG (u) as the shortest path
+                                    ′                                              G′
+distance on G, then we have dG                                  G         G
+                                   h (u) ≤ (1 + o(1/ log n)) · d (u) and d (u) ′≤ dh (u). Thus, we have
+             ′
+dG (u) ≤ d˜G                                             G                  ˜G
+            h (u) ≤ (1 + o(1/ log n))(1 + o(1/ log n))d (u), which means dh (u) is a (1 + o(1/ log n))-
+approximate distance.
+
+Exact SSSP. The following lemma is a direct implication of Theorem 1.7 and Lemma 3.1 in
+[RHM+ 23b],
+Lemma 4.7 ([RHM+ 23b, Theorem 1.7 and Lemma 3.1]). Given a directed graph G, a source
+s ∈ V (G), there is an algorithm computing the exact distance from s to every node in G, using
+e (1) calls to a (1 + O(1/ log n))-approximate distance oracle O on directed graphs and an additional
+O
+O
+e (m) work and O   e (1) depth.8
+
+   Given an m edges n vertices graph G, we apply Lemma 4.7 to get an exact distance function by
+O(log n) calls to the (1 + o(1/ log n))-approximate distance oracle presented in the last paragraph,
+and an additional O e (m) work and O  e (1) depth. The lemma follows.
+
+
+4.3    Parallel Exact Max Flow via Õ(1)-Approximate Congestion Shortcuts
+In this section, we observe that a near-optimal parallel algorithm for constructing a congestion
+shortcut with congestion slack polylog(n) (together with an embedding algorithm defined below)
+would imply a near-optimal parallel algorithm for exact maximum flow with Õ(m) work and
+polylog(n) depth.
+
+Definition 4.8 (Backward Mapping). For a shortcut algorithm A which outputs a shortcut G′ of
+the input graph G = (V, E), a backward mapping algorithm for A takes input G and G′ generated
+by A, along with a flow F ′ in G′ with congestion 1, outputs a flow F in G routing the same demand
+as F ′ with congestion κ.
+
+    The reduction from parallel exact max flow to congestion shortcut construction follows quite
+straightforwardly by repeatedly solving approximate max flow on the residual graph.
+
+Theorem 4.9. Given n, m, m′ , h, κ, suppose there is an algorithm A which takes an O(m)-edge O(n)-
+vertex directed graph and computes a congestion shortcut of hopbound O(h), congestion slackness κ
+and size O(m′ ), along with a corresponding embedding algorithm A′ for A, then there is an algorithm
+computing exact max flow with O    e (κ) calls to A and A′ and additional Oe (κ · poly(h) · (m + m′ ))
+work and O e (κ · poly(h)) depth.
+
+    In undirected graphs, congestion shortcuts with near-optimal quality follows from tree flow
+sparsifiers defined as follows.
+   8
+    One might notice that Lemma 4.1 in [KS97] is also about reducing exact shortcut path to approximate shortest
+path oracles. However, they require a stronger approximate shortest path oracle: The approximate distance must be
+an exact distant on the shortcut G′ . Thus, it cannot be used here.
+
+
+                                                       20
+Definition 4.10. A tree flow sparsifier T of G with congestion slack κ is such that
+
+   1. The set of leaves of T corresponds to V (G).
+
+   2. Every demand on V (G) routable in G is routable in T
+
+   3. Every demand on V (G) routable in T is routable in G with congestion κ.
+
+   Clearly from the definition, a tree flow sparsifier with depth d and congestion slack κ is a
+congestion shortcut with congestion slack κ, hopbound 2d, and size O(n). There exists a tree flow
+sparsifier with depth O(log n) and congestion slack O(log2 n log log n) [HHR03]. Moreover, there is
+a parallel algorithm that construct a tree flow sparsifier with depth O(log n) and congestion slack
+O(log9 n) in Õ(m) work and polylog(n) depth [AKL+ 24].
+   If this can be generalized to directed graphs even when the shortcut size is Õ(m), then Theorem 4.9
+would imply an exact max flow algorithm with Õ(m) work and polylog(n) depth.
+
+Corollary 4.11. Suppose there is an algorithm that, given O(m)-edge O(n)-vertex directed graph,
+computes a congestion shortcut of hopbound polylog(n), length slack polylog(n), and size Õ(m).
+Then, there is an algorithm for computing exact max flow in an m-edge n-vertex directed graphs in
+Õ(m) work and polylog(n) depth.
+
+   Unfortunately, there is no prior work on this and we leave it an interesting open problem.
+
+Proof of Theorem 4.9
+Proof. We first give an algorithm computing approximate max flow which routes a feasible flow
+whose value is at least 1/2κ times the optimal value on the input graph. Then show how to turn it
+into an exact max flow algorithm.
+
+Approximate max flow. We first use A to compute a congestion shortcut on G, denoted by E ′ .
+Let G′ = G ∪ E ′ . We will use Theorem 3.1 (1) of [HHS23], stated as follows.
+Lemma 4.12 (Theorem 3.1 (1) of [HHS23]). Given a directed graph G with edge capacities and
+unit edge length, length bound h ≥ 1, approximation parameter ϵ > 0, and source and sink s, t ∈ V ,
+there is an algorithm computing a 1 − ϵ approximate maximum h-length flow, in the sense that the
+                least 1 − ϵ times
+flow value is at                   the maximum h-length flow from s to t in G. The algorithm takes
+O m · h · ϵ9 work and O h · ϵ19 depth.
+ e       17  1              e   17
+
+    We use Lemma 4.12 with parameter ϵ = 1/2, h the same as our h, and the digraph the same as
+G′ with unit length. The guarantee for the output is a flow F ′ , which is a 1 − ϵ approximation for
+maximum h-length flow, which, in our case, is the maximum flow with hop bound h since the graph
+has unit length. Then, we call the backward mapping algorithm A to turn F ′ into a flow F on G
+with congestion κ. To make F feasible, we scale the flow on each edge down by a factor of κ, and
+denote the final flow as F/κ. According to Definition 4.1, every flow on G corresponds to a feasible
+flow on G′ with hop bound h and the same value. Thus, F ′ has a value of at least 1/2 times the
+max flow value on G, which implies that F/κ is a 1/2κ approximate max flow on G.
+    The algorithm takes an input graph of m edges and n vertices, uses 1 call to A and A′ , and
+           e (poly(h) · (m + m′ )) work and poly(h) depth using Lemma 4.12.
+additional O
+
+
+
+
+                                                  21
+Exact max flow. If we have an algorithm computing ϵ-approximate max flow (here ϵ = 1/2κ),
+then we can use a folklore reduction to get the exact max flow: iteratively compute approximate
+max flows on the residual graph. In O  e (1/ϵ) iterations the optimal flow value of the residual graph
+will be decreased to 1/poly(n). Notice that we can also apply the standard rounding algorithm (for
+example, see [Coh95, §5]) if we want to get an integer flow of the max flow value.
+    The algorithm uses O e (κ) calls to the approximate max flow algorithm, which corresponds to
+                   ′
+O (κ) calls to A, A , and additional O
+ e                                    e (κ · poly(h) · (m + m′ )) work and Oe (κ · poly(h)) depth.
+
+
+Acknowledgments
+AB is supported by Sloan Fellowship, Google Research Fellowship, NSF Grant 1942010, and Charles
+S. Baylis endowment at NYU.
+    HF is supported by the National Science Foundation Graduate Research Fellowship Program
+under Grant No. DGE2140739.
+    BH is partially funded by the Ministry of Education and Science of Bulgaria’s support for INSAIT
+as part of the Bulgarian National Roadmap for Research Infrastructure and through the European
+Research Council (ERC) under the European Union’s Horizon 2020 research and innovation program
+(ERC grant agreement 949272).
+    GH is supported in part by National Science Foundation grant NSF CCF-2153680.
+    GL is supported by the National Science Foundation Graduate Research Fellowship Program
+under Grant No. DGE2140739.
+    MP is supported by grant no. 200021 204787 of the Swiss National Science Foundation.
+    SP is supported by NSF Grant CCF-2221980.
+    TS is supported by Sloan Fellowship, NSF Grant CCF-2238138, and partially funded by the
+Ministry of Education and Science of Bulgaria’s support for INSAIT, Sofia University “St. Kliment
+Ohridski” as part of the Bulgarian National Roadmap for Research Infrastructure.
+
+
+References
+[AB24]       Amir Abboud and Greg Bodwin. Reachability preservers: New extremal bounds and
+             approximation algorithms. SIAM J. Comput., 53(2):221–246, 2024. 25, 26
+
+[AKL+ 24]    Arpit Agarwal, Sanjeev Khanna, Huan Li, Prathamesh Patil, Chen Wang, Nathan
+             White, and Peilin Zhong. Parallel approximate maximum flows in near-linear work
+             and polylogarithmic depth. In Proceedings of the 35th Annual ACM-SIAM Symposium
+             on Discrete Algorithms (SODA), pages 3997–4061, 2024. 21
+
+[BBG+ 14]    Piotr Berman, Arnab Bhattacharyya, Elena Grigorescu, Sofya Raskhodnikova, David P.
+             Woodruff, and Grigory Yaroslavtsev. Steiner transitive-closure spanners of low-
+             dimensional posets. Comb., 34(3):255–277, 2014. 2
+
+[BH23a]      Greg Bodwin and Gary Hoppenworth. Folklore sampling is optimal for exact hopsets:
+             Confirming the sqrt(n) barrier. In 2023 IEEE 64th Annual Symposium on Foundations
+             of Computer Science (FOCS), pages 701–720, 2023.
+
+[BH23b]      Greg Bodwin and Gary Hoppenworth. Folklore sampling is optimal for exact hopsets:
+                            √
+             Confirming the n barrier. In Proceedings of the 64th Annual IEEE Symposium on
+             Foundations of Computer Science (FOCS), pages 701–720, 2023. 2
+
+
+
+                                                 22
+[BL98]      Imre Bárány and David G Larman. The convex hull of the integer points in a large
+            ball. Mathematische Annalen, 312:167–181, 1998. 5, 7
+
+[BW23]      Aaron Bernstein and Nicole Wein. Closing the gap between directed hopsets and
+            shortcut sets. In Proceedings of the 2023 Annual ACM-SIAM Symposium on Discrete
+            Algorithms (SODA), pages 163–182, 2023. 19
+
+[CFR20]     Nairen Cao, Jeremy T Fineman, and Katina Russell. Efficient construction of directed
+            hopsets and parallel approximate shortest paths. In Proceedings of the 52nd Annual
+            ACM SIGACT Symposium on Theory of Computing (STOC), pages 336–349, 2020. 3,
+            19
+
+[Cha87]     Bernard Chazelle. Computing on a free tree via complexity-preserving mappings.
+            Algorithmica, 2:337–361, 1987. 1
+
+[CKL+ 22]   Li Chen, Rasmus Kyng, Yang P Liu, Richard Peng, Maximilian Probst Gutenberg,
+            and Sushant Sachdeva. Maximum flow and minimum-cost flow in almost-linear time.
+            In Proceedings of the 2022 63rd Annual IEEE Symposium on Foundations of Computer
+            Science (FOCS), pages 612–623, 2022.
+
+[Coh95]     Edith Cohen. Approximate max-flow on small depth networks. SIAM J. Comput.,
+            24(3):579–597, 1995. 22
+
+[Coh97]     Edith Cohen. Size-estimation framework with applications to transitive closure and
+            reachability. Journal of Computer and System Sciences, 55(3):441–453, 1997. 1
+
+[Coh00]     Edith Cohen. Polylog-time and near-linear work approximation scheme for undirected
+            shortest paths. Journal of the ACM (JACM), 47(1):132–166, 2000. 1, 19
+
+[DRNV16]    Susanna F De Rezende, Jakob Nordström, and Marc Vinyals. How limited interaction
+            hinders real communication (and what it means for proof and circuit complexity). In
+            Proceedings of the 57th Annual IEEE Symposium on Foundations of Computer Science
+            (FOCS), pages 295–304, 2016. 4
+
+[EN19]      Michael Elkin and Ofer Neiman. Linear-size hopsets with small hopbound, and constant-
+            hopbound hopsets in RNC. In Proceedings of the 31st ACM Symposium on Parallelism
+            in Algorithms and Architectures (SPAA), pages 333–341, 2019. 19
+
+[Fin20]     Jeremy T. Fineman. Nearly work-efficient parallel algorithm for digraph reachability.
+            SIAM J. Comput., 49(5), 2020. 2, 3
+
+[GKW21]     Alexander Golovnev, Alexander S. Kulikov, and R. Ryan Williams. Circuit depth
+            reductions. In Proceedings of the 12th Innovations in Theoretical Computer Science
+            Conference (ITCS), volume 185 of LIPIcs, pages 24:1–24:20. Schloss Dagstuhl - Leibniz-
+            Zentrum für Informatik, 2021. 4
+
+[Hås86]    Johan Håstad. Almost optimal lower bounds for small depth circuits. In Proceedings
+            of the 18th Annual ACM Symposium on Theory of Computing (STOC), pages 6–20,
+            1986. 4
+
+[Hes03]     William Hesse. Directed graphs requiring large numbers of shortcuts. In Proceedings
+            of the 14th Annual ACM-SIAM Symposium on Discrete Algorithms (SODA), pages
+            665–669, 2003. , 1, 2, 3, 4, 6, 7, 8, 33
+
+
+                                               23
+[HHL+ 24]   Bernhard Haeupler, D Ellis Hershkowitz, Jason Li, Antti Roeyskoe, and Thatchaphol
+            Saranurak. Low-step multi-commodity flow emulators. In Proceedings of the 56th
+            Annual ACM Symposium on Theory of Computing (STOC), pages 71–82, 2024. 18
+
+[HHR03]     Chris Harrelson, Kirsten Hildrum, and Satish Rao. A polynomial-time tree decomposi-
+            tion to minimize congestion. In Proceedings of the 15th Annual ACM Symposium on
+            Parallel Algorithms and Architectures (SPAA), pages 34–43, 2003. 21
+
+[HHS23]     Bernhard Haeupler, D. Ellis Hershkowitz, and Thatchaphol Saranurak. Maximum
+            length-constrained flows and disjoint paths: Distributed, deterministic, and fast. In
+            Proceedings of the 55th Annual ACM Symposium on Theory of Computing (STOC),
+            pages 1371–1383, 2023. 21
+
+[HP19]      Shang-En Huang and Seth Pettie. Thorup-Zwick emulators are universally optimal
+            hopsets. Information Processing Letters, 142:9–13, 2019. 19
+
+[HP21]      Shang-En Huang and Seth Pettie. Lower bounds on sparse spanners, emulators, and
+            diameter-reducing shortcuts. SIAM J. Discret. Math., 35(3):2129–2144, 2021. , 2, 3, 4,
+            5, 6
+
+[HXX25]     Gary Hoppenworth, Yinzhan Xu, and Zixuan Xu. New separations and reductions
+            for directed hopsets and preservers. In Proceedings of the 2025 Annual ACM-SIAM
+            Symposium on Discrete Algorithms (SODA), 2025. , 2, 3, 4
+
+[JLS19]     Arun Jambulapati, Yang P. Liu, and Aaron Sidford. Parallel reachability in almost
+            linear work and square root depth. In Proceedings of the 60th Annual IEEE Symposium
+            on Foundations of Computer Science (FOCS), pages 1664–1686, 2019. 2, 3
+
+[KK93]      Ming-Yang Kao and Philip N. Klein. Towards overcoming the transitive-closure
+            bottleneck: Efficient parallel algorithms for planar digraphs. J. Comput. Syst. Sci.,
+            47(3):459–500, 1993. 1
+
+[KP22a]     Shimon Kogan and Merav Parter. Beating matrix multiplication for n1/3 -directed
+            shortcuts. In Proceedings of the 49th International Colloquium on Automata, Languages,
+            and Programming (ICALP). Schloss-Dagstuhl-Leibniz Zentrum für Informatik, 2022. 2
+
+[KP22b]     Shimon Kogan and Merav Parter. New diameter-reducing shortcuts and directed
+                                    √
+            hopsets: Breaking the o( n) barrier. In Proceedings of the 33rd Annual ACM-SIAM
+            Symposium on Discrete Algorithms (SODA), pages 1326–1341, 2022. 2
+
+[KP23]      Shimon Kogan and Merav Parter. Faster and unified algorithms for diameter reducing
+            shortcuts and minimum chain covers. In Proceedings of the 2023 Annual ACM-SIAM
+            Symposium on Discrete Algorithms (SODA), pages 212–239, 2023. 2
+
+[KS97]      Philip N. Klein and Sairam Subramanian. A randomized parallel algorithm for single-
+            source shortest paths. J. Algorithms, 25(2):205–220, 1997. 19, 20
+
+[LVWX22]    Kevin Lu, Virginia Vassilevska Williams, Nicole Wein, and Zixuan Xu. Better lower
+            bounds for shortcut sets and additive spanners via an improved alternation product.
+            In Proceedings of the 2022 ACM-SIAM Symposium on Discrete Algorithms, (SODA),
+            pages 3311–3331, 2022. , 2, 3, 4
+
+
+
+
+                                               24
+[Ras10]      Sofya Raskhodnikova. Transitive-closure spanners: A survey. In Oded Goldreich, editor,
+             Property Testing — Current Research and Surveys, volume 6390 of Lecture Notes in
+             Computer Science, pages 167–196. Springer, 2010. 2
+
+[RHM+ 23a] Václav Rozhoň, Bernhard Haeupler, Anders Martinsson, Christoph Grunau, and Goran
+           Zuzic. Parallel breadth-first search and exact shortest paths and stronger notions for
+           approximate distances. In Proceedings of the 55th Annual ACM Symposium on Theory
+           of Computing (STOC), pages 321–334, 2023.
+
+[RHM+ 23b] Václav Rozhon, Bernhard Haeupler, Anders Martinsson, Christoph Grunau, and Goran
+           Zuzic. Parallel breadth-first search and exact shortest paths and stronger notions for
+           approximate distances. In Proceedings of the 55th Annual ACM Symposium on Theory
+           of Computing (STOC), pages 321–334. ACM, 2023. 3, 19, 20
+
+[RM97]       Ran Raz and Pierre McKenzie. Separation of the monotone nc hierarchy. In Proceedings
+             38th Annual Symposium on Foundations of Computer Science (FOCS), pages 234–243,
+             1997. 4
+
+[Sch82]      Georg Schnitger. A family of graphs with expensive depth reduction. Theor. Comput.
+             Sci., 18:89–93, 1982. 4
+
+[Sch83]      Georg Schnitger. On depth-reduction and grates. In Proceedings of the 24th Annual
+             IEEE Symposium on Foundations of Computer Science (FOCS), pages 323–328, 1983.
+             4
+
+[Tho92]      Mikkel Thorup. On shortcutting digraphs. In Proceedings of the 18th International
+             Workshop on Graph-Theoretic Concepts in Computer Science (WG), volume 657 of
+             Lecture Notes in Computer Science, pages 205–211. Springer, 1992. , 1
+
+[Tho95]      Mikkel Thorup. Shortcutting planar digraphs. Combinatorics, Probability and Com-
+             puting, 4(3):287–315, 1995. 1
+
+[Tho04]      Mikkel Thorup. Compact oracles for reachability and approximate distances in planar
+             digraphs. J. ACM, 51(6):993–1024, 2004. 1
+
+[UY91]       Jeffrey D. Ullman and Mihalis Yannakakis. High-probability parallel transitive-closure
+             algorithms. SIAM J. Comput., 20(1):100–125, 1991. 1, 2
+
+[VXX24]      Virginia Vassilevska Williams, Yinzhan Xu, and Zixuan Xu. Simpler and higher lower
+             bounds for shortcut sets. In Proceedings of the 2024 ACM-SIAM Symposium on
+             Discrete Algorithms, (SODA), pages 2643–2656, 2024. , 2, 3, 4, 30, 31
+
+
+A     Lower Bounds for m1−ϵ -Sized Steiner Shortcuts
+In this section, we present a simple lower bound ruling out the existence of strongly sublinear Steiner
+reachability shortcuts with subpolynomial diameter.
+Theorem A.1. For every sufficiently small
+                                    h     constanti ϵ > 0, there exists an infinite family of n-node,
+                                         2−4ϵ1/2 +ϵ
+m-edge directed graphs G, where m ∈ n, n            , such that every Steiner reachability shortcut
+of G has size at least Ω̃(m1−ϵ ) or diameter at least Ω(nϵ ).
+   Our lower bound argument will require the following lemma, which can be attributed to existing
+lower bounds for reachability preservers in [AB24].
+
+                                                  25
+Lemma A.2 (cf. Theorem 13 of [AB24]). For every sufficiently small ϵ > 0, there exists an infinite
+family of n-node directed graphs G, each with an associated collection of directed paths P in G with
+the following properties:
+                  1/2
+   1. |P| ≥ n2−4ϵ       ,
+
+   2. each path P ∈ P has |P | = nϵ edges,
+
+   3. paths in P are pairwise edge-disjoint, and
+
+   4. each path P ∈ P is the unique directed path between its endpoints in graph G.
+
+   Using Lemma A.2, we can directly prove Theorem A.1.
+
+Proof of Theorem
+               h A.1. Let   ϵi> 0 be a sufficiently small constant and let m be some function of n
+                   2−4ϵ1/2 +ϵ
+such that m ∈ n, n            . By Lemma A.2, there exists an infinite family of n-node directed
+graphs G, each with an associated collection of directed paths P in G satisfying the properties in
+Lemma A.2. Since paths in P are pairwise edge-disjoint and each has length at least nϵ , we observe
+that
+                                                            1/2
+                                   |E(G)| ≥ |P|nϵ ≥ n2−4ϵ +ϵ .
+We can ensure that |E(G)| = Θ(m) by repeatedly removing paths in P from graph G until we achieve
+the desired graph density. After performing this procedure, |E(G)| = m and |P| = mn−ϵ ≥ m1−ϵ ,
+by Property 2 of Lemma A.2.
+   We will achieve our Steiner shortcut lower bound via an information theoretic argument. More
+specifically, we use graph G to construct a graph family G of size |G| = 2|P| . For each subset S ⊆ P,
+we define graph GS as follows:
+
+   1. Initially, let GS := G.
+
+   2. For each path P ∈ P − S, remove every edge in P from graph GS , so that GS ← GS − E(P ).
+
+Since paths in P are pairwise edge-disjoint in G by Lemma A.2, a path P ∈ P is contained in graph
+GS if and only if P ∈ S.
+    For each graph GS = (V S , E S ) where S ⊆ P, let GS+ = (V S ∪ V+S , E S ∪ E+
+                                                                                S ) be a Steiner shortcut
+
+graph of GS with diameter at most nϵ /2 that minimizes |V+S | + |E+      S |. (Recall that the size of a
+
+Steiner shortcut graph is precisely |V+ | + |E+ |.) We claim that one of these graphs GS+ has size at
+                                          S      S
+
+least |V+S | + |E+
+                 S | ≥ Ω̃(m1−ϵ ).
+
+    For each S ⊆ P, let H+      S = GS − E S . This graph contains exactly the Steiner edges E S in
+                                      +                                                               +
+          S
+graph G+ . We define the graph family G to be G = {H+        S}                                S        S
+                                                                S⊆P . Let x = maxS⊆P |V+ | + |E+ |.
+We observe that each graph H+      S ∈ G has at most x + n vertices and at most x edges. Now note
+
+that without loss of generality, we can interpret each directed graph H+       S ∈ G as a subgraph of
+
+a vertex-labeled, complete, directed graph with x vertices. We denote this universal graph as Ĝ.
+Under this interpretation, H+    S ⊆ Ĝ for each H S ∈ G.
+                                                   +
+    Now we claim that for distinct sets of paths S, S ′ ⊆ P, we have that H+      S =
+                                                                                    ̸ H+ S ′ (we say that
+
+H+S = H S ′ if both graphs correspond to the same subgraph of Ĝ, and we say that H S ̸= H S ′
+          +                                                                                      +      +
+otherwise). Since S =    ̸ S ′ , we may assume without loss of generality that there exists a path
+P ∈ S − S ′ . Since GS+ is a Steiner shortcut graph of GS with diameter ≤ nϵ /2, and path P has
+length |P | = nϵ , and path P is a unique path in GS by Property 4 of Lemma A.2, we conclude
+that there must exist a path in graph H+       S = GS − E S between a pair of vertices (s, t) in the
+                                                      +
+                                                                                                    ′
+transitive closure of path P . On the other hand, no edge in path P is contained in graph GS , i.e.,
+             ′                                                                                  ′
+E(P ) ∩ E S = ∅, so by Property 4 of Lemma A.2, there does not exist a path in graph GS+ between
+
+                                                   26
+                                                                                          ′
+a pair of vertices (s, t) in the transitive closure of path P . We conclude that GS+ =
+                                                                                     ̸ GS+ , as claimed.
+This implies that there are 2|P| distinct, vertex-labeled graphs in graph family G.
+    Finally, we observe that there are at most (x + n)2x distinct subgraphs of the universal graph Ĝ
+with at most x + n vertices and at most x edges, so (x + n)2x ≥ 2|P| . Taking the log of both sides,
+we get x log(x + n) ≥ |P|, which implies that x ≥ |P|/ log(|P|) = Ω̃(m1−ϵ ). Then by the definition
+of x, one of the Steiner shortcut graphs GS+ , where S ⊆ P, has size at least x = Ω̃(m1−ϵ ). This
+completes the proof.
+
+
+B     Reachability Shortcuts as OR-circuit Depth Reduction
+In this section we will show that the existence of Steiner shortcuts for reachability is equivalent to
+the existence of a depth reduction for a certain class of Boolean circuits.
+
+Theorem B.1. Conjecture 2 is equivalent to Conjecture 3.
+
+Preliminaries. A Boolean circuit is a directed acyclic graph with a set of source nodes S, called
+input gates, and a set of sink nodes T , called output gates. The input gates are labeled with binary
+variables x1 , . . . , xn , and the output gates are labeled with binary variables y1 , . . . , yn .
+    Each non-source/sink node in the circuit computes a Boolean function (e.g., AND, OR, NOT).
+We will restrict our attention to circuits with only OR gates, which we refer to as OR-circuits. Our
+OR gates will have unbounded fan-in. We measure the size of a Boolean circuit by the number
+of edges it has. We define the depth of a circuit as the length of the longest path in the directed
+acyclic graph. We define the diameter of a circuit as the largest distance between an input gate and
+an output gate in the directed acyclic graph.
+    The connection between reachability and OR-circuits can be summarized by the following
+observation.
+
+Observation B.2. Let C be an OR-circuit with input gates S ⊆ V (C) and output gates T ⊆ V (C).
+Let t ∈ T be an output gate labeled with binary variable y ∈ {0, 1}. Then output gate t returns the
+value y = 1 if and only if there exists an input gate s ∈ S such that s can reach t in C, and input
+gate s is labeled with a binary variable x ∈ {0, 1} that has the value x = 1.
+
+    We can now prove an equivalence between diameter-reducing Steiner shortcuts and the existence
+of diameter-reductions for OR-circuits.
+
+Lemma B.3. Let s(m) and d(m) be functions such that s(m), d(m) = O(poly(m)). Then the
+following two statements are equivalent:
+
+ (1) Every directed graph on n nodes and m edges admits a Steiner reachability shortcut with
+     s(m) + O(m + n) additional edges and diameter d(m) + O(1).
+
+ (2) Let f : {0, 1}n 7→ {0, 1}n be a multi-output Boolean function that can be computed by a Boolean
+     OR-circuit with m edges. Then f can be computed by an OR-circuit with s(m) + O(m + n)
+     edges and diameter d(m) + O(1).
+
+Proof. We will prove each direction separately.
+
+
+
+
+                                                  27
+(1) =⇒ (2). Let f : {0, 1}n 7→ {0, 1}n be a multi-output Boolean function that can be computed
+by a Boolean OR-circuit with m edges. Let G be the DAG of the Boolean circuit computing f ,
+where |E(G)| = m. Graph G has source nodes S ⊆ V (G) and sink nodes T ⊆ V (G), corresponding
+to input gates and output gates respectively, such that |S| = |T | = n.
+    Let H be a Steiner reachability shortcut of graph G, with V (G) ⊆ V (H) and E(G) ⊆ E(H).
+We may assume without loss of generality that H is a DAG, by contracting all strongly connected
+components (SCCs) in H. This operation will not contract any nodes in S or T . Additionally, we
+can also assume wlog that every source node in H is contained in S, and every sink node in H is
+contained in T . Consequently, we can interpret H as an OR-circuit with input gates S and output
+gates T . We claim that circuit H computes function f and satisfies Statement (2).
+    By Statement (1), |E(H)| = s(m) + O(m + n) and H has depth d(m) + O(1), as desired. Since
+H is a Steiner reachability shortcut of G, for all (s, t) ∈ S × T , node s can reach node t in G if and
+only if node s can reach node t in H. Then by Observation B.2, circuit H must compute the same
+Boolean function as circuit G. Then circuit H computes function f , as claimed.
+
+(2) =⇒ (1). Let G be an n-node, m-edge directed graph. We may assume wlog that m ≥ n − 1.
+Likewise, we may assume wlog that G is a directed acyclic graph, via the following procedure.
+Contract every SCC in G to obtain a DAG G′ . Then a simple argument will show that G has a
+Steiner reachability shortcut with s(m) + O(m + n) additional edges and depth d(m) + O(1) if and
+only if G′ has one as well.
+    We will convert DAG G into a circuit C as follows. Let v1 , . . . , vn ∈ V (G) be the nodes of
+graph G. We will define sets of new nodes S = {s1 , . . . , sn } and T = {t1 , . . . , tn }. Nodes S and
+T will become the input gates and output gates, respectively, of C. Let the vertex set of C be
+V (C) = V (G) ∪ S ∪ T . We define the edge set E(C) of C to be
+                                               [
+                               E(C) = E(G) ∪       {(si , vi ), (vi , ti )}.
+                                                   i∈[1,n]
+
+Notice that C is a directed acyclic graph with source nodes S and sink nodes T . Consequently, we can
+interpret C as an OR-circuit with input gates S and output gates T . We label node si with binary
+variable xi , and we label node ti with binary variable yi , for i ∈ [1, n]. Let f : {0, 1}n 7→ {0, 1}n
+denote the Boolean function that circuit C computes.
+    Let m′ = |E(C)| = m + 2n. By Statement (2), there exists an OR-circuit C ′ with sources S and
+sinks T , such that
+
+   • circuit C ′ computes function f ,
+
+   • circuit C ′ has s(m′ ) + O(m′ + n) = s(m) + O(m + n) edges, and
+
+   • circuit C ′ has depth d(m′ ) + O(1) = d(m) + O(1).
+
+We convert circuit C ′ into a Steiner reachability shortcut H of graph G as follows. Let V (H) be
+the disjoint union of V (C ′ ) and the vertex set V (G) of G. We define the edge set E(H) of H to be
+                                                   [
+                                  E(H) = E(C ′ )      {(vi , si ), (ti , vi )}.
+                                                   i∈[1,n]
+
+We claim that graph H is a Steiner reachability shortcut of G and satisfies Statement (1).
+   We will need the following observation about circuit C ′ . Fix an i ∈ [1, n], and let xi = 1 and
+xj = 0 for j ̸= i. Let f (x1 , . . . , xn ) = (y1 , . . . , yn ). Then by Observation B.2, for any j ∈ [1, n],
+we have that yj = 1 if and only if vi can reach vj in G. Since circuit C ′ computes function f , we
+
+                                                     28
+conclude that for all (si , tj ) ∈ S × T , we have that si can reach tj in C ′ if and only if vi can reach
+vj in graph G.
+      We will first show that graph H preserves the reachability relation of G between vertices in
+V (G) × V (G). Suppose that node vi can reach node vj in graph G. Then since we added edges
+(vi , si ) and (tj , vj ) to graph H, the above observation immediately implies that vi can reach vj in
+graph H.
+      Now suppose that vi can reach vj in graph H; we claim that vi can reach vj in graph G as well.
+Let P be a vi ⇝ vj path in graph H. We can write path P as a concatenation of paths
+
+                                              P = P1 ◦ · · · ◦ Pk ,
+
+where, for each ℓ ∈ [1, k], subpath Pℓ is internally vertex-disjoint from V (G). For each ℓ ∈ [1, k],
+let subpath Pℓ be an xℓ ⇝ xℓ+1 path, where xℓ , xℓ+1 ∈ V (G), x1 = vi , and xk+1 = vj . Notice that
+since path Pℓ is internally vertex-disjoint from V (G), path Pℓ is a path in circuit C ′ as well, for all
+ℓ ∈ [1, k]. Then by our earlier observation about circuit C ′ , we must have that xℓ can reach xℓ+1
+in G. We have shown that xℓ can reach xℓ+1 in G for all ℓ ∈ [1, k], so by the transitivity of the
+reachability relation, we must have that x1 = vi can reach xk+1 = vj in G. We have shown that H
+preserves the reachability relation of G between vertices in V (G) × V (G).
+    Finally, we quickly observe that |E(H)| = |E(C ′ )| + 2n = s(m) + O(m + n), and H has diameter
+d(m) + O(1), as claimed in Statement (2).
+
+   With Lemma B.3 in hand, we can now prove that our conjecture for low-depth Steiner shortcuts
+(Conjecture 2) is equivalent to the conjecture for low-depth OR-circuits (Conjecture 3).
+Theorem B.1. Conjecture 2 is equivalent to Conjecture 3.
+Proof. First, notice that if a Boolean OR-circuit has depth d, then it also has diameter d. Therefore,
+by Lemma B.3, if Conjecture 3 is true, then every directed graph on n nodes and m edges admits a
+Steiner reachability shortcut with O(m)e     additional edges and diameter polylog(n), so Conjecture 2
+is true as well.
+    What remains is to prove that Conjecture 2 implies Conjecture 3. If Conjecture 2 is true, then
+by Lemma B.3 every Boolean function f : {0, 1}n 7→ {0, 1}n that can be computed by a Boolean
+OR-circuit C with size s1 can also be computed by an OR-circuit with size s2 = O(s   e 1 ) and diameter
+d = O(polylog(n)). We will now convert circuit C into a circuit C ∗ with depth O(d) by a simple
+layering operation. Let S denote the set of input gates of C, let T denote the output gates of C, and
+let V denote the set of OR gates in C. We will make d copies of set V , which we denote V1 , . . . , Vd .
+Sets V1 , . . . , Vd will be the new OR gates in our new OR-circuit C ∗ . For each v ∈ V , we let vi ∈ Vi
+denote the copy of v in Vi . We define the edge set of circuit C ∗ as follows:
+    • For each edge (x, y) ∈ S × V in circuit C, add edge (x, y1 ) ∈ S × V1 to C ∗ .
+
+    • For each edge (x, y) ∈ V × T in circuit C, add edge (xd , y) ∈ Vd × T to C ∗ .
+
+    • For each edge (x, y) ∈ S × T in circuit C, add edge (x, y) ∈ S × T to C ∗ .
+
+    • For each edge (x, y) ∈ V × V , add edge (xi , yi+1 ) ∈ Vi × Vi+1 to C ∗ for every i ∈ [1, d − 1].
+
+    • For each v ∈ V and each i ∈ [1, d − 1], add the edge (vi , vi+1 ) ∈ Vi × Vi+1 to C ∗ .
+This completes the definition of the new circuit C ∗ .
+   We now quickly verify that circuit C ∗ computes the same function as C. Notice that an input
+gate s ∈ S can reach an output gate t ∈ T in circuit C if and only if there is an (s, t)-path
+P = (s, v 1 , v 2 , . . . , v k , t) in C of length at most d. If P exists in C, then circuit C ∗ must contain the
+
+                                                       29
+(s, t)-path P ∗ = (s, v11 , v22 , . . . , vkk , vk+1
+                                                 k , . . . , v k , t). Likewise, if there exists an (s, t)-path P ∗ in C ∗ ,
+                                                              d
+then there exists an (s, t)-path P in C. Then by Observation B.2, we conclude that circuit C and
+circuit C ∗ compute the same binary function.
+     Finally, observe that circuit C ∗ has depth O(d) = O(polylog(n)) since every path in C ∗ can
+pass through at most one vertex in each layer Vi for i ∈ [1, d]. Likewise, circuit C ∗ has size at most
+              e 1 ), since every edge in circuit C is copied at most d times in C ∗ .
+s2 ≤ s1 d = O(s
+
+
+C         Steiner Shortcut for the Lower Bound of [VXX24]
+C.1         Construction of [VXX24] Lower Bound
+Before presenting our Steiner shortcut for the lower bound construction of [VXX24], we first give a
+sketch of its construction and relevant properties.
+    The lower bound of [VXX24] consists of a graph G and an associated collection of critical paths
+P. Graph G is parameterized by an integer r. Integer r will be chosen to be a power of two.
+        • Vertices V (G). Graph G has 2r + 1 layers, L0 , . . . , L2r . The vertices of each layer can be
+          written as a collection of points on a three-dimensional grid. Formally, for i ∈ [0, 2r],
+                                           Li = {i} × [1, 4r] × [1, 4r] × [1, 4r2 ].
+
+        • Edges E(G). Before constructing the edge set of G, we define a permutation σ of [0, r − 1]
+          as follows. For any i ∈ [0, r − 1], we define the ith element σi of σ as the integer whose
+          corresponding lg(r)-bit binary representation can be reversed to obtain the lg(r)-bit binary
+          representation of i. Let v0 , . . . , v2r−1 be a sequence of vectors where
+                                                        vi = (1, 0, σi/2 )
+          for every even i ∈ [0, 2r − 1], and
+                                                     vi = (0, 1, σ(i−1)/2 )
+          for every odd i ∈ [0, 2r − 1].
+          For every i ∈ [0, 2r − 1] and every point x ∈ [4r] × [4r] × [4r2 ], we add the edge (i, x) → (i + 1, x)
+          to edge set E(G), and we add the edge (i, x) → (i + 1, x + vi ) to E(G) if (i + 1, x + vi ) ∈ Li+1
+          is a valid point in layer Li+1 .9
+        • Critical Paths P. We define a collection P of paths in graph G. Towards this goal, we first
+          define a set of source nodes S ⊆ L0 . Specifically, we choose S to be
+                                            S = {0} × [2r] × [2r] × [2r2 ] ⊆ L0 .
+
+          For each node s ∈ S and each choice of tuple (d1 , d2 ) ∈ [r] × [r], we will define a critical path
+          Pds1 ,d2 ∈ P that starts at node s ∈ L0 and ends at a node in L2r . Before we can define these
+          critical paths, we will need to define a function fd : [0, r − 1] 7→ [0, r] for every d ∈ [r]. We
+          define fd as follows.                          (
+                                                           σi σi < d
+                                                fd (i) =
+                                                           0 else
+
+          We are now ready to define our critical paths P. Fix a node s ∈ S and a tuple (d1 , d2 ) ∈ [r]×[r].
+          We iteratively define a path Pds1 ,d2 starting at s and ending at a node in L2r . We now specify
+          the edge that path Pds1 ,d2 takes between layers Li and Li+1 , where i ∈ [0, 2r − 1].
+    9
+        The edge set E(G) is constructed using permutation σ to ensure Property 3 of Lemma C.1.
+
+
+                                                            30
+        – If i ≡ 0 mod 2, then path Pds1 ,d2 takes an edge of the form
+
+                                   (i, x, y, z) → (i + 1, x + 1, y, z + fd1 (i/2)).
+
+        – If i ≡ 1 mod 2, then path Pds1 ,d2 takes an edge of the form
+
+                                (i, x, y, z) → (i + 1, x, y + 1, z + fd2 ((i − 1)/2).
+
+      We have established that path Pds1 ,d2 starts at node s ∈ L0 , and we have established which
+      type of edge Pds1 ,d2 takes between layers Li and Li+1 where i ∈ [0, 2r − 1], so we have uniquely
+      specified path P . We define P to be the collection of paths {Pds1 ,d2 }s,d1 ,d2 defined over all
+      choices of s ∈ S and d1 , d2 ∈ [1, r].
+
+We state without proof several properties of this graph construction.
+
+Lemma C.1 (cf. Proposition 5.1 of [VXX24]). Graph G and paths P have the following properties:
+
+  1. |V (G)| = Θ(r5 ), |E(G)| = Θ(r5 ), and |P| = Θ(r6 ).
+
+  2. (Uniqueness.) Every critical path in P is the unique path between its endpoints in G.
+
+  3. (Low Overlap.) Any path σ in G of length at most s ≤ 2r is contained in at most O((r/s)2 )
+     distinct critical paths in P.
+
+  This graph construction of [VXX24] implies a polynomial lower bound on the diameter of
+O(m)-size shortcuts. We summarize this property of G, P in the following theorem.
+
+Theorem C.2 (cf. Theorem 1.3 of [VXX24]). Fix a constant c > 0. Let H ⊆ T C(G) be a shortcut
+set of G of size |H| ≤ c · |E(G)|. If construction parameter r of G, P is chosen to be sufficiently
+large, then there must exist an s ⇝ t path P ∈ P such that distG∪H (s, t) = Ω(r) = Ω(|V (G)|1/5 ).
+Consequently, for any O(m)-size shortcut set H ⊆ T C(G), graph G ∪ H has diameter Ω(n1/5 ).
+
+   The proof of Theorem C.2 uses a potential function argument which shows that every shortcut
+edge in H can only decrease the lengths of paths in P by a small amount; intuitively, this follows
+from the low overlap property of paths in P stated in Lemma C.1.
+
+C.2    Steiner Shortcut to [VXX24]
+We will now give a Steiner shortcut for the lower bound construction of [VXX24]. This Steiner
+shortcut rules out the possibility of extending Theorem C.2 to Steiner reachability shortcut sets via
+the argument used in [VXX24]. Formally, we will prove the following theorem about the graph G
+and set of paths P corresponding to the lower bound construction of [VXX24].
+
+Theorem C.3 (Steiner Shortcut for [VXX24] Construction). Graph G and set of paths P admit a
+Steiner reachability shortcut set H such that
+
+  1. H has O(r4 ) = O(|V (G)|/r) Steiner nodes and O(r5 ) = O(|E(G)|) edges, and
+
+  2. For every s ⇝ t path P ∈ P, there exists an s ⇝ t path of length two in G ∪ H.
+
+
+
+
+                                                   31
+Construction of H. The additional Steiner nodes in our Steiner reachability shortcut set H
+will correspond to a collection of points in a three-dimensional grid. Specifically, we define a set of
+Steiner nodes W to be
+                              W = {−1} × {1, 4r} × {1, 4r} × [1, 4r2 ].
+(We add the −1 in the first coordinate of W to distinguish the vertices in W from the vertices in
+V (G).) The edge set E(H) of our Steiner shortcut will satisfy E(H) ⊆ (L0 × W ) ∪ (W × L2r ).
+   Before we can define E(H), we need to introduce some new definitions. For every d ∈ [r] and
+every i ∈ {1, 2}, we define integer zdi ≥ 0 as follows:
+                                X                          X
+                        zd1 =          fd (2j) and zd2 =        fd (2j + 1).
+                               j∈[0,r−1]                         j∈[0,r−1]
+
+   Using integers zdi , we are now ready to construct E(H).
+   • For every node (0, x, y, z) ∈ S and every d ∈ [r], add the edge
+                                    (0, x, y, z) → −1, x + r, y, z + zd1
+                                                                             
+
+      to E(H) if −1, x + r, y, z + zd1 ∈ W is a valid point in W .
+                                      
+
+   • For every node (−1, x, y, z) ∈ W and every d ∈ [r], add the edge
+                                   (−1, x, y, z) → 2r, x, y + r, z + zd2
+                                                                         
+
+     to E(H) if 2r, x, y + r, z + zd2 ∈ L2r is a valid node in layer L2r .
+                                     
+
+This completes the construction of Steiner shortcut set H and additional edges E(H).
+
+Analysis of H. First we will bound the number of Steiner nodes in W and the number of
+additional edges E(H) in our Steiner shortcut set. We observe that |W | = 43 r4 = O(r4 ), as claimed.
+Additionally, we observe that the total number of edges in our Steiner shortcut is at most
+                               |E(H)| ≤ |S| · r + |W | · d ≤ 27 r5 = O(r5 ),
+as claimed.
+    We next verify that H is a valid Steiner reachability shortcut set, i.e., that the reachability
+relation between nodes in V (G) remains the same in G ∪ H. Let u, v ∈ V (G) be nodes such that
+path (u, w, v) exists in graph G ∪ H for some w ∈ W . Then we claim that u can reach v in G as
+well. Let u = (0, x, y, z). We can write u → w → v as
+                (0, x, y, z) → (−1, x + r, y, z + zd11 ) → (2r, x + r, y + r, z + zd11 + zd22 ),
+for some choice of d1 , d2 ∈ [1, r]. We claim that critical path Pdu1 ,d2 ∈ P is a u ⇝ v path in G. Notice
+that by construction, path Pdu1 ,d2 begins at node u and ends at node v ′ , where
+                                     r−1           r−1
+                                                              !
+                                    X              X
+      v ′ = 2r, x + r, y + r, z +        fd1 (i) +     fd2 (i) = (2r, x + r, y + r, z + zd11 + zd22 ) = v.
+                                  i=0        i=0
+                     u
+We conclude that Pd1 ,d2 is a u ⇝ v path in G, as claimed.
+    Finally, we verify that for every s ⇝ t path Pds1 ,d2 ∈ P, there exists an s ⇝ t path in G ∪ H of
+length two. Notice that by our construction of P, if Pds1 ,d2 is an s ⇝ t path, then nodes s and t can
+be written as
+                                                 t = 2r, x + r, y + r, z + zd11 + zd22 .
+                                                                                      
+                      s = (0, x, y, z)     and
+Then we can identify the following s ⇝ t path in G ∪ H of length two:
+                (0, x, y, z) → (−1, x + r, y, z + zd11 ) → 2r, x + r, y + r, z + zd11 + zd22 .
+                                                                                            
+
+This completes the proof of Theorem C.3.
+
+                                                      32
+D      Omitted Proofs
+D.1      Proof of Lemma 2.5
+Lemma 2.5 (Cf. [Hes03]). Let G ∈ Gk with critical pair set P .
+                   k dk
+    • |P | = N ∆ r
+             (r+1)dk
+                     .
+
+    • Every critical pair (s, t) ∈ P has a unique s-t path Ps,t in G, called its critical path.
+
+    • If two critical paths intersect at u ∈ Li and v ∈ Li′ then i′ < i + k.
+
+Proof. Each vertex ((0, 0), (p0 , . . . , pk−1 )) ∈ S is part of ∆k critical pairs because for any critical
+direction (⃗v0 , . . . , ⃗vk−1 ) ∈ B(r, d)k , we have that ((ℓ, 0), (p0 + ℓ⃗v0 , . . . , pk−1 + ℓ⃗vk−1 )) ∈ Lℓ,0 is a valid
+vertex in Lℓ,0 , since pj + ℓ⃗vj ∈ (−(r + 1)rℓ, (r + 1)rℓ]d . Additionally, the number of vertices in S is
+                                    N rdk                                                                      N ∆k rdk
+at least |S| = (2r2 ℓ)dk = (r+1)        dk . We conclude that the total number of critical pairs is (r+1)dk .
+
+    Turning to the uniqueness claim, if (s, t) ∈ P is an arbitrary critical pair we can write
+
+                                s = ((0, 0), (p0 , . . . , pk−1 )) ∈ S
+                                t = ((ℓ, 0), (p0 + ℓ⃗v0 , . . . , pk−1 + ℓ⃗vk−1 )) ∈ Lℓ,0 ,
+
+One s-t path Ps,t passes through all vertices of the form
+
+               ((i, j), (p0 + (i + 1)⃗v0 , . . . , pj−1 + (i + 1)⃗vj−1 , pj + i⃗vj , . . . , pk−1 + i⃗vk−1 )).
+
+We claim that Ps,t is the unique s-t path in G. By construction, any s-t path P ′ in G can be
+identified with a sequence of kℓ vectors ⃗u0,0 , . . . , ⃗uℓ−1,k−1 corresponding to the edges of P ′ that
+satisfies
+                                                     Xℓ−1
+                                   ∀j ∈ [0, k),             ⃗ui,j = ℓ⃗vj .
+                                                             i=0
+                                        P
+However, if any ⃗ui,j ̸= ⃗vj then ( i ⃗ui,j )/ℓ is not an extreme point on the convex hull B(r, d), and
+therefore cannot be equal to ⃗vj . Thus ⃗ui,j = ⃗vj and P ′ = Ps,t .
+    Since each critical pair is connected by a unique path, we can refer to it as a critical path. The
+last claim follows since any k consecutive edges along a critical path uniquely determines its critical
+direction (⃗v0 , . . . , ⃗vk−1 ), which uniquely determines its first vertex in L0,0 and last vertex in Lℓ,0 .
+
+
+
+
+                                                             33
+

@@ -3,20 +3,20 @@
 import collections
 
 from categories import BIG, SMALL, NAMES, CATEGORIES, BY_KEY
-from deleted_records import read_deleted
+from card_activity import read_inactive
 from benchmark_selection import GOAL
 
 
 def apply_taxonomy(data):
-    deleted = read_deleted()
-    data['cards'] = [card for card in data['cards'] if card['id'] not in deleted]
+    inactive = read_inactive()
+    data['cards'] = [card for card in data['cards'] if card['id'] not in inactive]
     counts, adds, reviewed = (collections.Counter() for _ in range(3))
     for card in data['cards']:
         area = card['area']
         if area not in BY_KEY:
             raise ValueError(f"{card['id']}: unknown category {area}")
         if card.get('scope_exclusion'):
-            raise ValueError(f"{card['id']}: put removed IDs and reasons in data/deleted_records.json")
+            raise ValueError(f"{card['id']}: archive this card with scripts/archive_cards.py")
         definition = BY_KEY[area]
         card.setdefault('original_area', area)
         card.setdefault('category_assignment', {'method': 'editorial_topic', 'reason': 'Assigned in the canonical card.'})
@@ -35,7 +35,7 @@ def apply_taxonomy(data):
         small_groups=len(SMALL), vacant_small_groups=reserved//20,
         assigned_target=assigned, reserved_target=reserved, target_total=assigned+reserved,
         target_status='legacy_view',
-        candidate_count=total, deleted_count=len(deleted),
+        candidate_count=total, inactive_count=len(inactive),
         assignment_counts=dict(collections.Counter(c['category_assignment']['method'] for c in data['cards'])))
     methodology = [p for p in data['meta'].get('methodology', []) if not p.startswith('Selection groups follow')]
     methodology.append(
@@ -46,8 +46,8 @@ def apply_taxonomy(data):
         f'and {reserved} reserved places. '
         'Each card records its category explicitly. These counts describe saved candidates; '
         'classification does not verify a statement or its current open status. '
-        'Deleted records are absent from the catalogue and exports. '
-        'Their stable IDs and reasons are retained to prevent reimport. '
+        'Inactive records are archived outside the catalogue, exports and editorial work. '
+        'Their content, stable IDs and reasons are retained; imports cannot reactivate them. '
         'Final quota selection and a comprehensive deduplication audit remain pending.')
     data['meta']['methodology'] = methodology
     return data

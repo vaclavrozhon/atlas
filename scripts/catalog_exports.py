@@ -84,11 +84,11 @@ def category_summary(data):
     lines.extend([
         '',
         f"Candidate pool: {taxonomy['candidate_count']}. "
-        f"Deleted records: {taxonomy['deleted_count']} (IDs and reasons only).",
+        f"Inactive records: {taxonomy['inactive_count']} (excluded from active work).",
         '',
         f"The legacy Top 1000 view has {taxonomy['assigned_target']} assigned places; "
         f"reserved places: {taxonomy['reserved_target']}. "
-        'Removal reasons are recorded in deleted_records.json. '
+        'Inactive cards and their reasons are retained in data/archive/. '
         'Final quota selection and a comprehensive deduplication audit remain pending.',
     ])
     return '\n'.join(lines) + '\n'

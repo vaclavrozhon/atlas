@@ -16,7 +16,7 @@ from categories import BY_KEY
 from catalog_exports import atomic, jsdump, write_catalog_exports, write_live_updates
 from importance import apply_importance, validate_importance
 from taxonomy import apply_taxonomy
-from deleted_records import read_deleted
+from card_activity import read_inactive, active_card_paths
 from related_problems import apply_related_problems
 
 BASE, SITE, CARDS = ROOT, BUILD, DATA / 'cards'
@@ -77,6 +77,8 @@ def validate_record(card, path, criteria):
         raise ValueError(f'{identifier}: invalid evidence level')
     if card['status'] not in {'open', 'source_open', 'uncertain', 'resolved', 'excluded'}:
         raise ValueError(f'{identifier}: invalid status')
+    if card['status'] in {'resolved', 'excluded'} or card.get('scope_exclusion'):
+        raise ValueError(f'{identifier}: archive this inactive card with scripts/archive_cards.py')
     importance = card['importance']
     if importance.get('method') == 'editorial':
         validate_importance(importance)
@@ -99,19 +101,16 @@ def validate_record(card, path, criteria):
 
 
 def load_catalog():
-    deleted = read_deleted()
+    inactive = read_inactive()
     data = dict(meta=json.loads((DATA / 'metadata.json').read_text()),
                 criteria=json.loads((DATA / 'criteria.json').read_text()), cards=[])
-    for path in sorted(CARDS.glob('*.json')):
-        # Even a stale file copied back into the source directory cannot revive an ID.
-        if path.stem in deleted:
-            continue
+    for path in active_card_paths():
         card = reader_record(json.loads(path.read_text()), data['criteria'])
         validate_record(card, path, data['criteria'])
         data['cards'].append(card)
     if not data['cards']:
         raise ValueError('No canonical cards found in data/cards/')
-    apply_related_problems(data['cards'], deleted)
+    apply_related_problems(data['cards'], inactive)
     return data
 
 

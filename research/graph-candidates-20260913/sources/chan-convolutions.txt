@@ -1,0 +1,1054 @@
+                                                                  Necklaces, Convolutions, and X + Y
+
+                                                        David Bremner1                Timothy M. Chan2               Erik D. Demaine3
+                                                          Jeff Erickson4                Ferran Hurtado5                 John Iacono6
+                                                      Stefan Langerman7                 Mihai Pǎtraşcu8             Perouz Taslakian9
+arXiv:1212.4771v1 [cs.DS] 19 Dec 2012
+
+
+
+
+                                                                       In memory of our colleague Mihai Pǎtraşcu.
+
+
+
+
+                                                                                            Abstract
+                                                   We give subquadratic algorithms that, given two necklaces each with n beads at arbitrary
+                                               positions, compute the optimal rotation of the necklaces to best align the beads. Here alignment
+                                               is measured according to the ℓp norm of the vector of distances between pairs of beads from
+                                               opposite necklaces in the best perfect matching. We show surprisingly different results for p = 1,
+                                               p even, and p = ∞. For p even, we reduce the problem to standard convolution, while for p = ∞
+                                               and p = 1, we reduce the problem to (min, +) convolution and (median, +) convolution. Then
+                                               we solve the latter two convolution problems in subquadratic time, which are interesting results
+                                               in their own right. These results shed some light on the classic sorting X + Y problem, because
+                                               the convolutions can be viewed as computing order statistics on the antidiagonals of the X + Y
+                                               matrix. All of our algorithms run in o(n2 ) time, whereas the obvious algorithms for these
+                                               problems run in Θ(n2 ) time.
+
+
+
+                                           1
+                                             Faculty of Computer Science, University of New Brunswick, Fredericton, New Brunswick, Canada,
+                                        bremner@unb.ca. Supported by NSERC.
+                                           2
+                                             School of Computer Science, University of Waterloo, Waterloo, Ontario, Canada, tmchan@uwaterloo.ca. Sup-
+                                        ported by NSERC.
+                                           3
+                                             Computer Science and Artificial Intelligence Laboratory, Massachusetts Institute of Technology, Cambridge, MA,
+                                        USA, edemaine@mit.edu. Supported in part by NSF grants CCF-0430849 and OISE-0334653 and by an Alfred P.
+                                        Sloan Fellowship.
+                                           4
+                                             Computer Science Department, University of Illinois, Urbana-Champaign, IL, USA, jeffe@cs.uiuc.edu.
+                                           5
+                                             Departament de Matemàtica Aplicada II, Universitat Politècnica de Catalunya, Barcelona, Spain,
+                                        Ferran.Hurtado@upc.edu. Supported in part by projects MICINN MTM2009-07242, Gen. Cat. DGR 2009SGR1040,
+                                        and ESF EUROCORES programme EuroGIGA, CRP ComPoSe: MICINN Project EUI-EURC-2011-4306, for Spain.
+                                           6
+                                             Department of Computer and Information Science, Polytechnic University, Brooklyn, NY, USA,
+                                        http://john.poly.edu. Supported in part by NSF grants CCF-0430849 and OISE-0334653 and by an Alfred P. Sloan
+                                        Fellowship.
+                                           7
+                                             Directeur de Recherches du FRS–FNRS, Départment d’Informatique, Université Libre de Bruxelles, Brussels,
+                                        Belgium, stefan.langerman@ulb.ac.be.
+                                           8
+                                             Chercheur qualifié du FNRS, Départment d’Informatique, Université Libre de Bruxelles, Brussels, Belgium,
+                                        stefan.langerman@ulb.ac.be.
+                                           9
+                                             College of Science and Engineering, American University of Armenia, Yerevan, Armenia, ptaslakian@aua.am.
+
+
+                                                                                                1
+1     Introduction
+How should we rotate two necklaces, each with n beads at different locations, to best align the
+beads? More precisely, each necklace is represented by a set of n points on the unit-circumference
+circle, and the goal is to find rotations of the necklaces, and a perfect matching between the beads
+of the two necklaces, that minimizes some norm of the circular distances between matched beads.
+In particular, the ℓ1 norm minimizes the average absolute circular distance between matched beads,
+the ℓ2 norm minimizes the average squared circular distance between matched beads, and the ℓ∞
+norm minimizes the maximum circular distance between matched beads. The ℓ1 version of this
+necklace alignment problem was introduced by Toussaint [39] in the context of comparing rhythms
+in computational music theory, with possible applications to rhythm phylogeny [22, 40].
+    Toussaint [39] gave a simple O(n2 )-time algorithm for ℓ1 necklace alignment, and highlighted as
+an interesting open question whether the problem could be solved in o(n2 ) time. In this paper, we
+solve this open problem by giving o(n2 )-time algorithms for ℓ1 , ℓ2 , and ℓ∞ necklace alignment, in
+both the standard real RAM model of computation and the less realistic nonuniform linear decision
+tree model of computation. Our results for the case of the ℓ1 and ℓ∞ distance measures in the real
+RAM model also answer the questions posed by Clifford et al. in [13] (see the shift matching
+problem in Problem 5 of the tech report).
+
+Necklace alignment problem. More formally, in the necklace alignment problem, the input is a
+number p representing the ℓp norm, and two sorted vectors of n real numbers, ~x = hx0 , x1 , . . . , xn−1 i
+and ~y = hy0 , y1 , . . . , yn−1 i, representing the two necklaces. See Figure 1. Canonically, we assume
+that each number xi and yi is in the range [0, 1), representing a point on the unit-circumference
+circle (parameterized clockwise from some fixed point). The distance between two beads xi and yj
+is the minimum between the clockwise and counterclockwise distances along the circumference of
+the unit-perimeter circular necklaces. We define this distance as:
+                              d◦ (xi , yj ) = min{|xi − yj | , (1 − |xi − yj |)}.
+     The optimization problem involves two parameters. The first parameter, the offset c ∈ [0, 1),
+is the clockwise rotation angle of the first necklace relative to the second necklace. The second
+parameter, the shift s ∈ {0, 1, . . . , n}, defines the perfect matching between beads: bead i of the
+first necklace matches with bead (i + s) mod n of the second necklace. (Here we use the property
+that an optimal perfect matching between the beads does not cross itself.)
+
+
+
+
+    Figure 1: An example of necklace alignment: the input (left) and one possible output (right).
+
+                                                      2
+    The goal of the ℓp necklace alignment problem is to find the offset c ∈ [0, 1) and the shift
+s ∈ {0, 1, . . . , n} that minimize
+                                     n−1
+                                     X                                        p
+                                            d◦ ((xi + c) mod 1, y(i+s) mod n )                                       (1)
+                                      i=0
+
+or, in the case p = ∞, that minimize
+                                      n−1
+                                     max{d◦ ((xi + c) mod 1, y(i+s) mod n )}.
+                                      i=0
+
+   The ℓ1 , ℓ2 , and ℓ∞ necklace alignment problems all have trivial O(n2 ) solutions, although this
+might not be obvious from the definition. In each case, as we show, the optimal offset c can
+be computed in linear time for a given shift value s (sometimes even independent of s). The
+optimization problem is thus effectively over just s ∈ {0, 1, . . . , n}, and the objective costs O(n)
+time to compute for each s, giving an O(n2 )-time algorithm.
+
+   Although necklaces are studied throughout mathematics, mainly in combinatorial settings, we
+are not aware of any work on the necklace alignment problem before Toussaint [39]. He introduced
+ℓ1 necklace alignment, calling it the cyclic swap-distance or necklace swap-distance problem, with a
+restriction that the beads lie at integer coordinates. Ardila et al. [2] give a O(k2 )-time algorithm for
+computing the necklace swap-distance between two binary strings, with k being the number of 1-
+bits (beads at integer coordinates). Colannino et al. [16] consider some different distance measures
+between two sets of points on the real line in which the matching does not have to match every
+point. They do not, however, consider alignment under such distance measures.
+    Aloupis et al. [1], consider the problem of computing the similarity of two melodies represented
+as closed orthogonal chains on a cylinder. Their goal is to find the proper (rigid) translation of
+one of the chains in the vertical (representing pitch) and tangential (representing time) direction so
+that the area between the chains is minimized. The authors present an O(mn lg(n + m)) algorithm
+that solves the problem. When the melodic chains each have a note at every time unit, the
+melodic similarity problem is equivalent to the necklace alignment problem, and as our results are
+subquadratic, we improve on the results of Aloupis et al. [1] for this special case.
+
+ Convolution. Our approach in solving the necklace alignment problem is based on reducing it
+ to another important problem, convolution, for which we also obtain improved algorithms. The
+ (+, ·) convolution of two vectors ~x =     P hx0 , x1 , . . . , xn−1 i and ~y = hy0 , y1 , . . . , yn−1 i, is the vector
+~x∗~y = hz0 , z1 , . . . , zn−1 i where zk = ki=0 xi · yk−i . One can generalize convolution to any (⊕, ⊙)
+ operators. Algorithmically, a convolution with specified addition and multiplication operators
+                       ⊙
+ (here denoted ~x ∗ ~y ) can be easily computed in O(n2 ) time. However, the (+, ·) convolution can
+                   ⊕
+be computed in O(n lg n) time using the Fast Fourier Transform [18, 29, 30], because the Fourier
+transform converts convolution into elementwise multiplication. Indeed, fast (+, ·) convolution
+was one of the early breakthroughs in algorithms, with applications to polynomial and integer
+multiplication [5], batch polynomial evaluation [19, Problem 30-5], 3SUM [3, 23], string matching
+[12, 17, 25, 31, 32], matrix multiplication [15], and even juggling [8].
+    In this paper we use three types of convolutions: (min, +) convolution, whose kth entry zk =
+                                                                              k
+minki=0 {xi + yk−i }; (median, +) convolution,Pk whose kth entry zk = mediani=0 {xi + yk−i }; and
+(+, .) convolution, whose kth entry zk = i=0 {xi .yk−i }. As we show in Theorems 3, 6, and 17,
+respectively, ℓ2 necklace alignment reduces to standard (+, ·) convolution, ℓ∞ necklace alignment
+
+                                                           3
+reduces to (min, +) [and (max, +)] convolution, and ℓ1 necklace alignment reduces to (median, +)
+convolution. The (min, +) convolution problem has appeared frequently in the literature, already
+appearing in Bellman’s early work on dynamic programming in the early 1960s [4,24,33–35,38]. Its
+name varies among “minimum convolution”, “min-sum convolution”, “inf-convolution”, “infimal
+convolution”, and “epigraphical sum”.1 To date, however, no worst-case o(n2 )-time algorithms for
+this convolution, or the more complex (median, +) convolution, has been obtained (it should be
+noted here that the quadratic worst-case running time for (median, +) convolution follows from
+linear-time median finding [6, 36]). In this paper, we develop worst-case o(n2 )-time algorithms for
+(min, +) and (median, +) convolution, in the real RAM and the nonuniform linear decision tree
+models of computation.
+    The only subquadratic results for (min, +) convolution concern two special cases. First, the
+(min, +) convolution of two convex sequences or functions can be trivially computed in O(n) time
+by a simple merge, which is the same as computing the Minkowski sum of two convex polygons [35].
+This special case is already used in image processing and computer vision [24,33]. Second, Bussieck
+et al. [7] proved that the (min, +) convolution of two randomly permuted sequences can be computed
+in O(n lg n) expected time. Our results are the first to improve the worst-case running time for
+(min, +) convolution.
+
+Connections to X + Y . The necklace alignment problems, and their corresponding convolution
+problems, are also intrinsically connected to problems on X + Y matrices. Given two lists of n
+numbers, X = hx0 , x1 , . . . , xn−1 i and Y = hy0 , y1 , . . . , yn−1 i, X + Y is the matrix of all pairwise
+sums, whose (i, j)th entry is xi + yj . A classic unsolved problem [20] is whether the entries of
+X + Y can be sorted in o(n2 lg n) time. Fredman [27] showed that O(n2 ) comparisons suffice in
+the nonuniform linear decision tree model, but it remains open whether this can be converted into
+an O(n2 )-time algorithm in the real RAM model. Steiger and Streinu [37] gave a simple algorithm
+that takes O(n2 lg n) time while using only O(n2 ) comparisons.
+    The (min, +) convolution is equivalent to finding the minimum element in each antidiagonal
+of the X + Y matrix, and similarly the (max, +) convolution finds the maximum element in each
+antidiagonal. We show that ℓ∞ necklace alignment is equivalent to finding the antidiagonal of X +Y
+with the smallest range (the maximum element minus the minimum element). The (median, +)
+convolution is equivalent to finding the median element in each antidiagonal of the X+Y matrix. We
+show that ℓ1 necklace alignment is equivalent to finding the antidiagonal of X + Y with the smallest
+median cost (the total distance between each element and the median of the elements). Given the
+apparent difficulty in sorting X + Y , it seems natural to believe that the minimum, maximum,
+and median elements of every antidiagonal cannot be found, and that the corresponding objectives
+cannot be minimized, any faster than O(n2 ) total time. Figure 2 shows a sample X + Y matrix
+with the maximum element in each antidiagonal marked, with no apparent structure. Nonetheless,
+we show that o(n2 ) algorithms are possible.
+
+Our results. In the standard real RAM model, we give subquadratic algorithms for the ℓ1 , ℓ2 ,
+and ℓ∞ necklace alignment problems, and for the (min, +) and (median, +) convolution problems.
+We present:
+
+   1. an O(n lg n)-time algorithm on the real RAM for ℓ2 necklace alignment (Section 3).
+   1
+     “Tropical convolution” would also make sense, by direct analogy with tropical geometry, but we have never seen
+this terminology used in print.
+
+
+
+
+                                                        4
+Figure 2: An X + Y matrix. Each polygonal line denotes an antidiagonal of the matrix, with a
+point at coordinates (x, y) denoting the value x + y for x ∈ X and y ∈ Y . An × denotes the
+maximum element in each antidiagonal.
+
+  2. an O(n2 / lg n)-time algorithm on the real RAM for ℓ∞ necklace alignment and (min, +)
+     convolution (Section 4). This algorithm uses a technique of Chan originally developed for the
+     all-pairs shortest paths problem [9]. Despite the roughly logarithmic factor improvements for
+     ℓ1 and ℓ∞ , this result does not use word-level bit tricks of word-RAM fame.
+  3. a further improved O(n2 (lg lg n)3 / lg2 n)-time algorithm for ℓ∞ necklace alignment and (min, +)
+     convolution (Section 4). We actually give a direct black-box reduction of (min, +) convolu-
+     tion to all-pairs shortest paths; the result then follows from the current best upper bound for
+     all-pairs shortest paths [10]. The all-pairs shortest paths works in the real RAM with respect
+     to the inputs, i.e. it does not use bit tricks on the inputs. The algorithm, however, requires
+     bit tricks on other numbers, but works in a standard model that assumes (lg n)-bit words.
+  4. an O(n2 (lg lg n)2 / lg n)-time algorithm on the real RAM for ℓ1 necklace alignment and (median, +)
+     convolution (Section 5). This algorithm uses an extension of the technique of Chan [9].
+In the nonuniform linear decision tree model, we give particularly fast algorithms for the ℓ1 and
+ℓ∞ necklace alignment problems, using techniques of Fredman [27, 28]:
+         √
+   5. O(n n)-time algorithm in the nonuniform linear decision tree model for ℓ∞ necklace align-
+      ment and (min, +) convolution (Section 4).
+
+                                                 5
+           √
+    6. O(n n lg n)-time algorithm in the nonuniform linear decision tree model for ℓ1 necklace
+       alignment and (median, +) convolution (Section 5).
+(Although we state our results here in terms of (min, +) and (median, +) convolution, the results
+below use − instead of + because of the synergy with necklace alignment.) We also mention
+connections to the venerable X + Y and 3SUM problems in Section 6.
+
+
+2     Linear Versus Circular Alignment
+Before we proceed with proving our results, we first show that any optimal solution to the necklace
+alignment problem can be transformed into an optimal solution to the problem of linear alignment—
+aligning and matching beads that are on a line. We then can use the simpler optimization function
+of the “linear alignment problem” to show our results. Let d− (xi , yj ) = |xi − yj | be the linear
+distance between two beads xi and yj . In the linear alignment problem we are given two sorted
+vectors of real numbers ~x = hx0 , x1 , . . . , xn−1 i and ~y = hy0 , y1 , . . . , ym−1 i with m ≥ n, and we want
+to find s (s < m − n) and c that minimize
+                                              n−1
+                                              X                        p
+                                                     d− (xi + c, yi+s )                                       (2)
+                                              i=0
+
+or, in the case p = ∞, that minimize
+                                              n−1
+                                              max{d− (xi + c, yi+s )}.
+                                               i=0
+
+    The main difference between (1) and (2) is that instead of taking the minimum between the
+clockwise and counterclockwise distances between pairs of matched beads in (1), we are simply
+summing the forward distances between beads in (2). We will now show that whether the beads
+are on a line (repeating ~   y infinitely many times on the line) or a circle, the optimal alignment of
+the beads ~x and ~y in these two cases are equal.
+    Let M ◦ and M − be an alignment/matching of the beads of ~x and ~y along the unit circumference
+circle C and the infinite line segment L respectively. An edge (xi , yj ) of M ◦ (M − ) is the shortest
+segment that connects two matched beads xi and yj in M ◦ (M − ); thus, the length of (xi , yj ) is
+equal to d◦ (xi , yj ) (d− (xi , yj )). We will show that the sum of the lengths of the edges of each of
+the optimal matchings M ◦∗ and M −∗ are equal. Note that by the quadrangle inequality, we have
+that the edges of both M ◦∗ and M −∗ are non-crossing.
+Observation 1. Consider any edge (xi , yj ) along the circular necklace. If this edge crosses point
+0, then the distance
+                                d◦ (xi , yj ) = (1 − |xi − yj |);
+otherwise,
+                                               d◦ (xi , yj ) = |xi − yj |.
+    Let yy
+        ~ be the doubling of the vector ~y such that
+
+              yy
+              ~ = hy0 , . . . , ym−1 , y0 , . . . , ym−1 i = hyy0 , . . . , yym−1 , yym , . . . , yy2m−1 i.
+
+
+Theorem 2. If M ◦∗ is the optimal matching of two given vectors ~x and ~y (both of length n) along
+the unit-circumference circle C and M −∗ is the optimal matching of ~x and yy
+                                                                            ~ along line L, then
+   ◦∗
+|M | = |M |.−∗
+
+
+
+                                                           6
+Proof. First we show that the value of any optimal matching of a set of beads along L is at least
+as large as the value of the optimal solution of the beads along C. Given an optimal matching
+M −∗ = {s, c} beads along L, we will “wrap” the line L around a unit circle C by mapping each of
+the n matched beads xi (yyi+s ) along L to x◦i (y(i+s)
+                                                    ◦
+                                                         mod n ) along C. (Thus we have exactly n pairs
+of beads along C.) Now, for every i = 0, 1, . . . , n − 1, the length of an edge of M −∗ is equal to
+
+                d− (xi + c, yyi+s )
+            = d− (xi + c, y(i+s) mod n )
+            = |xi + c − y(i+s) mod n |
+            ≥ min{ (xi + c) mod 1 − y(i+s) mod n , (1 − (xi + c) mod 1 − y(i+s) mod n )}
+            = d◦ ((x◦i + c) mod 1, y(i+s)
+                                    ◦
+                                          mod n ).
+
+Thus, as every edge length of the matching M −∗ is at least as large as its corresponding edge along
+the circle C, we have |M −∗ | ≥ |M ◦∗ |.
+    Next we show that the value of any optimal matching of a set of beads along C is at least
+as large as the value of the optimal solution of the beads along L. Suppose we have an optimal
+matching M ◦∗ = (s, c). We map every point xi + c and yi to the infinite line segment so that the
+edges of M ◦∗ are preserved in M − . Thus, for all i = 0, 1, . . . , n − 1 and k ∈ Z, we map
+
+                                 (xi + c) mod 1 7→ x−
+                                                    i = xi + c,
+                                                     −
+                                              yi 7→ yi+kn = yi + k.
+
+
+    With this transformation, in any valid matching M − , the matched beads span at most two
+consecutive intervals [k, k + 1) and [k + 1, k + 2) for any k ∈ Z. In particular, the beads xi + c span
+the intervals [0, 1) and [1, 2).
+    Now we construct M − given M ◦∗ by matching every x−          −
+                                                            i to yi+s+kn such that, whenever xi +c < 1
+(see Figure 3),
+
+   • k = −1
+     if ((xi + c) mod 1, y(i+s) mod n ) crosses point 0 and (xi + c) mod 1 < y(i+s) mod n ;
+
+   • k=1
+     if ((xi + c) mod 1, y(i+s) mod n ) crosses point 0 and (xi + c) mod 1 > y(i+s) mod n ;
+
+   • k=0
+     if ((xi + c) mod 1, y(i+s) mod n ) does not cross point 0;
+
+and, whenever xi + c ≥ 1, we increment k by 1 in each of the cases. Thus, when xi + c ≥ 1,
+
+   • k=0
+     if ((xi + c) mod 1, y(i+s) mod n ) crosses point 0 and (xi + c) mod 1 < y(i+s) mod n ;
+
+   • k=2
+     if ((xi + c) mod 1, y(i+s) mod n ) crosses point 0 and (xi + c) mod 1 > y(i+s) mod n ;
+
+   • k=1
+     if ((xi + c) mod 1, y(i+s) mod n ) does not cross point 0.
+
+
+
+                                                     7
+                            0
+                                        (xi + c) mod 1
+
+       (xj + c) mod 1
+                         yi+s0        yj+s
+
+                                                                                    xi + c xq + c xj + c
+
+                  yq+s
+
+
+                                        (xq + c) mod 1    −1           yi+s − 1 0             yq+s    1    yj+s + 1   2
+                                 ◦
+      (a) A matching M of beads along a                  (b) Unrolling a necklace to a line L by preserving the edges of
+      circular necklace with three types of              M ◦ in the matching M − . In this example, 0 ≤ x0 + c < 1.
+      edges: those that do not cross point
+      0, and those that cross point 0 with
+      (xi + c) mod 1 either greater or less
+      than yi+s .
+
+                                     Figure 3: Unrolling a circular necklace to a line.
+
+    Here, the variable k basically decides the interval [−1, 0), [0, 1), or [1, 2) in which the bead
+y(i+s) mod n is located, based on the type of the edge ((xi + c) mod 1, y(i+s) mod n ). Observe that,
+if an edge in M ◦∗ crosses point 0, then its corresponding edge in M − crosses (r, r) for some
+r ∈ {0, 1, 2}.
+    Now, the sum of the distances of the matched beads of M − is equal to
+
+                        d− (x0 + c, y(0+s) mod n + k) + d− (x1 + c, y(1+s) mod n + k) + · · · +
+                        d− (xn−s−1 + c, yn−1 + k) + d− (xn−s + c, y0 + k + 1) + · · · +
+                        d− (xn−s−1 + c, yn−1 + k + 1).
+
+    We claim that the value of M ◦∗ is equal to at least the value of this matching M − . We show
+this claim by comparing the length of each edge ((xi +c) mod 1, yi+s ) of M ◦∗ with its corresponding
+edge in M − .
+
+Edges that do not cross point 0: If an edge of M ◦∗ does not cross point 0, then the corre-
+sponding edge in M − does not cross any of the edges (0, 0), (1, 1) or (2, 2); hence both endpoints
+(beads) of the given matching edge are within the same interval [r, r + 1) for some r ∈ {0, 1} (the
+purple edge (xq + c, yq+s ) in Figure 3). This means that, when xi + c = (xi + c) mod 1, we have
+k = 0 and
+               d− (xi + c, y(i+s) mod n + k) = |(xi + c) − (y(i+s) mod n + k)|
+                                             = |(xi + c) mod 1 − (y(i+s) mod n )|
+                                             = |x−      −
+                                                 i − y(i+s) mod n |
+                                             = d◦ (x−    −
+                                                    i , y(i+s) mod n )  (by Observation 1).
+
+   We can similarly show that, when xi + c = (xi + c) mod 1 + 1, we have k = 1 and the edges of
+M ◦∗ that do not cross point 0 have the same length as their corresponding edge in M − .
+
+Edges that cross point 0: If an edge of M ◦∗ crosses point 0, then the corresponding edge in
+M − crosses edge (r, r) and hence the two endpoints (beads) of the given edge of M − must be in
+different and consecutive intervals: [r − 1, r) and [r, r + 1) for some r ∈ {0, 1, 2} (the green and blue
+edges (xi + c, yi + s),(xj + c, yj + s) in Figure 3). Then, assuming xi + c = (xi + c) mod 1, we have
+
+                                                                   8
+    • When (xi + c) mod 1 < y(i+s) mod n , k = −1 and
+                 d− (xi + c, y(i+s) mod n + k) = |(xi + c) − (y(i+s) mod n − 1)|
+                                               = |(xi + c) mod 1 − y(i+s) mod n + 1|
+                                               = (1 − |((xi + c) mod 1) − y(i+s) mod n |)
+                                               = (1 − |x−       −
+                                                          i − y((i+s) mod n)−n |)
+                                                      −     −
+                                               = d◦ (xi , y((i+s) mod n)−n )(by Observation 1).
+
+    • When (xi + c) mod 1 > y(i+s) mod n , k = 1 and
+              d− (xi + c, y(i+s) mod n + k) = |(xi + c) − (y(i+s) mod n + 1)|
+                                            = |(xi + c) mod 1 − y(i+s) mod n − 1|
+                                            = (1 − |((xi + c) mod 1) − y(i+s) mod n |)
+                                            = (1 − |x−      −
+                                                     i − y((i+s) mod n)+n |)
+                                            = d◦ (x−       −
+                                                   i + c, y((i+s) mod n)+n )(by Observation 1).
+
+      We can similarly show that, when xi + c = (xi + c) mod 1 + 1, the edges of M ◦∗ that cross
+      point 0 have the same length as their corresponding edge in M − .
+   Therefore, the length of every edge of M ◦∗ along the circle is equal to the length of its corre-
+sponding edge in M − . Thus, the value of the matching M ◦∗ is at least as large as that of M −∗ ,
+completing the proof of the theorem.
+    We now proceed to prove our results by using the objective function (2).
+
+
+3    ℓ2 Necklace Alignment and (+, ·) Convolution
+In this section, we first show how ℓ2 necklace alignment reduces to standard convolution, leading
+to an O(n lg n)-time algorithm that uses the Fast Fourier Transform. We then show how this result
+generalizes to ℓp for any even p. It should be noted here that the ℓ2 necklace alignment problem
+was solved independently by Clifford et al. [13] (see Problem 5) using Fast Fourier Transforms.
+Our proof uses essentially the same technique of expanding the squared term and then optimizing
+terms separately, but goes through the steps in more detail; we include our proof for completeness.
+More results that use the FFT to solve different flavors of matching problems may also be found
+in [14] and [11].
+Theorem 3. The ℓ2 necklace alignment problem can be solved in O(n lg n) time on a real RAM.
+Proof. The objective (2) expands algebraically to
+                  n−1
+                  X                           2
+                         xi − y(i+s) mod n + c
+                  i=0
+                  n−1
+                  X                                                            n−1
+                                                                                 X
+             =           x2i + y(i+s)
+                                2
+                                      mod n + 2cx i − 2cy (i+s) mod n + c2
+                                                                             − 2     xi y(i+s) mod n
+                  i=0                                                                i=0
+                  n−1
+                  X                                         n−1
+                                                            X
+                                                     
+             =           x2i + yi2 + 2cxi − 2cyi + c2 − 2         xi y(i+s) mod n
+                  i=0                                       i=0
+                  "n−1                    n−1
+                                                              #        n−1
+                   X                     X                            X
+             =            x2i + yi + 2c
+                                 2
+                                                (xi − yi ) + nc2 − 2         xi y(i+s) mod n .
+                   i=0                    i=0                          i=0
+
+
+
+                                                        9
+The first term depends solely on the inputs and the variable c, while the second term depends
+solely on the inputs and the variable s. Thus the two terms can be optimized separately. The first
+term can be optimized in O(n) time by solving for when the derivative, which is linear in c, is zero.
+The second term can be computed, for each s ∈ {0, 1, . . . , n − 1}, in O(n lg n) time using (+, ·)
+convolution (and therefore optimized in the same time). Specifically, define the vectors
+
+                              ~x′ = hx0 , x1 , . . . , xn−1 ; 0, 0, . . . , 0i,
+                                                              | {z }
+                                                                         n
+                              ~y ′ = hyn−1 , yn−2 , . . . , y0 ; yn−1 , yn−2 , . . . , y0 i.
+
+Then, for s′ ∈ {0, 1, . . . , n − 1}, the (n + s′ )th entry of the convolution ~x′ ∗~y ′ is
+
+                                    n+s ′                     n−1
+                                    X                         X
+                                            x′i yn+s
+                                                 ′
+                                                     ′ −i =         xi y(i−s′ −1) mod n ,
+                                     i=0                      i=0
+
+which is the desired entry if we let s′ = n − 1 − s. We can compute the entire convolution in
+O(n lg n) time using the Fast Fourier Transform.
+
+   The above result can be generalized to ℓp for any fixed even integer p. When p ≥ 4, expanding
+the objective and rearranging the terms results in
+                 n−1                                    n−1 p  
+                 X
+                                                  p
+                                                        XX            p
+                       (xi − y(i+s) mod n + c) =                        (xi − y(i+s) mod n )p−j cj
+                                                                      j
+                 i=0                                    i=0 j=0
+                                                        p   n−1                       !
+                                                        X  p X
+                                                      =          (xi − y(i+s) mod n )p−j cj ,
+                                                           j
+                                                        j=0             i=0
+
+
+
+
+which is a degree-p polynomial in c, all of whose coefficients can be computed for all values of s by
+computing O(p2 ) convolutions.
+
+Theorem 4. The ℓp necklace alignment problem with p even can be solved in O(p2 n lg n) time on
+a real RAM.
+
+
+4     ℓ∞ Necklace Alignment and (min, +) Convolution
+4.1    Reducing ℓ∞ Necklace Alignment to (min, +) Convolution
+First we show the relation between ℓ∞ necklace alignment and (min, +) convolution. We need the
+following basic fact:
+                                                                      n−1         n−1
+                                                                                        
+Fact 5. For any vector ~z = hz0 , z1 , . . . , zn−1 i and c = − 12 mini=0 zi + maxi=0 zi , the minimum
+             n−1
+value of maxi=0   |zi + c| is                                  
+                                            1 n−1         n−1
+                                                 max zi − mın zi .
+                                            2 i=0          i=0
+
+   Instead of using (min, +) convolution directly, we use two equivalent forms, (min, −) and
+(max, −) convolution:
+
+
+
+                                                              10
+Theorem 6. The ℓ∞ necklace alignment problem can be reduced in O(n) time to one (min, −)
+convolution and one (max, −) convolution.
+Proof. For two necklaces ~x and ~y , we apply the (min, −) convolution to the following vectors:
+
+                              ~x′ = hx0 , x1 , . . . , xn−1 ; ∞, ∞, . . . , ∞i,
+                                                              |   {z         }
+                                                                       n
+                              ~y ′ = hyn−1 , yn−2 , . . . , y0 ; yn−1 , yn−2 , . . . , y0 i.
+                                                                        −
+Then, for s′ ∈ {0, 1, . . . , n − 1}, the (n + s′ )th entry of ~x′ ∗ ~y′ is
+                                                                       mın
+
+                              n+s′                        n−1
+                              mın(x′i − yn+s
+                                         ′
+                                             ′ −i ) = mın(xi − y(i−s′ −1) mod n ),
+                               i=0                        i=0
+
+            n−1
+which is mini=0 (xi −y(i+s) mod n ) if we let s′ = n−1−s. By symmetry, we can compute the (max, −)
+                  −                                                                     n−1
+convolution ~x′′ ∗ ~y ′ , where ~x′′ has −∞’s in place of ∞’s, and use it to compute maxi=0 (xi −
+                 max
+                                                                                                 n−1
+y(i+s) mod n ) for each s ∈ {0, 1, . . . , n − 1}. Applying Fact 5, we can therefore minimize maxi=0 |xi −
+y(i+s) mod n + c| over c, for each s ∈ {0, 1, . . . , n − 1}. By brute force, we can minimize over s as
+well using O(n) additional comparisons and time.
+
+4.2    (min, −) Convolution in Nonuniform Linear Decision Tree
+For our nonuniform linear decision tree results, we use the main theorem of Fredman’s work on
+sorting X + Y :
+Theorem 7. [27] For any fixed set Γ of permutations of N elements, there is a comparison tree
+of depth O(N + lg |Γ|) that sorts any sequence whose rank permutation belongs to Γ.
+                                                                                     √
+Theorem 8. The (min, −) convolution of two vectors of length n can be computed in O(n n) time
+in the nonuniform linear decision tree model.
+                                                                                   −
+Proof. Let ~x and ~y denote the two vectors of length n, and let ~x ∗ ~y denote their (min, −) convo-
+                                                                                  mın
+lution, whose kth entry is minki=0 (xi − yk−i ).
+     First we sort the set D = {xi − xj , yi − yj : |i − j| ≤ d} of pairwise differences between nearby
+xi ’s and nearby yi ’s, where d ≤ n is a value to be determined later. This set D has N = O(nd)
+elements. The possible sorted
+                               orders of D correspond to cells in the arrangement of hyperplanes
+      2n                  N
+in R induced by all 2 possible comparisons between elements in the set, and this hyperplane
+arrangement has O(N 4n ) cells. By Theorem 7, there is a comparison tree sorting D of depth
+O(N + n lg N ) = O(nd + n lg n).
+     The comparisons we make to sort D enable us to compare xi − yk−i versus xj − yk−j for free,
+provided |i − j| ≤ d, because xi − yk−i < xj − yk−j precisely if xi − xj < yk−i − yk−j . Thus, in
+particular, we can compute
+                                 n                                                   o
+                    Mk (λ) = min xi − yk−i i = λ, λ + 1, . . . , min{λ + d, n} − 1
+
+for free (using the outcomes of the comparisons we have already made).
+                                                                  −
+    We can rewrite the kth entry minki=0 (xi −yk−i ) of ~x ∗ ~y as min{Mk (0), Mk (d), Mk (2d), . . . , Mk (⌈k/d⌉d)},
+                                                                 mın
+and thus we can compute it in O(k/d) = O(n/d) comparisons between differences. Therefore all n
+entries can be computed in O(nd + n lg n + n2 /d) total time.
+
+                                                           11
+    This asymptotic running time is minimized when nd = Θ(n2 /d), i.e., when d2 = Θ(n). Sub-
+             √                                    √
+stituting d = n, we obtain a running time of O(n n) in the nonuniform linear decision tree
+model.
+
+    Combining Theorems 6 and 8, we obtain the following result:
+                                                                   √
+Corollary 9. The ℓ∞ necklace alignment problem can be solved in O(n n) time in the nonuniform
+linear decision tree model.
+
+4.3    (min, −) Convolution in Real RAM via Geometric Dominance
+Our algorithm on the real RAM uses the following geometric lemma from Chan’s work on all-pairs
+shortest paths:
+Lemma 10. [9, Lemma 2.1] Given n points p1 , p2 , . . . , pn in d dimensions, each colored either red
+or blue, we can find the P pairs (pi , pj ) for which pi is red, pj is blue, and pi dominates pj (i.e.,
+for all k, the kth coordinate of pi is at least the kth coordinate of pj ), in 2O(d) n1+ε + O(P ) time for
+arbitrarily small ε > 0.
+Theorem 11. The (min, −) convolution of two vectors of length n can be computed in O(n2 / lg n)
+time on a real RAM.
+                                                                         −
+Proof. Let ~x and ~y denote the two vectors of length n, and let ~x ∗ ~y denote their (max, −) convolu-
+                                                                        max
+tion. (Symmetrically, we can compute the (min, −) convolution.) for each i ∈ {0, d, 2d, . . . , ⌊n/d⌋d},
+and for each j ∈ {0, 1, . . . , n − 1}, we define the d-dimensional points
+
+                          pδ,i = (xi+δ − xi , xi+δ − xi+1 , . . . , xi+δ − xi+d−1 ),
+                          qδ,j = (yj−δ − yi , yj−δ − yi−1 , . . . , yj−δ − yj−d−1 ).
+
+(To handle boundary cases, define xi = ∞ and yj = −∞ for indices i, j outside [0, n − 1].) For each
+δ ∈ {0, 1, . . . , d − 1}, we apply Lemma 10 to the set of red points {pδ,i : i = 0, d, 2d, . . . , ⌊n/d⌋d}
+and the set of blue points {qδ,j : j = 0, 1, . . . , n − 1}, to obtain all dominating pairs (pδ,i , qδ,j ).
+    Point pδ,i dominates qδ,j precisely if xi+δ − xi+δ′ ≥ yj−δ − yj−δ′ for all δ′ ∈ {0, 1, . . . , d − 1}
+(ignoring the indices outside [0, n − 1]). By re-arranging terms, this condition is equivalent to
+xi+δ − yj−δ ≥ xi+δ′ − yj−δ′ for all δ′ ∈ {0, 1, . . . , d − 1}. If we substitute j = k − i, we obtain that
+(pδ,i , qδ,k−i ) is a dominating pair precisely if xi+δ − yk−i−δ = maxd−1   δ′ =1 (xi+δ − yk−i−δ ). Thus, the set
+                                                                                       ′        ′
+
+of dominating pairs gives us the maximum Mk (i) = max{xi −yk−i , xi+1 −yk−i+1 , . . . , xmin{i+d,n}−1 −
+ymin{k−i+d,n}−1 } for each i divisible by d and for each k. Also, there can be at most O(n2 /d)
+such pairs for all i, j, δ, because there are O(n/d) choices for i and O(n) choices for j, and if
+(pδ,i , qδ,j ) is a dominating pair, then (pδ′ ,i , qδ′ ,j ) cannot be a dominating pair for any δ′ 6= δ. (Here
+we assume that the max is achieved uniquely, which can be arranged by standard perturbation
+techniques or by breaking ties consistently [9].) Hence, the running time of the d executions
+of Lemma 10 is d2O(d) n1+ε + O(n2 /d) time, which is O(n2 / lg n) if we choose d = α lg n for a
+                                                                                                         −
+sufficiently small constant α > 0. We can rewrite the kth entry maxki=0 (xi − yk−i ) of ~x ∗ ~y as
+                                                                                                        max
+max{Mk (0), Mk (d), Mk (2d), . . . , Mk (⌈k/d⌉d)}, and thus we can compute it in O(k/d) = O(n/d)
+time. Therefore all n entries can be computed in O(n2 /d) = O(n2 / lg n) time on a real RAM.
+
+    Combining Theorems 6 and 11, we obtain the following result:
+Corollary 12. The ℓ∞ necklace alignment problem can be solved in O(n2 / lg n) time on a real
+RAM.
+
+                                                       12
+    Although we will present a slightly faster algorithm for (min, −) convolution in the next subsec-
+tion, the approach described above will be useful later when we discuss the (median, −) convolution
+problem.
+
+4.4   (min, −) Convolution via Matrix Multiplication
+Our next algorithm uses Chan’s O(n3 (lg lg n)3 / lg2 n) algorithm for computing the (min, +) matrix
+multiplication of two n × n matrices [10] (to which all-pairs shortest paths also reduces). We
+establish a reduction from convolution to matrix multiplication.
+Theorem 13. If we can compute the (min, −) matrix multiplication of two n × n matrices in T (n)
+                                                                                         √ √
+time, then we can compute the (min, −) convolution of two vectors of length n in O((n+T ( n)) n)
+time.
+                                                                      −
+Proof. We claim that computing the (min, −) convolution ~z = ~x ∗ ~y reduces to the following
+                                                                     mın
+(min, −) matrix multiplication:
+                                                    √                                        
+                                                 y n−1 y√n        ···     yn−2       yn−1
+         x0     x1      ···            x√n−1      y√n−2 y√n−1                               
+                                                                                                
+                                                                                                
+     
+     
+      x√n      √                                                   ···     yn−3       yn−2  
+                                                                                                
+               x   n+1   · ··          x2√n−1     
+                                                −  ..      ..                ..         ..
+                                                                                                
+   √  
+P = n  .                                        ·  .               ..                        √
+                                                                                                  n.
+                   .      ..              ..  mın            .         .       .          .  
+     
+      ..         ..        .             .                                                
+     
+          √      √
+                                                    y1     y2       · · · yn−√n−2       √
+                                                                                      yn− n−1 
+                                                                                               
+        xn− n xn− n+1 · · ·             xn−1                                                    
+                                                                                                
+       |              {z                     }        y0    y1       · · · yn−√n−1     yn−√n
+                           √                        |                     {z                }
+                               n                                       √
+                                                                     n− n+1
+
+The (i, j)th entry pi,j of this product P is
+                                        √
+                                         n−1                   
+                                   pi,j = min xi√n+m − yj+√n−1−m .
+                                        m=0
+             √ √                                              √
+Let k̄ = ⌊k/ n⌋ n denote the next smaller multiple of n from k. Now, given the product P
+above, we can compute each element zk of the convolution ~z as follows:
+                                                                                          
+                      p0,k+1−√n , p1,k+1−2√n , p2,k+1−3√n , . . . , p⌊k/√n⌋−1,k−⌊k/√n⌋√n ,
+           zk = min                                                                          .
+                                  xk̄ − yk−k̄ , xk̄+1 − yk−k̄−1 , . . . , xk − y0
+                √                                                       √
+This min has O( n) terms, and thus zk can be computed in O( n) time. The entire vector ~z can
+                             √
+therefore be computed in O(n n) time, given the matrix product P .
+   It remains to show how to compute the rectangular product P efficiently, given an efficient
+                                                                                                  √
+square-matrix (min, −) multiplication algorithm. We simply break the product P into at most n
+            √    √
+products of n × n matrices: the left term is the entire left matrix, and the right term is a block
+                                              √          √          √
+submatrix. The number of blocks is ⌈(n − n + 1)/ n⌉ ≤ n. Thus the running time for the
+                √ √
+product is O(T ( n) n).
+                                                                                               √ √
+   Summing the reduction cost and the product cost, we obtain a total cost of O((n + T ( n)) n).
+
+
+    Plugging in T (n) = O(n3 / lg n) from [9] allows us to obtain an alternative proof of Theorem 11.
+Plugging in T (n) = O(n3 (lg lg n)3 / lg2 n) from [10] immediately gives us the following improved
+result:
+Corollary 14. The (min, −) convolution of two vectors of length n can be computed in
+O(n2 (lg lg n)3 / lg2 n) time on a real RAM.
+
+                                                   13
+     Combining Theorem 6 and Corollary 14, we obtain the following result:
+
+Corollary 15. The ℓ∞ necklace alignment problem can be solved in
+O(n2 (lg lg n)3 / lg2 n) time on a real RAM.
+
+   We remark that by the reduction in Theorem 13, any nontrivial lower bound for (min, −)
+convolution would imply a lower bound for (min, −) matrix multiplication and the all-pairs shortest
+path problem.
+
+
+5       ℓ1 Necklace Alignment and (median, +) Convolution
+5.1       Reducing ℓ1 Necklace Alignment to (median, +) Convolution
+First we show the relation between ℓ1 necklace alignment and (median, +) convolution. We need
+the following basic fact [2]:
+                                                                    n−1
+                                                                    X
+                                                                                                                 n−1
+Fact 16. For any vector ~z = hz0 , z1 , . . . , zn−1 i,                   |zi + c| is minimized when c = − mediani=0 zi .
+                                                                    i=0
+
+   Instead of using (median, +) convolution directly, we use the equivalent form, (median, −)
+convolution:
+
+Theorem 17. The ℓ1 necklace alignment problem can be reduced in O(n) time to one (median, −)
+convolution.
+
+Proof. For two necklaces ~x and ~y , we apply the (median, −) convolution to the following vectors,
+as in the proof of Theorem 6:
+
+                ~x′ = hx0 , x0 , x1 , x1 , . . . , xn−1 , xn−1 ; ∞, −∞, ∞, −∞, . . . , ∞, −∞i,
+                                                                 |          {z              }
+                                                                                       2n
+                     ′
+                ~y       = hyn−1 , yn−1 , yn−2 , yn−2 , . . . , y0 , y0 ; yn−1 , yn−1 , yn−2 , yn−2 , . . . , y0 , y0 i.
+    −
+~x′ ∗ ~y ′ is
+    med
+                              2(n+s′ )+1                                  n−1
+                               median (x′i − y2(n+s
+                                              ′
+                                                    ′ )+1−i ) = median(xi − y(i−s′ −1) mod n ),
+                                  i=0                                     i=0
+               n−1
+which is mediani=0 (xi − y(i+s) mod n ) if we let s′ = n − 1 − s. Applying Fact 16, we can therefore
+                n−1
+minimize mediani=0 |xi − y(i+s) mod n + c| over c, for each s ∈ {0, 1, . . . , n − 1}. By brute force, we
+can minimize over s as well using O(n) additional comparisons and time.
+
+     Our results for (median, −) convolution use the following result of Frederickson and Johnson:
+
+Theorem 18. [26] The median element of the union of k sorted lists, each of length n, can be
+computed in O(k lg n) time and comparisons.
+
+5.2       (median, −) Convolution in Nonuniform Linear Decision Tree
+We begin with our results for the nonuniform linear decision tree model:
+                                                                                         √
+Theorem 19. The (median, −) convolution of two vectors of length n can be computed in O(n n lg n)
+time in the nonuniform linear decision tree model.
+
+                                                                    14
+Proof. As in the proof of Theorem 9, we sort the set D = {xi − xj , yi − yj : |i − j| ≤ d} of
+pairwise differences between nearby xi ’s and nearby yi ’s, where d ≤ n is a value to be determined
+later. By Theorem 7, this step requires O(nd + n lg n) comparisons between differences. These
+comparisons enable us to compare xi − yk−i versus xj − yk−j for free, provided |i − j| ≤ d, because
+xi − yk−i < xj − yk−j precisely if xi − xj < yk−i − yk−j . In particular, we can sort each list
+                             D                                                 E
+                     Lk (λ) = xi − yk−i i = λ, λ + 1, . . . , min{λ + d, n} − 1
+
+for free. By Theorem 18, we can compute the median of Lk (0)∪Lk (d)∪Lk (2d)∪· · ·∪Lk (⌈k/d⌉d), i.e.,
+medianki=0 (xi − yk−i ), in O((k/d) lg d) = O((n/d) lg d) comparisons. Also, in the same asymptotic
+number of comparisons, we can binary search to find where the median fits in each of the Lk (λ)
+lists, and therefore which differences are smaller and which differences are larger than the median.
+                                        −                                                     −
+This median is the kth entry of ~x ∗ ~y. Therefore, we can compute all n entries of ~x ∗ ~      y in
+                                        med                                                          med
+O(nd + n lg n + (n2 /d) lg d) comparisons. This asymptotic running
+                                                            √      time is minimized when nd =
+    2                       2
+Θ((n√/d) lg d), i.e., when d / lg d = Θ(n). Substituting d = n lg n, we obtain a running time of
+O(n n lg n) in the nonuniform linear decision tree model.
+
+   Combining Theorems 17 and 19, we obtain the following result:
+                                                                    √
+Corollary 20. The ℓ1 necklace alignment problem can be solved in O(n n lg n) time in the nonuni-
+form linear decision tree model.
+
+5.3    (min, −) Convolution in Real RAM via Geometric Dominance
+Now we turn to the analogous results for the real RAM:
+
+Theorem 21. The (median, −) convolution of two vectors of length n can be computed in O(n2 (lg lg n)2 / lg n)
+time on a real RAM.
+                                                                            −
+Proof. Let ~x and ~
+                  y denote the two vectors of length n, and let ~x ∗ ~y denote their (median, −)
+                                                                           med
+convolution. For each permutation π on the set {0, 1, . . . , d − 1}, for each i ∈ {0, d, 2d, . . . , ⌊n/d⌋d},
+and for each j ∈ {0, 1, . . . , n − 1}, we define the (d − 1)-dimensional points
+
+              pπ,i = (xi+π(0) − xi+π(1) , xi+π(1) − xi+π(2) , . . . , xi+π(d−2) − xi+π(d−1) ),
+              qπ,j = (yj−π(0) − yj−π(1) , yj−π(1) − yj−π(2) , . . . , yj−π(d−2) − yj−π(d−1) ),
+
+(To handle boundary cases, define xi = ∞ and yj = −∞ for indices i, j outside [0, n − 1].) For each
+permutation π, we apply Lemma 10 to the set of red points {pπ,i : i = 0, d, 2d, . . . , ⌊n/d⌋d} and the
+set of blue points {qπ,j : j = 0, 1, . . . , n − 1}, to obtain all dominating pairs (pπ,i , qπ,j ).
+    Point pπ,i dominates qπ,j precisely if xi+π(δ) − xi+π(δ+1) ≥ yj−π(δ) − yj−π(δ+1) for all δ ∈
+{0, 1, . . . , d − 2} (ignoring the indices outside [0, n − 1]). By re-arranging terms, this condition
+is equivalent to xi+π(δ) − yj−π(δ) ≥ xi+π(δ+1) − yj−π(δ+1) for all δ ∈ {0, 1, . . . , d − 2}, i.e., π is a
+sorting permutation of hxi − yj , xi+1 − yj−1 , . . . , xi+d−1 − yj−d+1 i. If we substitute j = k − i, we
+obtain that (pπ,i , qπ,k−i ) is a dominating pair precisely if π is a sorting permutation of the list
+Lk (i) = hxi − yk−i , xi+1 − yk−i+1 , . . . , xmin{i+d,n}−1 − ymin{k−i+d,n}−1 i. Thus, the set of dominating
+pairs gives us the sorted order of Lk (i) for each i divisible by d and for each k. Also, there can
+be at most O(n2 /d) total dominating pairs (pπ,i , qπ,j ) over all i, j, π, because there are O(n/d)
+choices for i and O(n) choices for j, and if (pπ,i , qπ,j ) is a dominating pair, then (pπ′ ,i , qπ′ ,j ) can-
+not be a dominating pair for any permutation π ′ 6= π. (Here we assume that the sorted order
+
+
+                                                     15
+is unique, which can be arranged by standard perturbation techniques or by breaking ties consis-
+tently [9].) Hence, the running time of the d! executions of Lemma 10 is d! 2O(d) n1+ε + O(n2 /d)
+time, which is O(n2 lg lg n/ lg n) if we choose d = α lg n/ lg lg n for a sufficiently small constant
+α > 0. By Theorem 18, we can compute the median of Lk (0) ∪ Lk (d) ∪ Lk (2d) ∪ · · · ∪ Lk (⌈k/d⌉d),
+i.e., medianki=0 (xi − yk−i ), in O((k/d) lg d) = O((n/d) lg d) comparisons. Also, in the same asymp-
+totic number of comparisons, we can binary search to find where the median fits in each of the
+Lk (λ) lists, and therefore which differences are smaller and which differences are larger than the
+                                                         −
+median. This median is the kth entry of ~x ∗ ~y . Therefore all n entries can be computed in
+                                                        med
+O(n2 (lg d)/d) = O(n2 (lg lg n)2 / lg n) time on a real RAM.
+
+    Combining Theorems 17 and 21, we obtain the following result:
+
+Corollary 22. The ℓ1 necklace alignment problem can be solved in
+O(n2 (lg lg n)2 / lg n) time on a real RAM.
+
+   As before, this approach likely cannot be improved beyond O(n2 / lg n), because such an im-
+provement would require an improvement to Lemma 10, which would in turn improve the fastest
+known algorithm for all-pairs shortest paths in dense graphs [10].
+   In contrast to (median, +) convolution, (mean, +) convolution is trivial to compute in linear
+time by inverting the two summations.
+
+
+6     Conclusion
+The convolution problems we consider here have connections to many classic problems, and it would
+be interesting to explore whether the structural information extracted by our algorithms could be
+used to devise faster algorithms for these classic problems. For example, does the antidiagonal
+information of the X + Y matrix lead to a o(n2 lg n)-time algorithm for sorting X + Y ? We believe
+that any further improvements to our convolution algorithms would require progress and/or have
+interesting implications on all-pairs shortest paths [9].
+    Our (min, −)-convolution algorithms give subquadratic algorithms for polyhedral 3SUM : given
+three lists, A = ha0 , a1 , . . . , an−1 i, B = hb0 , b1 , . . . , bn−1 i, and C = hc0 , c1 , . . . , c2n−2 i, such that
+ai + bj ≤ ci+j for all 0 ≤ i, j < n, decide whether ai + bj = ci+j for any 0 ≤ i, j < n. This problem
+is a special case of 3SUM, and this special case has an Ω(n2 ) lower bound in the 3-linear decision
+tree model [23]. Our results solve polyhedral 3SUM in O(n2 / lg n) time in the 4-linear decision
+                          √
+tree model, and in O(n n) time in the nonuniform 4-linear decision tree model, solving an open
+problem of Erickson [21]. Can these algorithms be extended to solve 3SUM in subquadratic time
+in the (nonuniform) decision tree model?
+
+
+Acknowledgments
+This work was initiated at the 20th Bellairs Winter Workshop on Computational Geometry held
+January 28–February 4, 2005. We thank the other participants of that workshop—Greg Aloupis,
+Justin Colannino, Mirela Damian-Iordache, Vida Dujmović, Francisco Gomez-Martin, Danny Krizanc,
+Erin McLeish, Henk Meijer, Patrick Morin, Mark Overmars, Suneeta Ramaswami, David Rappa-
+port, Diane Souvaine, Ileana Streinu, David Wood, Godfried Toussaint, Remco Veltkamp, and Sue
+Whitesides—for helpful discussions and contributing to a fun and creative atmosphere. We par-
+ticularly thank the organizer, Godfried Toussaint, for posing the problem to us. The last author
+
+
+                                                          16
+would also like to thank Luc Devroye for pointing out the easy generalization of the ℓ2 necklace
+alignment problem to ℓp for any fixed even integer p.
+
+
+References
+ [1] Aloupis, G., Fevens, T., Langerman, S., Matsui, T., Mesa, A., Nuñez, Y., Rappaport, D.,
+     Toussaint, G.: Algorithms for computing geometric measures of melodic similarity. Journal of
+     Computational Music 30(3), 67–76 (2006)
+
+ [2] Ardila, Y.J.P., Clifford, R., Iliopoulos, C.S., Landau, G.M., Mohamed, M.: Necklace swap
+     problem for rhythmic similarity measures. International Journal of Computational Methods
+     5(3), 351–363 (2008)
+
+ [3] Baran, I., Demaine, E.D., Pǎtraşcu, M.: Subquadratic algorithms for 3SUM. Algorithmica
+     50(4), 584–596 (2008). Special issue of selected papers from the 9th Workshop on Algorithms
+     and Data Structures, 2005
+
+ [4] Bellman, R., Karush, W.: Mathematical programming and the maximum transform. Journal
+     of the Society for Industrial and Applied Mathematics 10(3), 550–567 (1962)
+
+ [5] Bernstein, D.J.: Fast multiplication and its applications. In: J. Buhler, P. Stevenhagen (eds.)
+     Algorithmic Number Theory, vol. 44. MSRI Publications (2008)
+
+ [6] Blum, M., Floyd, R.W., Pratt, V., Rivest, R.L., Tarjan, R.E.: Time bounds for selection.
+     Journal of Computer and System Sciences 7(4), 448–461 (1973)
+
+ [7] Bussieck, M., Hassler, H., Woeginger, G.J., Zimmermann, U.T.: Fast algorithms for the max-
+     imum convolution problem. Operations Research Letters 15(3), 133–141 (1994)
+
+ [8] Cardinal, J., Kremer, S., Langerman, S.: Juggling with pattern matching. Theory of Comput-
+     ing Systems 39(3), 425–437 (2006)
+
+ [9] Chan, T.M.: All-pairs shortest paths with real weights in O(n3 / log n) time. Algorithmica 50,
+     236–243 (2008)
+
+[10] Chan, T.M.: More algorithms for all-pairs shortest paths in weighted graphs. SIAM Journal
+     on Computing 39, 2075–2089 (2010)
+
+[11] Clifford, P., Clifford, R.: Self-normalised distance with don’t cares. In: B. Ma, K. Zhang (eds.)
+     Combinatorial Pattern Matching, Lecture Notes in Computer Science, vol. 4580, pp. 63–70.
+     Springer Berlin Heidelberg (2007)
+
+[12] Clifford, P., Clifford, R.: Simple deterministic wildcard matching. Information Processing
+     Letters 101(2), 53–54 (2007)
+
+[13] Clifford, P., Clifford, R., Iliopoulos, C.: Fourier transform methods for δ and (δ,γ) matching
+     and other measures of string similarity. Tech. Rep. TR-04-09, King’s College London (2004)
+
+[14] Clifford, P., Clifford, R., Iliopoulos, C.: Faster algorithms for δ, γ-matching and related prob-
+     lems. In: Combinatorial Pattern Matching, Lecture Notes in Computer Science, vol. 3537, pp.
+     71–90. Springer Berlin Heidelberg (2005)
+
+
+
+                                                 17
+[15] Cohn, H., Kleinberg, R., Szegedy, B., Umans, C.: Group-theoretic algorithms for matrix
+     multiplication. In: Proceedings of the 46th Annual IEEE Symposium on Foundations of
+     Computer Science, pp. 379–388 (2005)
+
+[16] Colannino, J., Damian, M., Hurtado, F., Iacono, J., Meijer, H., Ramaswami, S., Toussaint, G.:
+     An O(n log n)-time algorithm for the restriction scaffold assignment. Journal of Computational
+     Biology 13(4), 979–989 (2006)
+
+[17] Cole, R., Hariharan, R.: Verifying candidate matches in sparse and wildcard matching. In:
+     Proceedings of the 34th Annual ACM Symposium on Theory of Computing, pp. 592–601.
+     ACM Press, Montréal, Canada (2002)
+
+[18] Cooley, J.W., Tukey, J.W.: An algorithm for the machine calculation of complex Fourier series.
+     Mathematics of Computation 19, 297–301 (1965)
+
+[19] Cormen, T.H., Leiserson, C.E., Rivest, R.L., Stein, C.: Introduction to Algorithms, 2nd edn.
+     MIT Press (2001)
+
+[20] Demaine, E.D., Mitchell, J.S.B., O’Rourke, J.: Problem 41: Sorting X + Y (pairwise sums).
+     In: The Open Problems Project (2006). http://cs.smith.edu/∼orourke/TOPP/P41.html
+
+[21] Demaine, E.D., O’Rourke, J.: Open problems from CCCG 2005. In: Proceedings of the 18th
+     Canadian Conference on Computational Geometry. Kingston, Canada (2006)
+
+[22] Dı́az-Báñez, J.M., Farigu, G., Gómez, F., Rappaport, D., Toussaint, G.T.: El compás fla-
+     menco: A phylogenetic analysis. In: Proceedings of BRIDGES: Mathematical Connections in
+     Art, Music, and Science, pp. 61–70. Winfield, Kansas (2004)
+
+[23] Erickson, J.: Lower bounds for linear satisfiability problems. Chicago Journal of Theoretical
+     Computer Science 1999(8) (1999)
+
+[24] Felzenszwalb, P.F., Huttenlocher, D.P.: Distance transforms of sampled functions. Tech. Rep.
+     TR2004-1963, Faculty of Computing and Information Science, Cornell University (2004)
+
+[25] Fischer, M.J., Paterson, M.S.: String-matching and other products. In: Complexity of compu-
+     tation, SIAM-AMS Proceedings, vol. VII, pp. 113–125. American Mathematical Society (1974).
+     Proceedings of the SIAM-AMS Applied Mathematics Symposium, New York, 1973.
+
+[26] Frederickson, G.N., Johnson, D.B.: The complexity of selection and ranking in X + Y and
+     matrices with sorted columns. Journal of Computer and System Sciences 24(2), 197–208 (1982)
+
+[27] Fredman, M.L.: How good is the information theory bound in sorting? Theoretical Computer
+     Science 1(4), 355–361 (1976)
+
+[28] Fredman, M.L.: New bounds on the complexity of the shortest path problem. SIAM Journal
+     on Computing 5(1), 83–89 (1976)
+
+[29] Gauss, C.F.: Werke, vol. 3. Königlichen Gesellschaft der Wissenschaften, Göttingen (1866)
+
+[30] Heideman, M.T., Johnson, D.H., Burrus, C.S.: Gauss and the history of the fast Fourier
+     transform. Archive for History of Exact Sciences 34(3), 265–277 (1985)
+
+
+
+
+                                                18
+[31] Indyk, P.: Faster algorithms for string matching problems: Matching the convolution bound.
+     In: Proceedings of the 39th Annual Symposium on Foundations of Computer Science, pp.
+     166–173. Palo Alto, California (1998)
+
+[32] Kalai, A.: Efficient pattern-matching with don’t cares. In: Proceedings of the 13th Annual
+     ACM-SIAM Symposium on Discrete Algorithms, pp. 655–656. San Francisco, California (2002)
+
+[33] Maragos, P.: Differential morphology. In: S. Mitra, G. Sicuranza (eds.) Nonlinear Image
+     Processing, chap. 10, pp. 289–329. Academic Press (2000)
+
+[34] Moreau, J.J.: Inf-convolution, sous-additivité, convexité des fonctions numériques. Journal de
+     Mathématiques Pures et Appliquées, Neuvième Série 49, 109–154 (1970)
+
+[35] Rockafellar, R.T.: Convex Analysis. Princeton Mathematical Series. Princeton University
+     Press (1970)
+
+[36] Schönhage, A., Paterson, M., Pippenger, N.: Finding the median. Journal of Computer and
+     System Sciences 13(2), 184–199 (1976)
+
+[37] Steiger, W.L., Streinu, I.: A pseudo-algorithmic separation of lines from pseudo-lines. Infor-
+     mation Processing Letters 53(5), 295–299 (1995)
+
+[38] Strömberg, T.: The operation of infimal convolution. Dissertationes Mathematicae (Rozprawy
+     Matematyczne) 352, 58 (1996)
+
+[39] Toussaint, G.: The geometry of musical rhythm. In: Revised Papers from the Japan Conference
+     on Discrete and Computational Geometry, Lecture Notes in Computer Science, vol. 3742, pp.
+     198–212. Tokyo, Japan (2004)
+
+[40] Toussaint, G.T.: A comparison of rhythmic similarity measures. In: Proceedings of the 5th In-
+     ternational Conference on Music Information Retrieval, pp. 242–245. Barcelona, Spain (2004).
+     A longer version appears as Technical Report SOCS-TR-2004.6, School of Computer Science,
+     McGill University, August 2004.
+
+
+
+
+                                                 19
+

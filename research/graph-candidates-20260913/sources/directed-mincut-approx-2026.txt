@@ -1,0 +1,2596 @@
+                                         Almost-Optimal Approximation Algorithms for Global Minimum Cut
+                                                               in Directed Graphs
+                                                                                       Ron Mosenzon∗
+
+
+
+                                                                                          Abstract
+                                                   We develop new (1 + ϵ)-approximation algorithms for finding the global minimum edge-cut
+                                               in a directed edge-weighted graph, and for finding the global minimum vertex-cut in a directed
+                                               vertex-weighted graph. Our algorithms are randomized, and have a running time of O m1+o(1) /ϵ
+                                               on any m-edge n-vertex input graph, assuming all edge/vertex weights are polynomially-bounded.
+                                               In particular,
+                                                            for any constant ϵ > 0, our algorithms have an almost-optimal running time of
+                                               O m1+o(1) . The fastest previously-known running time for this setting, due to (Cen et al., FOCS
+arXiv:2512.09080v3 [cs.DS] 20 Jul 2026
+
+
+
+
+                                                                               √                                        
+                                               2021), is Õ min n2 /ϵ2 , m1+o(1) n for Minimum Edge-Cut, and Õ n2 /ϵ2 for Minimum Vertex-
+                                               Cut.
+                                                   Our results further extend to the rooted variants of the Minimum Edge-Cut and Minimum
+                                               Vertex-Cut problems, where the algorithm is additionally given a root vertex r, and the goal is to
+                                               find a minimum-weight cut separating any vertex from the root r.
+                                                   In terms of techniques, we build upon and extend a framework that was recently introduced by
+                                               (Chuzhoy et al., SODA 2026) for solving the Minimum Vertex-Cut problem in unweighted directed
+                                               graphs. Additionally, in order to obtain our result for the Global Minimum Vertex-Cut problem,
+                                               we develop a novel black-box reduction from this problem to its rooted variant. Prior to our work,
+                                               such reductions were only known for more restricted settings, such as when all vertex-weights are
+                                               unit.
+
+
+
+
+                                           ∗
+                                             Toyota Technological Institute at Chicago. Email: ron.mosenzon@ttic.edu. Supported in part by NSF grant
+                                         CCF-2402283.
+Contents
+1 Introduction                                                                                             1
+  1.1   Our Results . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    2
+  1.2   Technical Overview . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     6
+        1.2.1   Rooted Minimum Cut . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .         6
+        1.2.2   Reducing Global Minimum Vertex-Cut to Rooted Minimum Vertex-Cut. . . . .                   7
+  1.3   Organization . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     9
+
+2 Preliminaries                                                                                            9
+  2.1   Submodularity of Cuts . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     11
+  2.2   Fast Algorithms for s-t Minimum Cut . . . . . . . . . . . . . . . . . . . . . . . . . . .         11
+  2.3   Selecting Terminals . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   11
+
+3 Algorithm for Rooted Minimum Edge-Cut: Proof of Theorem 1.5                                             12
+  3.1   Execution of a Single Iteration: Proof of Claim 3.2 . . . . . . . . . . . . . . . . . . . .       15
+        3.1.1   Implementation of ApproxBatchSparsify for i > 1. . . . . . . . . . . . . . . . .          16
+
+4 From Rooted Minimum Vertex-Cut to Global Minimum Vertex-Cut: Proof of
+  Theorem 1.4                                                           19
+  4.1   Implementing Step 2: Proof of Claim 4.4 . . . . . . . . . . . . . . . . . . . . . . . . . .       21
+  4.2   Implementing Step 1: Proof of Claim 4.3 . . . . . . . . . . . . . . . . . . . . . . . . . .       22
+
+A Algorithm for Rooted Minimum Vertex-Cut: Proof of Theorem 1.6                                           25
+  A.1 Execution of a Single Iteration: proof of Claim A.1 . . . . . . . . . . . . . . . . . . . .         27
+        A.1.1 Implementation of VertexApproxBatchSparsify for i > 1.            . . . . . . . . . . . .   28
+        A.1.2 Step 2: Proof of Claim A.5 . . . . . . . . . . . . . . . . . . . . . . . . . . . . .        32
+
+B Reducing Dependence on W                                                                                33
+
+C Missing Proofs from Section 2                                                                           35
+
+D Missing Proofs from Section 3                                                                           36
+
+E Removing the Assumption w(L∗ ) ≤ w(R∗ ) in the Proof of Theorem 1.4                                     36
+
+F Extension to Non-Negative Weights                                                                       37
+1       Introduction
+In recent years, there has been widespread success in the design of almost-linear time algorithm for
+various graph-based optimization problems. Following this trend, we consider the design of almost-
+linear-time approximation algorithms for two classical problems: the (directed) Global Minimum Edge-
+Cut problem, and the related problem of (directed) Global Minimum Vertex-Cut. In the (directed)
+Global Minimum Edge-Cut problem, we are given a directed n-vertex m-edge graph G = (V, E) with
+positive integral weights w(e) on the edges e ∈ E, and must find a partition of the vertices into two
+non-empty sets (X, Y ) so as to minimize the total weight of edges going from X to Y . Meanwhile,
+in the problem of (directed) Global Minimum Vertex-Cut, we are given a directed n-vertex m-edge
+graph G = (V, E) with positive integral weights w(v) on the vertices v ∈ V , and must find a vertex-cut
+of G – a partition of V into three sets (L, S, R) with L, R ̸= ∅ and with no edges e ∈ E from L to R –
+which minimizes the total weight of vertices in S.
+    The Global Minimum Edge– and Vertex-Cut problems have been extensively studied over many
+decades, resulting in almost-linear time algorithms for several restricted settings and edge-density
+regimes. For example, in the undirected setting, the Global Minimum Edge-Cut problem has been
+known to admit near-linear time exact algorithms for over 25 years [Kar00], with a more recent
+deterministic almost-linear time algorithm being achieved by [LP20], using the breakthrough Max-
+Flow result of [VDBCK+ 23]. For the Global Minimum Vertex -Cut problem in undirected graphs, Li
+et al. [LNP+ 25] recently introduced the first almost-linear time exact algorithm in the special case
+where all vertex-weights are unit. In the most general setting of directed graphs with arbitrary (positive
+integral) weights, the (1 + ϵ)-approximation algorithms of Cen et al. [CLN+ 22] achieve time1 Õ(n2 /ϵ2 )
+for both Minimum Edge-Cut and Minimum Vertex-Cut, which is near-linear when the input graph is
+dense and ϵ is large. Furthermore, if all edge-weights/vertex-weights are unit, then an exact Minimum
+Edge-Cut can be found in time Õ(n2 ) [CQ21], and an exact Minimum Vertex-Cut can be found
+in time O n2+o(1) [LNP+ 25], with the latter result having recently been simplified by [FJMY26].
+There have also been several algorithms for the unit-weight versions of these problems whose running
+times are parameterized by the value k of the optimal solution, and that run in almost-linear time
+when this value is sufficiently small; namely, the well-known directed  Minimum Edge-Cut algorithm of
+Gabow [Gab91] runs in time Õ(m·k), while a time of O m      1+o(1) · k was recently achieved by both the
+directed Minimum Vertex-Cut algorithm of Chuzhoy et al. [CMT26], and the deterministic undirected
+Minimum Vertex-Cut algorithm of Jiang et al. [JNSY25]. However, despite all of this progress, when
+the optimal solution value is unrestricted and the weights are arbitrary positive integers, there are
+no known constant-approximate algorithms for the directed version of either problem which run in
+             √
+o(min{n2 , m n}) time, for any edge-density regime. In fact, the Global Minimum Vertex -Cut problem
+is not even known to admit o(n2 )-time constant-approximate algorithms for sparse graphs.
+    In this paper, we present almost-linear time constant-approximate randomized algorithms for both
+the Global Minimum Edge-Cut and the Global Minimum Vertex-Cut problems, in the most general
+setting of directed graphs with arbitrary (positive integral) weights. More generally, given any ϵ > 0,
+our algorithms can compute a (1 + ϵ)-approximate solution in time O m1+o(1) /ϵ , directly improving
+                                                                                 
+
+over the Õ n2 /ϵ2 running time of [CLN+ 22] in cases where the input graph is not too dense, and in
+                   
+
+cases where ϵ is small. Furthermore, by choosing ϵ = 1/k, our algorithms can produce exact solutions
+in time that matches (up to subpolynomial factors) the aforementioned unit-weight algorithms of
+Gabow [Gab91] and Chuzhoy et al. [CMT26], while not requiring the unit-weight assumption. We
+also note that for the Global Minimum Vertex-Cut problem with arbitrary positive integral vertex-
+weights, our algorithm beats the best known constant-approximate algorithms even in the undirected
+    1
+   In this section, when stating the running times of algorithms, we omit factors that are polylogarithmic in the
+maximum edge-weight/vertex-weight.
+
+
+
+                                                       1
+setting. See Table 1 for a more comprehensive summary of the state-of-the-art running times of (1+ϵ)-
+approximation (and exact) algorithms for the Global Minimum Edge-Cut and Vertex-Cut problems.
+(As far as we are aware, all state-of-the-art approximation algorithms for these problems provide a
+(1 + ϵ) approximation guarantee.)
+    In terms of techniques, we build upon and extend     a framework that was recently introduced by
+Chuzhoy et al. [CMT26] for their O m1+o(1) · k -time unit-weight Minimum Vertex-Cut algorithm.
+                                                  
+
+We discuss this framework and our new contributions to it in Section 1.2.1. Using this framework,
+we are able to design algorithms for the Rooted variants of the Minimum Edge-Cut and Minimum
+Vertex-Cut problems: in the Rooted variant of the Minimum Edge-Cut (resp. Vertex-Cut) problem,
+the input additionally consists of a ”root” vertex r, and we must search for an edge-cut (X, Y ) (resp.
+vertex-cut (L, S, R)) of minimum weight only among those cuts that satisfy r ∈ Y (resp. r ∈ R).2 In
+the case of the Minimum Edge-Cut problem, there is a simple well-known reduction from its Global
+variant to its Rooted variant, and we use this reduction to achieve our result for the Global variant of
+this problem. However, in the case of the Minimum Vertex -Cut problem, translating between these
+two variants is not as straightforward: while several reductions from Global Minimum Vertex-Cut
+to Rooted Minimum Vertex-Cut exist in the literature, they all either are limited to the unit-weight
+setting (such as the one implicitly used by the aforementioned algorithm of Chuzhoy et al.), or are
+algorithm-specific (such as the one used by Chekuri and Quanrud [CQ21]).3 Therefore, in order
+to achieve our result for the Global Minimum Vertex-Cut problem, we introduce a novel black-box
+reduction from the Global Minimum Vertex-Cut problem to the Rooted Minimum Vertex-Cut problem,
+that works in the arbitrary-weight setting on directed graphs. We hope that this reduction will be
+useful in the design of future algorithms for the Global Minimum Vertex-Cut problem, in both the
+approximate and non-approximate settings.
+
+Independent work. Concurrently and independently of our work, [Qua26] obtained randomized
+(1+ϵ)-approximate algorithms for the global and rooted versions of Minimum Edge-Cut and Minimum
+Vertex-Cut in directed weighted graphs, and [JLSW25] obtained a randomized O(log5 n)-approximate
+algorithm for the Rooted Minimum Edge-Cut problem in weighted directed graphs. The Minimum
+Edge-Cut algorithms of [Qua26] run in the time of O(log4 (n)/ϵ) single-commodity Max-Flow calls, and
+their Minimum Vertex-Cut algorithms run in the time of O(log5 (n)/ϵ)     single-commodity Max-Flow
+calls; by [VDBCK+ 23], these running times are at most O m1+o(1) /ϵ , matching our algorithms for
+these problems. The algorithm of [JLSW25] runs in time O(m1+o(1) ), matching our running time for
+the case of ϵ = Θ(1), albeit with a somewhat worse approximation factor.
+
+1.1    Our Results
+The following two theorems summarize our main results for the Global Minimum Edge-Cut and Global
+Minimum Vertex-Cut problems.
+
+   2
+      We note that the Rooted Minimum Vertex-Cut problem is usually defined with the constraint that the root must
+lie in L, rather than
+                     in R. However,
+                                       we use the formulation with r ∈ R in this paper so as to be consistent with the
+aforementioned O m1+o(1) · k -time algorithm of Chuzhoy et al., which implicitly uses a reduction to this version of the
+problem. Similarly, the Rooted Minimum Edge-Cut problem is usually defined with the constraint that r must lie in X,
+rather than in Y , but we use the formulation with r ∈ Y in order to be consistent between the edge-cut and vertex-cut
+settings.
+    3
+      There are also many existing reductions from the Global Minimum Vertex-Cut problem to the s-t Minimum Vertex-
+Cut problem that can easily be modified in order to instead reduce to the Rooted Minimum Vertex-Cut problem.
+However, all of these either suffer from one of the aforementioned drawbacks, or can increase the total running time by
+an mΩ(1) multiplicative factor.
+
+
+
+
+                                                           2
+Table 1: Best previously-known randomized running times for computing (1 + ϵ)-approximate (and
+exact) Global Minimum Cut in different settings.
+                                                                               Problem
+                Weights                            Minimum Edge-Cut                   Minimum Vertex-Cut
+                Arbitrary Weights (the total       O(nm2/3+o(1) ) [CLN+ 22]           O(min{mn0.976 , n2.677 }) [CMT26]
+ Directed                                                       √
+                weight is denoted by W )           O(m1+o(1) n) [CLN+ 22]             Õ(n2 /ϵ2 ) [CLN+ 22]
+                                                   Õ(n2 /ϵ2 ) [CLN+ 22]              Õ(nW/ϵ) [CQ21]
+                                                   O(m1+o(1) /ϵ) this paper           O(m1+o(1) /ϵ) this paper
+
+                Unit Weights                       Õ(n2 ) [CQ21]                     O(n2+o(1) ) [LNP+ 25, FJMY26]
+                                                   Õ(m · k) [Gab91]                  O(m1+o(1) · k) [CMT26]
+                                                   O(m1+o(1) /ϵ) this paper           Õ(min{mk 2 , mk/ϵ}) [NSY19]
+                                                                                      Õ(n2 /ϵ) [CQ21]
+                                                                                      O(m1+o(1) /ϵ) this paper
+
+                Arbitrary Weights (the total       Õ(m) [Kar00]                      O(min{m3/2+o(1) , n2.677 }) [CT25, CMT26]
+ Undirected
+                weight is denoted by W )                                              Õ(n2 /ϵ2 ) [CLN+ 22]
+                                                                                      Õ(nW/ϵ) [CQ21]
+                                                                                      O(m1+o(1) /ϵ) this paper
+
+                Unit Weights                       Õ(m) [Kar00]                      O(m1+o(1) ) [LNP+ 25]
+                                                                                      Õ(min{m + nk 3 , m · k/ϵ}) [NSY19]
+                                                                                      Õ(n2 /ϵ) [CQ21]
+
+ This table shows the state-of-the-art randomized running times for achieving (1 + ϵ) approximation for the Global
+Minimum Edge-Cut and Global Minimum Vertex-Cut problems on an n-vertex m-edge graph, where k denotes the value
+of the optimal solution, and W denotes the sum of weights. Our new algorithms are listed in those settings where they
+provide an improvement upon the previous state-of-the-art for some choice of parameters n, m, k, ϵ.
+ Running times without dependence on ϵ are for exact algorithms. The Õ notation is used to hide polylog(m) factors.
+In all algorithms for the arbitrary-weight setting, the running time hides an additional polylogW multiplicative factor.
+ We note that in the unit-weight setting, the value k of the optimal solution can be no larger than the average degree
+2m/n. This means, for example, that in the directed unit-weight setting for Minimum Edge-Cut, it is possible to achieve
+                                √
+time Õ(min{n2 , m · k}) ≤ Õ(m n) by combining the results of [CQ21] and [Gab91].
+ A survey of deterministic algorithms for these problems can be found, for example, in Jiang et al. [JNSY25].
+
+
+Theorem 1.1 There is a randomized algorithm that, given a directed m-edge graph G with positive
+integral weights w(e) ≤ W on the edges e ∈ E(G), as well as a precision parameter ϵ ∈ (0, 1), outputs
+an edge-cut (X, Y ) in G such that, with probability at least 12 , w(EG (X, Y )) ≤ (1+ϵ)OPTE holds, where
+OPT    denotes the
+   E1+o(1)         weight of the global minimum edge-cut in G. The running time of the algorithm is
+    m       ·log W
+O         ϵ         .
+
+Theorem 1.2 There is a randomized algorithm whose input is a directed m-edge graph G with positive
+integral weights w(v) ≤ W on the vertices v ∈ V (G), such that G contains some vertex-cut, as well
+as a precision parameter ϵ ∈ (0, 1). The algorithm outputs a vertex-cut (L, S, R) in G such that,
+with probability at least 12 , w(S) ≤ (1 + ϵ)OPTV holds, where OPT
+                                                                  V denotes the weight of the global
+                                                                                 m1+o(1) ·log W
+minimum vertex-cut in G. The running time of the algorithm is O                        ϵ          .
+
+We comment that the additional condition in Theorem 1.2 that the input graph G ”has some vertex-
+cut” is equivalent to requiring that G is not a complete graph; furthermore, this condition can be
+verified in O(m) time. We also comment that the running times of the algorithms from Theorem 1.1
+and Theorem 1.2 are dominated by calls to the almost-linear time exact s-t Maximum Flow procedure
+
+
+                                                           3
+                                                                                          
+of [VDBCK+ 23], while all other parts of these algorithms can be implemented in Õ m·log
+                                                                                       ϵ
+                                                                                         W
+                                                                                             time.
+This means that if a near-linear time maximum s-t flow algorithm will be discovered in the future,
+then
+    plugging
+             it into our algorithms would allow Theorems 1.1 and 1.2 to be implemented in time
+    m·log W
+Õ     ϵ     .
+    As mentioned earlier, we achieve Theorem 1.2 by using a new reduction from the Global Minimum
+Vertex-Cut problem to the Rooted Minimum Vertex-Cut problem, that works in the vertex-weighted
+directed setting. This reduction is our other main result. More formally, this reduction shows that, in
+order to solve the Global Minimum Vertex-Cut problem on an n-vertex m-edge graph, it suffices to
+solve the Rooted Minimum Vertex-Cut problem on O m     n different n-vertex graphs, that together have
+O(m) edges overall. Furthermore, if an approximate algorithm is used to solve the Rooted Minimum
+Vertex-Cut instances, then the reduction obtains an approximate solution to the Global Minimum
+Vertex-Cut problem, with the same approximation factor. We formulate this reduction as an oracle
+algorithm, with access to an oracle for the Rooted Minimum Vertex-Cut problem; so we begin by
+defining this oracle. As can be seen by the following definition and theorem, all the instances of the
+Rooted Minimum Vertex-Cut problem that our reduction must solve have the same vertex-weights as
+the input instance of the Global Minimum Vertex-Cut problem.
+Definition 1.3 (Rooted Minimum Vertex-Cut Oracle) Consider any set V of vertices, any weight
+function w assigning positive integral weights w(v) ≤ W to the vertices v ∈ V , and any precision pa-
+rameter ϵ ≥ 0. A (1 + ϵ)-Approximate Rooted Minimum Vertex-Cut oracle on V with weight function
+w is an oracle that implements the following type of query: given any directed graph G′ with V (G′ ) = V ,
+and any vertex y ∗ ∈ V , such that there exists some vertex-cut (L′ , S ′ , R′ ) in G′ with y ∗ ∈ R, the oracle
+returns a vertex-cut (L, S, R) in G′ such that y ∗ ∈ R and such that, with probability at least 21 , the
+inequality w(S) ≤ (1 + ϵ)OPTG′ ,y∗ holds, where OPTG′ ,y∗ denotes the minimum possible weight of a
+vertex-cut (L′ , S ′ , R′ ) in G′ with y ∗ ∈ R′ .
+Theorem 1.4 (Reduction from Global to Rooted Minimum Vertex-Cut) There is a random-
+ized algorithm whose input consists of a directed m-edge n-vertex graph G with positive integral weights
+w(v) ≤ W on the vertices v ∈ V (G), such that G has some vertex-cut, as well as a precision parameter
+ϵ ≥ 0. The algorithm is further given access to a (1 + ϵ)-Approximate Rooted Minimum Vertex-Cut
+oracle on V (G) with the aforementioned vertex-weights. The output of the algorithm is a vertex-cut
+(L, S, R) in G such that, with probability at least 12 , w(S) ≤ (1 + ϵ)OPTG holds, where OPTG denotes
+the weight of the global minimum vertex-cut in G. The algorithm makes at most O (m/n) queries to
+the oracle, and the overall number of edges in the graphs from these queries is O(m). The algorithm
+spends at most Õ(m log W ) time outside of oracle queries.
+
+    We emphasize that, by setting ϵ = 0, the above algorithm can be used to reduce the exact Global
+Minimum Vertex-Cut problem to the exact Rooted Minimum Vertex-Cut problem. The above theorem
+also allows values of ϵ that are larger than 1, as well as values that depend on the size of the graph G.
+    Lastly, in the next two theorems, we summarize the guarantees of our algorithms for the rooted
+variants of the Minimum Edge-Cut and Minimum Vertex-Cut problems. These are essentially identical
+to Theorems 1.1 and 1.2, except that they deal with the rooted variants of the Minimum Edge-Cut
+and Vertex-Cut problems, rather than with the global variants of these problems.
+Theorem 1.5 There is a randomized algorithm whose input consists of a directed m-edge graph G
+with positive integral weights w(e) ≤ W on the edges e ∈ E(G), as well as a precision parameter
+ϵ ∈ (0, 1), and a root vertex y ∗ ∈ V (G). The output of the algorithm is an edge-cut (X, Y ) in G such
+that y ∗ ∈ Y and, with probability at least 21 , w(EG (X, Y )) ≤ (1 + ϵ)OPTE,y∗ holds, where OPTE,y∗
+denotes the minimum     possible weight
+                     1+o(1)           of an edge-cut (X ′ , Y ′ ) in G with y ∗ ∈ Y ′ . The running time of
+                             ·log W
+the algorithm is O m       ϵ          .
+
+                                                     4
+Theorem 1.6 There is a randomized algorithm whose input consists of a directed m-edge graph G with
+positive integral weights w(v) ≤ W on the vertices v ∈ V (G), as well as a precision parameter ϵ ∈ (0, 1),
+and a root vertex y ∗ ∈ V (G) such that there exists some vertex-cut (L′ , S ′ , R′ ) in G with y ∗ ∈ R′ . The
+output of the algorithm is a vertex-cut (L, S, R) in G such that y ∗ ∈ R and, with probability at least
+1
+2 , w(S) ≤ (1 + ϵ)OPTV,y holds, where OPTV,y denotes the minimum possible weight           of a vertex-cut
+                           ∗                     ∗
+
+                                                                               m1+o(1) ·log W
+(L′ , S ′ , R′ ) in G with y ∗ ∈ R′ . The running time of the algorithm is O         ϵ          .
+
+    We also comment that, even though all of our theorems are stated and proved for the setting
+in which edge-weights and vertex-weights are not allowed to be zero, it is possible to convert our
+algorithms to the setting in which zero-weight edges and vertices are allowed, via a standard reduction.
+For the sake of completeness, we describe this reduction in Section F.
+
+Completing the proofs of Theorems 1.1 and 1.2 We complete this subsection by demonstrating
+how to prove our Global Minimum Cut theorems (Theorems 1.1 and 1.2) using our Rooted Minimum
+Cut theorems (Theorems 1.5 and 1.6) and our reduction theorem (Theorem 1.4).
+    To prove Theorem 1.2, we simply use the reduction from Theorem 1.4, and, whenever it makes a
+query to the (1 + ϵ)-Approximate Rooted Minimum Vertex-Cut oracle, we answer this query using a
+call to Theorem 1.6. It is not hard to verify that Theorem 1.6 satisfies the guarantees required by the
+oracle, and that this reduction results in a Global Minimum Vertex-Cut algorithm exactly as specified
+by Theorem 1.2.
+     The proof of our Global Minimum Edge-Cut theorem (Theorem 1.1) follows from our Rooted
+Minimum Edge-Cut theorem via standard techniques. Specifically, given an input to Theorem 1.1
+consisting of a graph G with weights w(e) on the edges e ∈ E(G), and a precision parameter ϵ ∈ (0, 1),
+we first compute the ”reversed graph” G that is obtained from G by reversing the direction of all
+edges; we then fix any vertex r ∈ V (G) as the root, and make two calls to the Rooted Minimum
+Edge-Cut algorithm of Theorem 1.5 – one call is on the graph G with root r, while the other call is on
+the reversed graph G with the same root r; both calls use the precision parameter ϵ from the input.
+                                                                                 ′  ′
+Let (X, Y ) denote the edge-cut in G obtained by the first call, and let (X , Y ) denote the edge-cut in
+                                                         ′            ′
+G obtained by the second call. Define X ′ = Y and Y ′ = X – it is not hard to verify that (X ′ , Y ′ )
+                                                                                                        ′ ′
+is an edge-cut in G whose value w(EG (X ′ , Y ′ )) is the same as the value of the edge-cut (X , Y ) in
+                                                            ′   ′
+the reverse graph G, namely, the same as w(EG (X , Y )). Lastly, we return the edge-cut whose value
+in G is smallest among the two edge-cuts (X, Y ) and (X ′ , Y ′ ). Therefore, to prove the correctness of
+the algorithm, it must be shown that with probability at least 21 , at least one of the two edge-cuts
+(X, Y ) and (X ′ , Y ′ ) has value at most (1 + ϵ)OPTE , where OPTE denotes the weight of the global
+minimum edge-cut in G. For the analysis, consider any global minimum edge-cut (X ∗ , Y ∗ ) in G. The
+analysis can then be divided into two cases based on whether r ∈ Y ∗ or r ∈ X ∗ : in the case where
+r ∈ Y ∗ , it follows from the guarantees of our Rooted Minimum Edge-Cut algorithm that the weight
+of the edge-cut (X, Y ) satisfies w(EG (X, Y )) ≤ (1 + ϵ)OPTE with probability at least 21 , as needed; in
+the complementary case where r ∈ X ∗ , it can be verified using a similar argument that the edge-cut
+                                                   ′   ′
+(X ′ , Y ′ ) satisfies w(EG (X ′ , Y ′ )) = w(EG (X , Y )) ≤ (1 + ϵ)OPTE with probability at least 12 – namely,
+this holds because the edge-cut (Y ∗ , X ∗ ) in the reversed graph G is a solution of value OPTE to the
+Rooted Minimum Edge-Cut instance on G with root r. This concludes the proof of Theorem 1.1 using
+Theorem 1.5.
+
+
+
+
+                                                      5
+1.2     Technical Overview
+1.2.1    Rooted Minimum Cut
+
+We now give an overview of the techniques used in our Rooted Minimum Edge-Cut and Rooted
+Minimum Vertex-Cut algorithms     (Theorems 1.5 and 1.6). Our algorithms are inspired by techniques
+from the O m1+o(1) · k -time exact algorithm of [CMT26] for the unit-weight Global Minimum Vertex-
+                      
+
+Cut problem, so we begin with a discussion of some ideas used by that algorithm. Then, we discuss our
+algorithms and how they relate to these ideas. We note that, while [CMT26] solve the Global Minimum
+Vertex-Cut problem rather than its rooted variant, their algorithm implicitly begins by reducing the
+problem to the rooted variant, using a reduction that is tailored to the unit-weight setting. We now
+describe the setup for the techniques used by [CMT26] for solving the resulting Rooted Minimum
+Vertex-Cut instance.
+    Consider an input instance of the Rooted Minimum Vertex-Cut problem, consisting of a graph G
+with weights w(v) on the vertices v ∈ V (G), and a root vertex y ∗ . Let OPT denote the value of the
+optimal solution to this instance. Observe that, in order to (exactly) solve this problem, it suffices
+to find some vertex v for which the weighted v-y ∗ vertex-connectivity, κG (v, y ∗ ), is equal to OPT –
+once such a vertex is found, an optimal solution to the problem can be extracted using a single call to
+an s-t Minimum Cut subroutine. A common paradigm for finding such a vertex v is to first sample
+some set T of terminals so that, with high probability, there exists some terminal x∗ ∈ T satisfying
+κG (x∗ , y ∗ ) = OPT; then, for every terminal x ∈ T , construct a sparsifier graph Gx , so that a single
+call to an s-t Max-Flow subroutine on the sparsifier Gx suffices to distinguish between        the case where
+x = x∗ and the case where κG (x, y ∗ ) > OPT. Thus, as long as the total size x∈T |E(Gx )| of the
+                                                                                        P
+sparsifiers is sufficiently small, it is possible to efficiently find a terminal x ∈ T with κG (x, y ∗ ) = OPT,
+by calling an s-t Max-Flow subroutine once on eachP        sparsifier. The main challenge is thus to efficiently
+construct such sparsifiers while guaranteeing that x∈T |E(Gx )| is small.
+    The work of [CMT26] introduced a new technique for constructing such sparsifiers, which we
+describe next. At a high level, the technique of [CMT26] shows that in order to construct the desired
+collection of sparsifiers, it suffices to have an efficient subroutine, which we refer to as BatchSparsify,
+that solves the following problem: given a set B ′ of terminals, a subset B ⊆ B ′ , and a graph GB ′ that
+simultaneously serves as a sparsifier for the whole set B ′ of terminals (in a formalized sense, that we
+choose to omit from this high-level overview), construct a small graph GB that serves as a sparsifier
+for the set B of terminals, so that the size of GB is proportional to |B|. Furthermore, the running time
+of this subroutine must be roughly equal to the size of the graph GB ′ , which may be smaller than G.
+    More concretely, the algorithm of [CMT26] employs a divide-and-conquer approach consisting of
+z ≈ log T phases: in Phase i, the algorithm considers a partition Bi of the set T of terminals, and
+constructs a sparsifier GB for each part B ∈ Bi of this partition. (We refer to the parts B ∈ Bi of this
+partition as batches.) Furthermore, for each i > 1, the partition Bi is a refinement of the partition Bi−1
+that was considered in the previous phase, in the sense that every batch B ∈ Bi has a parent batch
+B ′ ∈ Bi−1 which satisfies B ⊆ B ′ . Thus, the sparsifier GB for each batch B ∈ Bi can be computed by
+          BatchSparsify subroutine on the sparsifier GB ′ of its parent batch. Then, forPeach i′ ∈ [z], the
+using the P
+total size B∈B ′ |E(GB )| of the sparsifiers constructed in Phase i is proportional to B∈B ′ |B| = |T |;
+                  i                                                                              i
+and, for every i > 1, by guaranteeing that each batch B ′ ∈ Bi−1 serves as the  P  parent   batch  of at most
+2 batches of Bi , it follows that the total running time of Phase i is roughly B ′ ∈Bi−1 |E(GB ′ )|. Lastly,
+the final sparsifier Gx for each terminal x is the one constructed for its batch in Phase z, where the
+partition Bz consists only of constant-sized batches – it is then possible to use the fact that
+                                                                                             P Bz has small
+batches in order to upperbound the expression that    P  we  wanted  to minimize,
+                                                                            P       namely,    x∈T |E(Gx )|.
+Specifically, this expression is upper-bounded as x∈T |E(Gx )| ≤ O             B∈Bz |E(GB )| , because the
+size |E(GB )| of each sparsifier {GB }B∈Bz is counted only O(1) times in the left-hand side of this
+
+
+                                                       6
+inequality. The key remaining part is the implementation of the BatchSparsify subroutine.
+   The algorithm of [CMT26] (implicitly) provides a BatchSparsify subroutine that runs in time
+O |E(GB ′ )|1+o(1) (in the unit-weight setting), and produces a sparsifier GB of size |E(GB )| =
+Õ |B|
+    |T | · m · OPT . (To achieve this, the sparsifiers must satisfy some additional technical proper-
+ties.) Thus, the total size of the sparsifiers they construct in each phase is Õ(m · OPT), and the total
+running time of their algorithm is O m1+o(1) · OPT .
+                                                       
+
+    In this paper, our main contribution is introducing a (1+ϵ)-approximate
+                                                                             version of the BatchSparsify
+                                                                   |B|      1
+subroutine, which produces a sparsifier GB of size |E(GB )| = Õ |T | · m · ϵ , using different techniques
+than those of [CMT26]. (See Section 3.1 for    a comparison of these techniques.) The running time of
+this subroutine is O |E(GB ′ )|1+o(1) · log W , where W denotes the maximum vertex-weight. Further-
+more, we extend the divide-and-conquer framework of [CMT26] to the approximate setting, so that
+it can be used together with this approximate subroutine in order to approximately solve the Rooted
+Minimum Vertex-Cut problem. (We also slightly simplify this framework by omitting one technical
+notion that was used in [CMT26], which stated that certain batches become ”invalid” throughout the
+execution of the algorithm.) Thus, the total size of the sparsifiers that our    algorithm constructs in
+                   m
+                                                                           m1+o(1) ·log W
+each phase is Õ ϵ , and the total running time of our algorithm is O             ϵ         , as promised in
+Theorem 1.6.4 We furthermore observe that all of the algorithms mentioned above have straightfor-
+ward analogues in the edge-cut setting, thus allowing us to obtain our result for the Rooted Minimum
+Edge-Cut problem (Theorem 1.5).
+
+1.2.2     Reducing Global Minimum Vertex-Cut to Rooted Minimum Vertex-Cut.
+
+Consider an instance of the Global Minimum Vertex-Cut problem, consisting of a directed m-edge
+graph G with positive integral weights w(v) on the vertices v ∈ V (G). Let OPT denote the weight of
+the global minimum vertex-cut on G.
+    A common paradigm for solving the Global Minimum Vertex-Cut problem, is to reduce it to
+several instances of the s-t Minimum Vertex-Cut problem ([LNP+ 25, JNSY25]). This kind of reduction
+consists of two steps. In the first step, the algorithm constructs a collection {(si , ti )}ℓi=1 of pairs of
+vertices from G, which naturally induces a collection of ℓ instances of the s-t Minimum Vertex-Cut
+problem on the graph G, such that every feasible solution of any of these instances is also a feasible
+solution to the Global Minimum Vertex-Cut problem on G. Furthermore, the algorithm constructs the
+collection {(si , ti )}ℓi=1 such that with high probability, there exists some global minimum vertex-cut
+(L, S, R) of G and some i ∈ [ℓ] such that si ∈ L and ri ∈ R holds; whenever this happens, it follows
+that the optimal solution value of the i’th instance of s-t Minimum Vertex-Cut is exactly equal to
+OPT. In that case, an optimal solution to the original problem can be obtained by solving these
+ℓ instances of s-t Minimum Vertex-Cut, and selecting the minimum-weight vertex-cut among these
+solutions. However, explicitly solving these instances is often prohibitively expensive, as their total
+size is ℓ·m. Therefore, the second step of the paradigm consists of ”sparsifying” each of these instances
+– that is, for each i ∈ [ℓ], the algorithm finds a graph Gi such that the si -ti minimum vertex-cut in Gi
+has the same weight as the si -ti minimum vertex-cut in G, and any si -ti vertex-cut in Gi can be easily
+transformed into an si -ti vertex-cut in G of the same value. Then, these new sparsified instances of
+the s-t Minimum Vertex-Cut problem can be solved instead of the instances on G. By guaranteeing
+that the total size of the graphs {Gi }i∈[ℓ] is sufficiently small, algorithms that use this method are able
+   4
+     Actually, to achieve the probability bound stated in Theorem 1.6, we must amplify         the success probability using
+                                                                              1+o(1)
+                                                                                     ·polylogW
+polylog(mW ) many repetitions, thus ending with a running time of O m                 ϵ
+                                                                                                . However, we then transform
+                                             1+o(1)        
+                                                     ·log W
+this algorithm into one that runs in time O m      ϵ
+                                                              , by using a standard reduction that we discuss in Section B.
+
+
+
+                                                              7
+to solve all s-t Minimum Vertex-Cut instances faster than the time it would take to explicitly solve
+them on the original graph G.
+    At a very high level, our reduction in Theorem 1.4 follows a paradigm similar to the above, except
+we reduce to the Rooted Minimum Vertex-Cut problem instead of to the s-t Minimum Vertex-Cut
+problem. Specifically, in the first step of the reduction, we construct an appropriate set T ⊆ V (G) of
+ℓ ”root” vertices, which naturally induces a collection of ℓ instances of the Rooted Minimum Vertex-
+Cut problem on the graph G, such that any solution of these instances is also a feasible solution to
+the Global Minimum Vertex-Cut problem on G. Furthermore, if there exists some global minimum
+vertex-cut (L, S, R) of G and some root r ∈ T ∩ R, then one of these implicit instances of the Rooted
+Minimum Vertex-Cut problem has the same optimal solution value as that of the Global Minimum
+Vertex-Cut instance on G. In the second step, we sparsify each of these instances by constructing, for
+each root r ∈ T , a sparsified graph Gr with V (Gr ) = V (G), such that the set of feasible solutions of
+the Rooted Minimum Vertex-Cut problem on Gr with root r is exactly the same as that on G with
+root r. The key challenge is in making sure that the total size of all sparsified graphs Gr is small,
+while at the same time selecting sufficiently many roots into the set T so as to guarantee that with
+high probability, there exists some global minimum vertex-cut (L, S, R) of G with T ∩ R ̸= ∅. Next,
+we explain our approach to overcoming this challenge.
+     For the sake of simplicity of this overview, we will make the additional assumption that some global
+minimum vertex-cut (L, S, R) of G has w(R) ≥ w(L) – it is not difficult to get rid of this assumption,
+and we explain how to do this in Section E. Our     strategy for overcoming the aforementioned challenge
+is inspired by techniques from the O m1+o(1) n -time deterministic Global Minimum Vertex-Cut algo-
+rithm of Jiang et al. [JNSY25]. The algorithm of [JNSY25] follows the earlier-mentioned paradigm of
+reducing the Global Minimum Vertex-Cut problem to the s-t Minimum Vertex-Cut problem; further-
+                                                                                           ℓ
+more, one of the key ideas in their algorithm is to construct the collection  {(si , tin)}i=1 of source-sink
+                                                                                                          o
+                                                                                          w(u)
+pairs such that each vertex u ∈ V (G) serves as the source si in at most Õ n · min                ,1
+                                                                                     w(V (G))−OPT
+many pairs. Using this guarantee, as well as some clever analysis that is beyond the scope of this high-
+level overview,
+              they are able to create sparsified graphs of total size O(mn), which suffices for their
+O m1+o(1) n -time deterministic algorithm. At a high level, our key  n idea is to sample
+                                                                                      o each vertex u
+                                                                              w(u)
+into our set T of roots independently with probability roughly min                    ,1   , which is n-fold
+                                                                         w(V (G))−OPT
+smaller than the number of times that u serves as the source vertex in the reduction of [JNSY25].
+Then, by using a similar sparsification method to the one used by [JNSY25], we can guarantee that
+the expected total size of our sparsified graphs is O(m) – an n-fold improvement over the total size
+achieved by [JNSY25]. It is also not difficult to verify that this method of sampling ensures that for
+some global minimum vertex-cut (L, S, R), we have a constant probability of sampling a root from the
+set R: indeed, observe that w(L∪R) = w(V (G))−OPT holds for every global minimum vertex-cut, and
+so, by our earlier assumption that some global minimum vertex-cut (L, S, R) satisfies w(R) ≥ w(L),
+it follows that this cut satisfies w(R) ≥ (w(V (G)) − OPT) /2; it can then be verified that with prob-
+ability Ω(1), at least one vertex of R is sampled into T . To summarize, our n-fold improvement over
+the reduction of [JNSY25] comes both from leveraging the power of random sampling, which could
+not be used by the deterministic algorithm of [JNSY25], and, perhaps even more crucially, from the
+fact that we are reducing to the Rooted Minimum Vertex-Cut problem rather than the s-t Minimum
+Vertex-Cut problem – this means that our sampling procedure only needs to guarantee that for some
+global minimum vertex-cut (L, S, R), it samples a vertex r ∈ R, rather than having to sample a pair
+of vertices (s, t) that simultaneously satisfies s ∈ L and t ∈ R.
+
+
+
+
+                                                     8
+1.3    Organization
+We cover preliminaries in Section 2. In Section 3, we present our algorithm for the Rooted Minimum
+Edge-Cut problem – we choose to present this algorithm before the vertex-cut version, as its analysis
+is simpler. Furthermore, as these two algorithm are very similar, we defer the presentation of the
+Rooted Minimum Vertex -Cut algorithm to Section A. Finally, in Section 4, we present our reduction
+from Global Minimum Vertex-Cut to Rooted Minimum Vertex-Cut (Theorem 1.4).
+    In Section B we describe a standard method, that is used in our algorithms for both the Rooted
+Minimum Edge-Cut and the Rooted          Minimum Vertex-Cut problems, which allows transforming an
+                                    1+o(1)
+                                     m      ·polylogW
+algorithm with running time O                ϵ        for these problems into one that has running time
+    1+o(1)        
+    m       ·log W
+O         ϵ          . Section C covers missing proofs from Section 2; Section D covers a missing proof
+from Section 3; and Section E explains how to remove an additional assumption that we make in
+Section 4. Lastly, Section F explains how our main results can be extended to the setting in which
+weights are allowed to be 0.
+
+
+2     Preliminaries
+All logarithms in this paper are base 2. All graphs considered in this paper are directed, and without
+self-loops. Furthermore, graphs are assumed to be without parallel edges unless explicitly specified
+otherwise. We use the Õ and Ω̃ notations to hide polylog(m) factors. For any natural number n, we
+use [n] to denote the set {1, . . . , n}.
+
+Basic Graph-Theoretic Notation. Consider a directed graph G. We use V (G) and E(G), re-
+spectively, to denote its set of vertices and its set edges. For every two sets A, B ⊆ V (G) of vertices,
+we use EG (A, B) ⊆ E(G) to denote the set of edges that begin at A and end at B. For every ver-
+                                               +
+tex v ∈ V (G), its set of outgoing edges is δG   (v) = EG ({v} , V (G)), and its set of incoming edges is
+ −
+δG (v) = EG (V (G), {v}). The out-degree of a vertex v ∈ V (G) is deg+            +
+                                                                        G (v) = |δG (v)|, and the in-degree
+                               −          −
+of a vertex v ∈ V (G) is degG (v) = |δG (v)|. The total degree of a vertex v ∈ V (G) is degG (v) =
+                −
+deg+G (v) + degG (v). Furthermore, for every vertex v ∈ V (G), its set of out-neighbors is NG (v) =
+                                                                                                    +
+                                                               −
+{u ∈ V (G) | (v, u) ∈ E(G)}, and its set of in-neighbors is NG (v) = {u ∈ V (G) | (u, v) ∈ E(G)}.
+                                                                                      +
+    For every set A ⊆ V (G) of vertices, its set of outgoing boundary edges is ∂G       (A) = EG (A, V (G)\A),
+                                                −
+and its set of incoming boundary edgesP     is ∂G (A) = EG (V (G)\A, A). Additionally, for a set A ⊆ V (G) of
+                                  +                   +                                                 −
+vertices, its out-volume  is  vol G (A)  =    v∈A degG (v) = |EG (A, V (G))|, and its in-volume is volG (A) =
+P          −                                              +                                 +
+   v∈A degG (v) = |EPG (V (G), A)|. Observe      that volG (A) is not the same thing as |∂G (A)|. The volume
+                                             +           −
+of A is volG (A) = v∈ASdegG (v) = vol      G (A) + volG (A). Lastly, for every set   A ⊆ V (G),
+                                                                                             S its set   of out-
+                 +                   +                                             −                 −
+neighbors is NG (A) =        v∈A GN    (v) \  A,  and its set of in-neighbors is NG  (A)  =       N
+                                                                                               v∈A G   (v)   \ A.
+When using the above notation, we often omit the subscript G when it is obvious from the context.
+
+Weighted Graphs. In this paper, we deal with two different types of weight-functions on graphs.
+The first is a weight function w that assigns weights w(e) to the edges e ∈ E(G) of a graph G, and
+the second is a weight function w that assigns weights w(v) to the vertices v ∈ V (G). When given
+a weight Pfunction w of the former type, then, for every set E ′ ⊆ E(G) of edges, we use the notation
+w(E ′ ) = e∈E ′ w(e). Similarly, when given a weight Pfunction w of the latter type, then, for every set
+V ′ ⊆ V (G) of vertices, we use the notation w(V ′ ) = v∈V ′ w(v).
+
+Edge-Cuts and Edge-Connectivity. Consider a graph G with weights w(e) on the edges e ∈
+E(G). An edge-cut in G is an (ordered) pair (X, Y ) such that (X, Y ) is a partition of the set V (G),
+
+                                                       9
+and X, Y ̸= ∅. The weight of this cut, also known as its value, is w(EG (X, Y )). For any pair
+u, v ∈ V (G) of vertices, we say that an edge-cut (X, Y ) is a u-v edge-cut if u ∈ X and v ∈ Y ; if
+the weight of (X, Y ) is minimal among all u-v edge-cuts, then we say that it is a minimum u-v edge-
+cut. The (weighted) u-v edge-connectivity, denoted λG (u, v), is the maximum possible cardinality of
+a (multi)set of u-v paths in G such that every edge e ∈ E(G) belongs to at most w(e) many of these
+paths. By the Max Flow-Min Cut theorem, λG (u, v) is also equal to the weight of the minimum u-v
+edge-cut in G.
+
+Vertex-Cuts and Vertex-Connectivity. Consider a graph G with weights w(v) on the vertices
+v ∈ V (G). A vertex-cut in G is an (ordered) triple (L, S, R) such that (L, S, R) is a partition of the
+set V (G), and L, R ̸= ∅ (but S may be empty). The weight of this cut, also known as its value, is
+w(S). For any pair u, v ∈ V (G) of vertices, we say that a vertex-cut (L, S, R) is a u-v vertex-cut if
+u ∈ L and v ∈ R; if the weight of (L, S, R) is minimal among all u-v vertex-cuts, then we say that it is
+a minimum u-v vertex-cut. The (weighted) u-v vertex-connectivity, denoted κG (u, v), is the maximum
+possible cardinality of a (multi)set of u-v paths in G such that every vertex v ′ ∈ V (G) \ {u, v} belongs
+to at most w(v ′ ) many of these paths. By Menger’s theorem, κG (u, v) is also equal to the weight of
+the minimum u-v vertex-cut in G.
+
+Global Minimum Edge-Cut and Rooted Minimum Edge-Cut. In the Global Minimum Edge-
+Cut problem, the input is a directed graph G with integral weights w(e) > 0 on the edges e ∈
+E(G). The goal of this problem is to produce an edge-cut (X, Y ) in G while minimizing the weight
+w(EG (X, Y )) of this edge-cut. For such an instance of the Global Minimum Edge-Cut problem, we
+say that any edge-cut (X, Y ) of G is a feasible solution to this instance.
+   In the Rooted Minimum Edge-Cut problem, the input is a directed graph G with integral weights
+w(e) > 0 on the edges e ∈ E(G), as well as a root vertex r ∈ V (G). A feasible solution to this
+problem is an edge-cut (X, Y ) in G with r ∈ Y . (We note that this problem is usually defined with
+the constraint r ∈ X instead of r ∈ Y , but we use the symmetric version with r ∈ Y in this paper.)
+The goal of the problem is to compute a feasible solution (X, Y ) while minimizing the weight of the
+edge-cut (X, Y ).
+
+Global Minimum Vertex-Cut and Rooted Minimum Vertex-Cut. In the Global Minimum
+Vertex-Cut problem, the input is a directed graph G with integral weights w(v) > 0 on the vertices
+v ∈ V (G), such that G contains some vertex-cut. The goal of this problem is to produce a vertex-cut
+(L, S, R) in G while minimizing the weight w(S) of this vertex-cut. For such an instance of the Global
+Minimum Vertex-Cut problem, we say that any vertex-cut (L, S, R) of G is a feasible solution to this
+instance.
+    In the Rooted Minimum Vertex-Cut problem, the input is a directed graph G with integral weights
+w(v) > 0 on the vertices v ∈ V (G), as well as a root vertex r ∈ V (G). A feasible solution to this
+problem is a vertex-cut (L, S, R) in G with r ∈ R. (We note that this problem is usually defined with
+the constraint r ∈ L instead of r ∈ R, but we use the symmetric version with r ∈ R in this paper.)
+The goal of the problem is to compute a feasible solution (L, S, R) while minimizing the weight of this
+vertex-cut.
+
+Algorithmic Representation of Graphs. In this paper, whenever we say that an algorithm
+receives a graph G as part of its input, or that the algorithm is given access to a graph G, we mean
+that the algorithm is given access to G in all of the following forms: adjacency-list access, that, given
+a vertex v ∈ V (G), allows accessing a linked-list containing all its outgoing edges, as well as another
+
+
+                                                   10
+linked-list containing all its incoming edges; adjacency matrix access, that, given an ordered pair (u, v)
+of vertices, declares in time Õ(1) whether a u-v edge exists in G, as well as the weight of the edge
+if applicable (or a pointer to a linked-list containing all such edges, in the case of multigraphs); and,
+degree access, that allows querying the out-degree and in-degree of any vertex v ∈ V (G) in O(1) time.
+We note that, using standard techniques, data-structures implementing these types of access can be
+constructed and maintained at the cost of only a Õ(1) multiplicative blowup in the running time of
+our algorithms.
+
+2.1   Submodularity of Cuts
+A folklore result that is often useful when dealing with cuts in graphs, is that the weight of edge-
+cuts and vertex-cuts is a submodular function when viewed as a function of one side of the cut.
+Our algorithms will use a corollary of this submodularity property, which is stated in the next two
+lemmas for the cases of edge-cuts and vertex-cuts, respectively. The proofs of these lemmas follow
+from standard arguments, and are deferred to Section C.
+
+Lemma 2.1 Consider a graph G with weights w(e) on the edges e ∈ E(G), as well as a pair s, t of
+vertices in G, and a minimum s-t edge-cut (S, T ) in G. Furthermore, let X ⊆ V (G) be any set of
+                   +               +
+vertices. Then w(∂G  (X ∩ S)) ≤ w(∂G (X)).
+
+Lemma 2.2 Consider a graph G with weights w(v) on the vertices v ∈ V (G), as well as a pair s, t of
+vertices in G, and a minimum s-t vertex-cut (L, S, R) in G. Furthermore, let X ⊆ V (G) be any set
+of vertices. Then w(NG+ (X ∩ L)) ≤ w(NG+ (X)).
+
+2.2   Fast Algorithms for s-t Minimum Cut
+Our algorithms use the recent result of [VDBCK+ 23] which solves the Min-Cost s-t Maximum Flow
+problem in deterministic almost-linear time, and in particular shows that the s-t Minimum Edge-Cut
+and s-t Minimum Vertex-Cut problems can be solved in deterministic almost linear time.
+
+Lemma 2.3 ([VDBCK+ 23]) There is a deterministic algorithm that, given an instance of the s-t
+Minimum Edge-Cut problem on an m-edge directed graph G with weights w(e) ≤ W on the edges
+e ∈ E(G), produces an exact solution to this instance in time O(m1+o(1) · log W ).
+
+Lemma 2.4 ([VDBCK+ 23]) There is a deterministic algorithm that, given an instance of the s-t
+Minimum Vertex-Cut problem on an m-edge directed graph G with weights w(v) ≤ W on the vertices
+v ∈ V (G), produces an exact solution to this instance in time O(m1+o(1) · log W ).
+
+2.3   Selecting Terminals
+Consider an m-edge graph G. In some of our algorithms, it will be useful to select a small set
+T ⊆ V (G) of terminals, such that at least one terminal belongs to a certain target set A ⊆ V (G) of
+vertices, where A is not known
+                              to the algorithm. In this case, we will
+                                                                    employ
+                                                                           the following approach,
+                             1                                          m
+which, with probability Ω log m , selects such a set T of size O vol+ (A) : first, guess an estimate
+µ of vol+
+        G (A) by picking µ uniformly at random among the integral powers of 2 in the range [1, m];
+then, sample 2mν vertices into T , where each vertex is sampled with probability proportional to its
+out-degree. The following lemma describes the guarantees of the sampling step in more detail. For
+the sake of convenience, we also state this lemma so that, if the algorithm knows a set F of vertices
+that do not belong to A, then it can guarantee that these vertices do not get sampled.
+
+
+                                                   11
+Lemma 2.5 There is a randomized algorithm whose input is an m-edge graph G, as well as a parame-
+ter 1 ≤ ν ≤ m, and a set F ⊂ V (G) of forbidden vertices. The output of the algorithm is a non-empty
+set T ⊆ V (G) of at most 2m
+                          ν vertices called terminals, such that T ∩ F = ∅. The algorithm guarantees
+that, for every set A ⊆ V (G) \ F of vertices with vol+                                            1
+                                                       G (A) ≥ ν, the inequality Pr[A ∩ T ̸= ∅] ≥ 100
+holds. The running time of the algorithm is Õ(m).
+
+    Proof: The algorithm from the lemma is implemented by sampling 2m
+                                                                               
+                                                                                 ν   edges from E(G) inde-
+pendently uniformly at random with repetition, and then choosing T to be the set of those vertices
+u ∈ V (G) \ F that have at least one outgoing sampled edge. To prove the correctness of the algorithm,
+fix any set A ⊆ V (G) \ F with vol+                                                         1
+                                      G (A) ≥ ν, and we will prove that Pr[A ∩ T ̸= ∅] ≥ 100 . Indeed, since
+                                                                     1
+A ⊆ V (G) \ F , it suffices to show that with probability at least 100 , there is at least one sampled edge
+in the set EG (A, V (G)) of edges outgoing from vertices of A. Now, since each sampled edge indepen-
+                               vol+ (A)    ν
+                                             to belong to EG (A, V (G)), and since we sampled 2m       ≥ m
+                                                                                                  
+dently has a probability of Gm ≥ m                                                                 ν      ν
+edges, it follows that the probability of at least one edge being sampled from EG (A, V (G)) is at least
+                                          ν m/ν    1   1
+                                     1− 1−        ≥1− ≥     .
+                                           m         e  100
+This concludes the proof of Lemma 2.5.
+
+
+3    Algorithm for Rooted Minimum Edge-Cut: Proof of Theorem 1.5
+In this section, we describe and analyze the algorithm implementing Theorem 1.5 – our main result
+for the Rooted Minimum Edge-Cut problem. As explained in Section 1.2.1, our algorithm employs a
+hierarchical divide-and-conquer technique due to [CMT26]. We now formally describe the algorithm.
+    Recall that the input to the algorithm consists of a directed m-edge graph G with positive integer
+weights w(e) ≤ W on the edges e ∈ E(G), as well as a precision parameter ϵ ∈ (0, 1), and a root vertex
+y ∗ ∈ V (G). Let OPTE,y∗ denote the minimum value of an edge-cut among all edge-cuts (X ′ , Y ′ ) of G
+with y ∗ ∈ Y ′ . Furthermore, for the sake of the analysis, fix one such edge-cut achieving this minimum
+value, and denote it by (X ∗ , Y ∗ ) – we refer to (X ∗ , Y ∗ ) as the distinguished cut. Our goal is to output
+an edge-cut (X, Y ) of G with w(EG (X, Y )) ≤ (1 + ϵ)OPTE,y∗ .
+    It will also be convenient for us to assume that OPTE,y∗ > 0, and we indeed make this assumption
+in the remainder of this section. This assumption can be removed via the following standard technique:
+before running the algorithm, we check whether OPTE,y∗ > 0 by performing a BFS from y ∗ in the
+reverse graph G of G; if the BFS reaches all vertices of G, then OPTE,y∗ > 0 must hold, in which
+case we run the algorithm; otherwise, we can use the set of vertices reached by the BFS in order to
+construct and output an edge-cut (X, Y ) of G with w(EG (X, Y )) = 0 and y ∗ ∈ Y – specifically, Y is
+the set of vertices reached by the BFS, and X = V (G) \ Y .
+
+Estimates of OPTE,y∗ and vol+         ∗
+                                  G (X ), and a Set of Terminals. Our algorithm begins by guessing
+              [ of OPTE,y∗ , and an estimate ν of vol+ (X ∗ ) – specifically, it picks OPT
+an estimate OPT                                                                        [ uniformly at
+                                                        G
+random among the integral powers of 2 in the range [1, m · W ], and it picks ν uniformly at random
+among the integral powers of 2 in the range [1, m]. Let E estimates denote the good event in which
+                                       +
+OPTE,y∗                                    ∗
+              [ ≤ OPTE,y∗ and volG (X ) < ν ≤ vol+ (X ∗ ) both hold. Observe that Pr[E estimates ] ≥
+  2      <  OPT
+                                       2              G
+        1
+                                                        V (G) of O m
+                                                                     
+Ω log2 (m·W )
+                . Next, our algorithm  picks a set T ⊆             ν    terminals, using the procedure
+                                                        ∗
+from Lemma 2.5 with parameter ν and the set F = {y } of forbidden vertices. Let E denote the good
+
+
+
+                                                      12
+event that event E estimates occurred and T ∩ X ∗ ̸= ∅ holds. By Lemma 2.5, Pr[E | E estimates ] ≥ 100
+                                                                                                    1
+                                                                                                       ,
+and therefore                                                                          
+                                                                                1
+                     Pr[E] = Pr[E | E estimates ] · Pr[E estimates ] ≥ Ω      2           .         (1)
+                                                                           log (m · W )
+
+Hierarchical Partition of the Terminals. Our algorithm constructs a hierarchical partition of
+the set T of terminals, which is identical to the hierarchical partition used by [CMT26]. For the sake
+of completeness, we now describe this construction. Let z = ⌈log |T |⌉. For each integer 0 ≤ i ≤ z, the
+algorithm creates a partition of the set T of terminals into at most 2i level-i batches, that each contain
+at most 2z−i terminals. The partition of T into level-i batches is referred to as the level-i partition, and
+the set of all level-i batches is denoted by Bi . Specifically, the level-0 partition has only a single batch,
+and this batch contains all the terminals of T . For each 1 ≤ i ≤ z, the algorithm creates the level-i
+                                                                                                    ′  ′′
+partition by splitting
+                  l m eachj batch k B ∈ Bi−1 of the level-(i − 1) partition into two parts B , B ⊆ B
+whose sizes are |B|  2   and |B|                                        ′       ′′
+                                2 , respectively, and adding both B and B to Bi as level-i batches; we
+say that the batch B is the level-(i − 1) parent batch of the level-i batches B ′ and B ′′ . (The exception
+is when the batch B ∈ Bi−1 is of size |B| = 1; in this case, we only create a single level-i batch whose
+level-(i − 1) parent batch is B – this level-i batch is equal to B.) The next observation is useful in the
+following parts of this section.
+                                                                                            m
+                                                                                               
+Observation 3.1 For every 0 ≤ i ≤ z, every level-i batch B ∈ Bi has size |B| = O ν·2          i .
+
+
+
+    Proof: By the description of the i’th level partition, every    level-i batch has size at most 2z−i ,
+where z = ⌈log |T |⌉. Thus, the size of every level-i batch is O |T
+                                                                  2i
+                                                                    |
+                                                                        . The observation follows since the
+                        m
+                          
+set T has size |T | = O ν .
+
+Main Loop of the Algorithm. Our algorithm consists of z phases. For each 1 ≤ i ≤ z, the goal
+of Phase i is to construct, for each level-i batch B ∈ Bi , a graph GB and positive integral weights
+wB (e) ≤ W on the edges e ∈ E(GB ), that together satisfy the following properties:
+
+                                               m
+                                                      
+ P1. the graph GB contains at most Õ         2i ·ϵ
+                                                          edges and vertices, and no more than the number of
+     edges and vertices in G;
+
+ P2. {y ∗ } ⊆ V (GB ) ⊆ V (G);
+                                                               +                +
+ P3. for every set X ′ ⊆ V (GB ) \ {y ∗ }, the inequality wB (∂G B
+                                                                   (X ′ )) ≥ w(∂G (X ′ )) holds – in particular,
+     for every terminal x ∈ B ∩ V (GB ), the x-y edge-connectivity λGB (x, y ∗ ) in GB is at least as
+                                                       ∗
+
+     large as the edge-connectivity λG (x, y ∗ ) in G;
+
+ P4. if there exists a terminal x∗ ∈ B such that x∗ ∈ X ∗ and the good event E occurred, then
+     x∗ ∈ V(GB ) holds and the x∗ -y ∗ edge-connectivity λGB (x∗ , y ∗ ) in GB satisfies λGB (x∗ , y ∗ ) ≤
+       1 + iϵz OPTE,y∗ – furthermore,   there exists an x∗ -y ∗ edge-cut (X ′ , Y ′ ) in GB of value
+     wB (EGB (X ′ , Y ′ )) ≤ 1 + iϵz OPTE,y∗ that additionally satisfies the condition vol+        ′
+                                    
+                                                                                              G (X ) ≤ 2ν.
+
+
+Each phase will be partitioned into iterations, where each iteration computes the graph GB for a single
+batch B. The main technical component of our algorithm is the following claim, which states that
+                                                    1+o(1)
+each iteration of Phase i can be performed in O m 2i ·ϵ·log W time. The proof of this claim- and the
+description of procedure implementing it- are presented in Section 3.1.
+
+
+
+
+                                                            13
+Claim 3.2 There is a deterministic procedure that we refer to as ApproxBatchSparsify, that, given
+an integer 1 ≤ i ≤ z, a batch B ∈ Bi , the parameters
+                                                1+o(1)
+                                                              [ and access to the graph G, computes
+                                                       ϵ, ν, OPT,
+                                                 m        ·log W
+the graph GB satisfying Properties P1-P4 in O         2i ·ϵ
+                                                                   time. If i > 1, then the procedure also
+requires access to the graph GB ′ corresponding to the level-(i − 1) parent batch B ′ of B.
+
+The following corollary of Claim 3.2 summarizes the running time of each phase.
+                                                                           1+o(1)        
+                                                                                   ·log W
+Corollary 3.3 Each phase of the algorithm can be implemented in time O m         ϵ          .
+
+   Proof: Observe that for every 1 ≤ i ≤ z, Phase i consists of at most 2i iterations – one for
+each level-i batch B ∈ Bi . Furthermore, each iteration can be implemented using a single call to the
+ApproxBatchSparsify subroutine. Thus, this corollary follows from Claim 3.2.
+
+Termination. We now describe how our algorithm proceeds after the final phase. For each terminal
+x ∈ T , let B (x) ∈ Bz denote the level-z batch that contains x. Furthermore, let T ′ ⊆ T denote the set of
+all terminals x such that x ∈ V (GB (x) ). After the final phase, for each terminal x ∈ T ′ , our algorithm
+uses Lemma 2.3 on the graph GB (x) in order to determine the edge connectivity λG (x) (x, y ∗ ). Then,
+                                                                                         B
+our algorithm picks the terminal x̃ that achieves the minimum edge-connectivity λG (x) (x, y ∗ ) among
+                                                                                         B
+all the terminals of T ′ ; computes a minimum x̃-y ∗ edge-cut (X, Y ) in G using Lemma 2.3, and outputs
+this edge-cut. (If the set T ′ is empty, then the algorithm instead outputs an arbitrary edge-cut (X, Y )
+with y ∗ ∈ Y .) Observe the following.
+Observation 3.4 If T ′ ̸= ∅, then the value of the edge-cut (X, Y ) returned by the algorithm is at
+most minx∈T ′ λG (x) (x, y ∗ ).
+                  B
+
+
+    Proof: As (X, Y ) is selected to be a minimum x̃-y ∗ edge-cut in G, it suffices to prove that
+λG (x̃, y ∗ ) ≤ minx∈T ′ λG (x) (x, y ∗ ). Indeed, Property P3 guarantees that λG (x̃, y ∗ ) ≤ λG (x̃) (x̃, y ∗ ),
+                           B                                                                     B
+and the choice of x̃ guarantees that λG (x̃) (x̃, y ∗ ) = minx∈T ′ λG (x) (x, y ∗ ).
+                                           B                          B
+The next corollary follows from the above observation.
+Corollary 3.5 If the good event E occurs, then the edge-cut (X, Y ) returned by the algorithm has
+value at most (1 + ϵ) OPTE,y∗ .
+
+    Proof: Suppose that the good event E occurs. In this case, by the definition of this event, there
+                                                                                                               ∗
+exists a vertex x∗ ∈ T ∩ X ∗ . Now, consider the graph GB (x∗ ) corresponding to the level-z batch B (x ) .
+By Property P4, this graph satisfies that x∗ ∈ V (GB (x∗ ) ) and that λG (x∗ ) (x∗ , y ∗ ) ≤ (1 + ϵ) OPTE,y∗ .
+                                                                                B
+In other words, x∗ is a vertex of T ′ that satisfies λG (x∗ ) (x∗ , y ∗ ) ≤ (1 + ϵ) OPTE,y∗ . Therefore, T ′ ̸= ∅
+                                                       B
+and minx∈T ′ λG (x) (x, y ∗ ) ≤ (1 + ϵ) OPTE,y∗ . The corollary now follows from Observation 3.4.
+                 B
+
+
+
+Running TimeAnalysis. We         now prove that the total running time of the algorithm described in
+                  m1+o(1)
+this section is O    ϵ    · log W . We begin by upper-bounding the running time of the main loop: by
+                                                                            1+o(1)        
+                                                                                    ·log W
+Corollary 3.3, each phase of the main loop of the algorithm runs in O m                      time, so the total
+                                                                1+o(1)         ϵ
+                                                                        ·log W
+time of all z = O(log n) phases is also upper-bounded by O m          ϵ         . It remains to upper-bound
+the time spent after the last phase. Indeed, after the last phase, the algorithm makes at most one call
+to Lemma 2.3 on each of the graphs GB constructed during Phase z; observe that, by Property P1,
+                                           1+o(1)
+the running time of each such call is O( m 2z ·ϵ·log W ). So, the total time spent on calls to Lemma 2.3
+                                                                   1+o(1)               1+o(1) ·log W
+after the end of the final phase is upper-bounded by O(|T | · m 2z ·ϵ·log W ) = O( m         ϵ          ), as needed.
+(In the last equality, we used the definition of z as z = ⌈log |T |⌉.)
+
+                                                       14
+Correctness Analysis. By the description of the algorithm, it always outputs an edge-cut (X, Y )
+in G such that y ∗ ∈ Y . Furthermore, by Corollary 3.5, whenever event E occurs, this       edge-cut 
+                                                                                                1
+has value at most (1 + ϵ)OPTE,y∗ ; by Equation (1), this happens with probability Ω log2 (m·W       )
+                                                                                                        .
+                                                             1+o(1)        
+                                                                     ·log W
+Thus, the algorithm described in this section runs in time O m     ϵ          , and the output edge-cut
+                                                                                 1
+(X, Y ) satisfies w(EG (X, Y )) ≤ (1 + ϵ)OPTE,y∗ with probability at least polylog(mW ) . By repeating the
+algorithm polylog(mW ) many times and choosing the lowest-value cut among the obtained edge-cuts,
+                                                          1
+we can
+      boost the success
+                        probability of the algorithm to 2 , at the cost of increasing
+                                                                                         the running
+                                                                                                     time
+         1+o(1)
+             ·polylogW                                                             m1+o(1) ·log W
+to O m        ϵ        . We can then reduce the running time back to O                   ϵ          using the
+reduction from Section B.
+
+3.1   Execution of a Single Iteration: Proof of Claim 3.2
+In this section, we describe the ApproxBatchSparsify procedure from Claim 3.2. We firstly deal with
+the easy special case where i = 1: in this case, the procedure simply lets GB be the entire graph
+G; it can be easily verified that in this case, selecting GB = G guarantees that GB satisfies all four
+Properties P1-P4.
+    In Section 3.1.1, we present the formal description and analysis of the procedure ApproxBatchSparsify
+for the case of i > 1. In the remainder of the current section, we present an informal overview of the
+techniques used in this procedure, and put them in the context of prior work.
+
+Overview of Techniques. Consider an input to ApproxBatchSparsify. Using standard techniques
+(that we describe in Claim 3.6), the problem of computing the graph GB can be reduced to the problem
+of computing a set AB ⊆ V (G) which satisfiestwo properties, (defined later as Properties Q1 and Q2):
+the first property is that vol+             m
+                              G (AB ) = Õ 2i ·ϵ ; the second property is that, if there exists a terminal
+x ∈ B ∩ X and the good event E occurred, then there exists an x∗ -y ∗ edge-cut (X, Y ) in G with
+  ∗          ∗
+
+X ⊆ AB and vol+                                                     iϵ
+                 G (X) ≤ 2ν, whose value is w(EG (X, Y )) ≤ 1 + z OPTE,y . We use this reduction.
+                                                                                ∗
+
+(Indeed, a vertex-analogue of this reduction is also used by the algorithm of [CMT26].) Thus, the
+main challenge is computing such a set AB ⊆ V (G) of vertices.
+    Consider the graph GB ′ corresponding to the parent batch B ′ of B, and suppose for the sake
+of intuition that event E occurred, and that there exists some terminal x∗ ∈ B ∩ X ∗ ⊆ B ′ ∩ X ∗ .
+Then, by Property P4 of                                     ∗ ∗            ′      ′
+                         the graph
+                                   GB ′ , there exists an x -y edge-cut (XB ′ , YB ′ ) in GB ′ of value
+             ′ , Y ′ )) ≤ 1 + (i−1)ϵ OPT                                                      +   ′
+wB ′ (EGB′ (XB ′  B′             z         E,y ∗ that additionally satisfies the condition volG (XB ′ ) ≤ 2ν.
+We now describe a simple method for attempting to compute the set AB , which is instructive for
+understanding our techniques, but which does not work as-is: begin by transforming the graph GB ′
+into a graph HB ′ by introducing a new ”super-source” vertex s, and adding edges from s to every
+vertex of B; then, compute a minimum s-y ∗ edge-cut (A, A′ ) in HB ′ , and output the set AB = A \ {s}.
+Using the submodularity of cuts, it can be shown that as long as the edges leaving s have sufficiently
+large weight, the set AB must satisfy Property Q2 – specifically, it can be shown that the edge-cut
+(X, Y ) = (XB ′ ∩ A , Y ′ ∪ A′ ) is an x∗ -y ∗ edge-cut in G with value no larger than the value of the
+                ′    B   B′                                      
+           ′ , Y ′ ) in G ′ , which in turn is at most 1 + (i−1)ϵ OPT
+edge-cut (XB ′  B′       B                                    z       E,y ∗ . The issue with this method
+is that it does not provide any upper-bound on the out-volume vol+
+                                                                 G (AB ); thus, some changes must
+be made to the method in order to guarantee Property Q1.
+    At a high-level, we deal with this issue by ”disincentivizing” the s-t Minimum Edge-Cut subroutine
+from picking a cut (A, A′ ) where A \ {s} has high out-volume – specifically, we add low-capacity edges
+from each vertex of HB ′ (except s) to y ∗ , where the capacity of each new edge (v, y) is proportional
+to the out-degree deg+G (v). We then show that these extra edges only slightly distort the values of the
+
+
+                                                     15
+cuts that we care about, meaning that the value of the edge-cut (XB       ′ ∩ A , Y ′ ∪ A′ ) in G will be
+                                                                           ′     B   B′
+                             ′      ′                          ϵ·OPTE,y∗
+larger than the value of (X B ′ , YB ′ ) in GB ′ by at most a     z     additive factor, so it will still be
+                        iϵ
+upper-bounded by 1 + z OPTE,y , as needed.
+                                         ∗
+
+
+
+
+Comparison to [CMT26]. The algorithm of [CMT26] can also be thought of as using a variation
+of the method described above, but it uses a different and more involved approach for dealing with the
+issue of bounding vol+G (AB ). Furthermore, the approach of [CMT26] only provides an upper-bound
+         \
+of Õ( m·OPT ) on vol+ (A ), and it is unclear whether this approach can be improved to yield better
+        2i            G   B
+upper-bounds.
+
+Relation to Local Cut. We note that our technique for bounding vol+        G (AB ) is very similar to a
+                                                                          +
+technique used by the ”(1+ϵ)-Approximate Local Cut” subroutine of [FNY 20]. Indeed, our algorithm
+for finding AB can be thought of as first solving an Approximate Local Cut problem (see [FNY+ 20]) in
+the graph HB ′ to obtain an approximately minimum s-y ∗ cut (A, A′ ) where vol+G (A) is small, and then
+setting AB = A \ {s}. However, we could not use the approximate Local Cut subroutine of [FNY+ 20]
+as-is, since it is too slow in our setting.
+
+3.1.1   Implementation of ApproxBatchSparsify for i > 1.
+
+Fix some 1 ≤ i ≤ z. We now formally describe how the algorithm computes the graph GB for a single
+batch B ∈ Bi during Phase i of the algorithm. The computation of the graph GB is performed in two
+steps. In the first step, we compute a set AB ⊆ V (G) \ {y ∗ } of vertices that satisfies the following two
+properties.
+
+ Q1. vol+               m
+                           
+         G (AB ) = Õ 2i ·ϵ ; and
+
+ Q2. if there exists a terminal x∗ ∈ B ∩ X ∗ and the good event E occurred, then there exists a subset
+     X ′ ⊆ AB with x∗ ∈ X ′ and vol+      ′                               ′           ′
+                                         ) ≤ 2ν such that the edge-cut (X , V (G) \ X ) in G has value
+                                     G (X
+               ′           ′         iϵ
+     w(EG (X , V (G) \ X )) ≤ 1 + z OPTE,y∗ .
+
+In the second step, we compute the graph GB so that it is equal to the graph obtained from G by
+merging all vertices outside of AB into the vertex y ∗ , and then removing any resulting self-loops, as
+well as any edges outgoing from y ∗ in the resulting graph. (We note that the resulting graph GB may
+have parallel edges.) This second step is summed up in the following claim, whose proof is deferred
+to Section D.
+
+Claim 3.6 Consider a set AB ⊆ V (G) \ {y ∗ } that satisfies properties Q1-Q2, and consider the graph
+GB that is obtained from G by merging all vertices outside of AB into y ∗ and then removing any
+resulting self-loops, as well as any edges outgoing from y ∗ in the resulting graph. Then, the graph GB
+must satisfy Properties   P1-P4.
+                                Furthermore, given such a set AB , we can construct the graph GB in
+            +               m
+                    
+time O volG (AB ) = Õ 2i ·ϵ .
+
+In order to complete the description of the iteration, it now suffices to describe the procedure for
+computing the set AB of vertices. We do this next.
+
+Obtaining the set AB . We now describe how our algorithm computes the set AB ⊆ V (G) \ {y ∗ }
+of vertices satisfying Properties Q1-Q2 with respect to a level-i batch B ∈ Bi during an iteration of
+Phase i. Let B ′ ∈ Bi−1 denote the level-(i − 1) parent batch of B. In order to compute AB , we will
+use the graph GB ′ that we computed for batch B ′ in the previous phase. To compute AB , we first
+
+                                                     16
+construct a graph HB ′ from GB ′ as follows: for every vertex v ∈ V (GB ′ ) whose out-degree deg+    G (v)
+                                                               ϵ· \ ·deg+ (v)
+                                                                  OPT
+in G is non-zero, we add to GB ′ an edge (v, y ∗ ) of capacity      z·2ν
+                                                                         G
+                                                                              ; furthermore, we add a new
+super-source vertex s, and we connect s to each vertex of B ∩ V (GB ′ ) via an edge of capacity 4OPT.[
+In the remainder of this section, we will overload notation and use wB ′ to refer to the edge-weight
+function in both GB ′ and HB ′ , as these two functions agree on all edges that are shared by these two
+graphs. The next observation about the graph HB ′ follows immediately from the construction of this
+graph.
+Observation 3.7 For every set X̂ ⊆ V (HB ′ ) \ {s, y ∗ } of vertices, the difference between the total
+weight of edges outgoing from X̂ in HB ′ and the total weight of edges outgoing from X̂ in GB ′ is
+                                        \ ·vol+ (X̂)
+                                      ϵ·OPT
+       +                   +
+wB ′ (∂H ′
+           (X̂)) − wB ′ (∂
+                          G ′ (X̂)) =     z·2ν
+                                               G
+                                                     .
+       B                    B
+
+To conclude the computation of AB , we use Lemma 2.3 in order to compute a minimum s-y ∗ edge-cut
+(A, A′ ) in the graph HB ′ , and we let AB = A \ {s}. This concludes the description of the algorithm,
+and it now only remains to analyze it. Before proving that the set AB satisfies Properties Q1-Q2, we
+first present the next two observations about the edge-cut (A, A′ ) in the graph HB ′ .
+Observation 3.8 Thevalue wB ′ (EHB′ (A, A′ )) of the edge-cut (A, A′ ) in the graph HB ′ satisfies
+                               \
+                            m·OPT
+wB ′ (EHB′ (A, A′ )) = O      ν·2i
+                                     .
+
+   Proof: Recall that (A, A′ ) is chosen to be aminimum    ∗
+                                                        s-y edge-cut in HB ′ ; thus, it suffices to
+                                                    \
+show that some s-y ∗ edge-cut in H ′ has value O m·OPT . Indeed, by the construction of the graph
+                                         B                ν·2i
+HB ′ , there are at most |B| edges outgoing from the vertex s, and the capacity of each such edge
+             [ – therefore, the value of the s-y ∗ edge-cut ({s} , V (HB ′ ) \ {s}) in HB ′ is at most
+is exactly 4OPT         
+                     \
+                   m·OPT
+|B| · 4OPT ≤ O
+       [
+                     ν·2i
+                          , where the last inequality follows from Observation 3.1. This concludes the
+proof of Observation 3.8.
+Observation 3.9 The set A contains every terminal x ∈ B ∩ V (GB ′ ) whose edge-connectivity to y ∗
+in HB ′ satisfies λHB′ (x, y ∗ ) < 4OPT.
+                                    [
+
+    Proof: Suppose towards contradiction that some terminal x ∈ B ∩ V (GB ′ ) does not belong to A,
+and yet has λHB′ (x, y ∗ ) < 4OPT.
+                              [ Then, there must exist an x-y ∗ edge-cut (X̂, Ŷ ) in HB ′ with value
+                    [ To complete the proof of the observation, we will now show that the edge-cut
+wB ′ (∂H ′ (X̂)) < 4OPT.
+       B
+(A∪ X̂, A′ ∩ Ŷ ) in HB ′ has a smaller value than the edge-cut (A, A′ ), contradicting the choice of (A, A′ )
+as a minimum s-y ∗ edge-cut in HB ′ : indeed, recall that the graph HB ′ contains an edge (s, x) of weight
+               [ > wB ′ (∂H ′ (X̂)); furthermore, observe that, as x ∈ X̂ \ A, this edge exits the set A
+wB ′ (s, x) = 4OPT              B
+but not the set A∪ X̂, meaning that ∂HB′ (A∪ X̂) ⊆ ∂HB′ (X̂)∪∂HB′ (A)\{(s, x)}. Therefore, the value of
+the edge-cut (A∪ X̂, A′ ∩ Ŷ ) in HB ′ is wB ′ (∂HB′ (A∪ X̂)) ≤ wB ′ (∂HB′ (A))+wB ′ (∂HB′ (X̂))−wB ′ (s, x) <
+wB ′ (∂HB′ (A)). This concludes the proof of Observation 3.9.
+   Next, we show that the set AB computed by the above procedure indeed satisfies Properties Q1-Q2.
+We begin by proving that AB satisfies Property Q1.
+Claim 3.10 The set AB satisfies Property Q1. That is, vol+             m
+                                                                           
+                                                         G (AB ) = Õ 2i ·ϵ .
+
+
+    Proof: Recall that for each vertex v ∈ AB , if deg+    G (v) > 0, then the graph HB ′ contains an edge
+                        \      +
+                      ϵ·OPT·degG (v)
+(v, y ∗ ) of capacity     z·2ν       , and this edge must cross the edge-cut (A, A′ ) in HB ′ . Therefore, the
+
+                                                     17
+                                                                                      \ ·vol+ (A )
+                                                                                    ϵ·OPT
+value wB ′ (EHB′ (A, A′ )) of the edge-cut (A, A′ ) in HB ′ is at least as large as      z·2ν
+                                                                                              G B
+                                                                                                   , meaning
+        +                                  +                           ′      z·2ν
+that volG (AB ) is upper-bounded by volG (AB ) ≤ wB ′ (EHB′ (A, A )) · \ . By plugging the upper-
+                                                                          ϵ·OPT
+                                       \
+                                       OPT
+                         ′
+bound wB ′ (EHB′ (A, A )) = O       m·
+                                             from Observation 3.8 into this last inequality, we get that
+                                      ν·2i
+
+vol+             z·m
+                     
+   G (AB ) ≤ O ϵ·2i . The corollary now follows as z = Õ(1).
+   Next, we prove that the set AB satisfies Property Q2.
+Claim 3.11 The set AB satisfies Property Q2.
+
+   Proof: Suppose that there exists a terminal x∗ ∈ B such that x∗ ∈ X ∗ , and suppose that the good
+                                                                                             +
+event E occurred. We need to prove that there exists a subset X ′ ⊆ AB with x∗ ∈ X ′ and vol    ′
+                                                                                           G (X ) ≤ 2ν
+                         ′           ′                            ′         ′          iϵ
+such that the edge-cut (X , V (G) \ X ) in G has value w(EG (X , V (G) \ X )) ≤ 1 + z OPTE,y∗ .
+   As x∗ ∈ B ∩ X ∗ and as B ′ is the parent batch of B, it follows that x∗ ∈ B ′ ∩ X ∗ . Thus, by Property
+P4 of the graph GB ′ , x ∈
+                          V (GB ′ ) holds,
+                                           and there exists an x∗ -y ∗ edge-cut (XB
+                                                                                   ′ , Y ′ ) in G ′ of value
+                                                                                     ′   B′      B
+             ′ , Y ′ )) ≤ 1 + (i−1)ϵ OPT                                       +   ′
+wB ′ (EGB′ (XB ′  B′             z      E,y ∗ , that additionally satisfies volG (XB ′ ) ≤ 2ν.
+
+   Let X ′ = A ∩ XB     ′ , and observe that X ′ ⊆ A ∩ V (G ′ ) = A . We now prove that x∗ ∈ X ′
+                          ′                                    B       B
+         +
+and volG (X ) ≤ 2ν, and that the edge-cut (X ′ , V (G) \ X ′ ) in G has value w(EG (X ′ , V (G) \ X ′ )) ≤
+              ′
+
+ 1 + iϵz OPTE,y∗ . Indeed, the fact that vol+      ′                                  ′       ′
+                                              G (X ) ≤ 2ν follows from the fact that X ⊆ XB ′ , and that
+   +
+volG (XB ′ ) ≤ 2ν. It remains to prove that x ∈ X , as well as that the edge-cut (X , V (G) \ X ′ ) in
+         ′                                       ∗     ′                                 ′
+
+G has value w(EG (X ′ , V (G) \ X ′ )) ≤ 1 + iϵz OPTE,y∗ . We begin by proving the latter statement.
+Specifically, this latter statement follows directly from the next claim.
+                                                                      +                     +
+Claim 3.12 The three inequalities w(EG (X ′ , V (G) \ X ′ )) ≤ wB ′ (∂H    (X ′ )) ≤ wB ′ (∂H      ′ )) ≤
+                                                                                                 (XB ′
+                                                                        B′                    B′
+     iϵ
+        
+ 1 + z OPTE,y∗ all hold.
+
+   Proof: We begin by proving the first inequality of the claim. That is, we begin by proving that
+                                      +
+w(EG (X ′ , V (G) \ X ′ )) ≤ wB ′ (∂H      (X ′ )). Indeed, by Property P3 of the graph GB ′ , the value of the
+                                       B′
+edge-cut (X ′ , V (G) \ X ′ ) in G is no larger than the value of the edge-cut (X ′ , V (GB ′ ) \ X ′ ) in GB ′ .
+Furthermore, by the construction of the graph HB ′ , this latter value is no larger than the value of the
+                                                            +
+edge-cut (X ′ , V (HB ′ ) \ X ′ ) in HB ′ , which is wB ′ (∂H  ′
+                                                                 (X ′ )).
+                                                            B
+
+    Next, we prove the second inequality from Claim 3.12. Indeed, since X ′ is defined as X ′ = A∩XB
+                                                                                                   ′ ,
+                                                                                                     ′
+                                                ′           ′
+this inequality follows from Lemma 2.1 (with XB ′ , A, and A in place of X, S, and T ).
+   Lastly, we now prove the third inequality from Claim 3.12. Recall we are assuming that event
+E occurred, which means that OPT     [ ≤ OPTE,y∗ ; therefore, since vol+ (X ′ ′ ) ≤ 2ν, it follows from
+                                                                               G    B
+                               +      ′             +       ′       ϵ· \
+                                                                      OPT    ϵ·OPTE,y∗
+Observation 3.7 that wB ′ (∂H ′ (XB ′ )) − wB ′ (∂G ′ (XB ′ )) ≤       z   ≤      z       . So, by the choice of
+                                 B                    B                   
+  ′ , Y ′ ) as an edge-cut in G ′ whose value is at most 1 + (i−1)ϵ OPT
+(XB ′  B′                          B                                     z        E,y ∗ , it follows that
+                                                                                   
+                       +     ′               +     ′        ϵ · OPTE,y∗          iϵ
+                wB ′ (∂H ′ (XB ′ )) ≤ wB ′ (∂G ′ (XB ′ )) +              ≤ 1+         OPTE,y∗ .
+                        B                     B                   z              z
+This concludes the proof of Claim 3.12.
+     We now continue the proof of Claim 3.11. To prove this claim, it now remains to prove that
+x∗ ∈ X ′ .   As X ′ = A ∩ XB   ′ and x∗ ∈ X ′ , it suffices to prove that x∗ ∈ A. We do this next, by
+                                 ′              B′
+first proving that λHB′ (x , y ) < 4OPT, and then using Observation 3.9. Indeed since x∗ ∈ XB
+                             ∗   ∗     [                                                          ′ and
+                                                                                                   ′
+  ∗
+y ∈     ′                                                                ∗  ∗
+    / XB ′ , it follows by the third inequality of Claim 3.12 that the x -y edge-connectivity in HB ′ is
+                                                                 
+                            ∗ ∗             +      ′           iϵ
+                     λHB′ (x , y ) ≤ wB ′ (∂H ′ (XB ′ )) ≤ 1 +      OPTE,y∗ ≤ 2OPTE,y∗ .              (2)
+                                             B                 z
+
+                                                       18
+Recall also that we are assuming that event E occurred, which, by the definition of this event, means
+                  [ By plugging this inequality into Equation (2), it follows that λH ′ (x∗ , y ∗ ) <
+that OPTE,y∗ < 2OPT.                                                                      B
+ [ Since x∗ ∈ B ∩ X ′ ′ ⊆ B ∩ V (GB ′ ), it now follows from Observation 3.9 that x∗ ∈ A. Thus,
+4OPT.                      B
+x∗ ∈ A ∩ XB′ = X ′ , as we needed to prove. This concludes the proof of Claim 3.11, and thus concludes
+             ′
+
+the analysis of ApproxBatchSparsify.
+
+
+4     From Rooted Minimum Vertex-Cut to Global Minimum Vertex-
+      Cut: Proof of Theorem 1.4
+In this section, we prove Theorem 1.4 – our reduction from the Global Minimum Vertex-Cut problem
+to the Rooted Minimum Vertex-Cut problem.
+    Consider an input to Theorem 1.4. That is, the input consists of a parameter ϵ ≥ 0, as well as a
+directed m-edge n-vertex graph G with positive integer weights w(v) ≤ W on its vertices v ∈ V (G),
+such that G contains some vertex-cut. Let OPTG denote the weight of the global minimum vertex-
+cut in G. Our goal is to design an algorithm implementing Theorem 1.4. That is, upon receiving
+the aforementioned input, as well as access to a (1 + ϵ)-approximate Rooted Minimum Vertex-Cut
+oracle as specified in Theorem 1.4, the algorithm must output a vertex-cut (L, S, R) such that, with
+probability at least 12 , the inequality w(S) ≤ (1 + ϵ)OPTG holds. Furthermore, the algorithm must
+make at most O m   n queries to the oracle, and the graphs in these queries must together contain at
+most O(m) edges. Outside of these queries, the running time of the algorithm must be Õ(m log W ).
+    The algorithm that we design in the remainder of this section, which we refer to as AlgGlobalVertexCut,
+will actually only guarantee that the output vertex-cut (L, S, R) satisfies w(S) ≤ (1 + ϵ)OPTG with
+probability Ω(1), rather than with probability 21 . To boost the probability of the event w(S) ≤
+(1 + ϵ)OPTG , we run the algorithm O(1) times with independent randomness, and select the lowest-
+weight cut among the obtained vertex-cuts. In the design and analysis of the algorithm, we furthermore
+make the assumption that G has some global minimum vertex-cut (L∗ , S ∗ , R∗ ) with w(R∗ ) ≥ w(L∗ ).
+This assumption can be removed using standard techniques, and we show how to do this in Section E.
+    We are now ready to present the algorithm AlgGlobalVertexCut. In the majority of this section, we
+consider the case in which every vertex of G has at least one outgoing edge – in the complementary
+case where there exists a vertex v ∈ V (G) with no outgoing edges, the algorithm simply returns the
+vertex-cut ({v} , ∅, V (G) \ {v}). Observe that this condition can be checked in time O(m), and if there
+indeed exists a vertex v with no outgoing edges, then the cut ({v} , ∅, V (G) \ {v}) can be computed
+in time O(n); furthermore, this cut must be a global minimum vertex-cut in G, because its weight is
+w(∅) = 0. So, from now on, we assume that every vertex of G has at least one outgoing edge. In this
+case, the algorithm AlgGlobalVertexCut consists of four steps, described next. In the following parts of
+this section, we discuss the implementation of each step.
+
+    1. select a set T ⊆ V (G) of ”roots”, such that, with probability at least 41 , there exists some vertex
+       of T that also belongs to R∗ . Furthermore, for every root y ∈ T , there must exist some feasible
+       solution to the Rooted Minimum Vertex-Cut problem on G with root y;
+
+    2. construct, for every root y ∈ T , a subgraph Gy of G with V (Gy ) = V (G), such that any feasible
+       solution to the Rooted Minimum Vertex-Cut problem on graph Gy with root y is also a feasible
+       solution to the Rooted Minimum Vertex-Cut problem on G with root y, and vice versa;
+
+    3. for each root y ∈ T , query the (1 + ϵ)-approximate Rooted Minimum Vertex-Cut oracle on the
+       graph Gy with root y, and let (Ly , Sy , Ry ) denote the vertex-cut returned by this query; lastly,
+
+
+
+                                                     19
+   4. output the minimum-weight vertex-cut among the obtained feasible solutions {(Ly , Sy , Ry )}y∈T .
+      If the set T is empty, then instead find and output any vertex-cut in G.
+
+It is not hard to see that the output of AlgGlobalVertexCut satisfies the required guarantees. We
+formally prove this in the next claim.
+
+Claim 4.1 The output (L, S, R) of the above algorithm is a vertex-cut in G, and, with probability at
+least 81 , its weight is w(S) ≤ (1 + ϵ)OPTG .
+
+    Proof: We begin by arguing that (L, S, R) is indeed a vertex-cut in G. Indeed, by the description
+of steps 2 and 3, it can be seen that for every root y ∈ T , the triplet (Ly , Sy , Ry ) is a feasible solution
+for the Rooted Minimum Vertex-Cut problem on graph G with root y, which means in particular
+that it is a vertex-cut in G. Thus, by the description of Step 4, the output of the algorithm must
+be a vertex-cut in G. Next, we show that w(S) ≤ (1 + ϵ)OPTG holds with probability at least 81 .
+By the description of Step 4, it suffices to show that with probability at least 18 , there exists some
+y ∈ T for which w(Sy ) ≤ (1 + ϵ)OPTG . Indeed, by the description of Step 1, with probability at
+least 41 , there exists some y ∗ ∈ T that also belongs to R∗ , and, by the description of Step 2, the
+global minimum vertex-cut (L∗ , S ∗ , R∗ ) in G is a feasible solution to the Rooted Minimum Vertex-Cut
+problem on Gy∗ with root y ∗ . Furthermore, conditioned on the event that such a vertex y ∗ exists,
+there is a probability of 12 that the corresponding query to the Rooted Minimum Vertex-Cut oracle
+outputs a vertex-cut (Ly∗ , Sy∗ , Ry∗ ) with w(Sy∗ ) ≤ (1 + ϵ) · w(S ∗ ). Therefore, with probability at
+least 41 · 12 = 18 , there exists such y ∗ ∈ T and the corresponding vertex-cut (Ly∗ , Sy∗ , Ry∗ ) has weight
+w(Sy∗ ) ≤ (1 + ϵ) · w(S ∗ ) = (1 + ϵ)OPTG . This concludes the proof of Claim 4.1.
+    To complete the proof of Theorem 1.4, it now remains to describe how to implement each step of
+AlgGlobalVertexCut P in time Õ(m log W ), while also guaranteeing that the total number of edges in the
+graphs {Gy }y∈T is y∈T |E(Gy )| = O(m), and that there are at most O m         n such graphs. In order
+to do so, we first need to impose some additional constraints on the set T of roots selected in Step 1,
+and on the graphs {Gy }y∈T generated in Step 2. For this purpose, it is convenient to use the following
+notation of ”far-away sets”.
+
+Definition 4.2 (Far-Away Sets) For every vertex v ∈ V (G), we define the ”forward far-away set
+of v”, denoted F + (v), to be the set F + (v) = V (G) \ ({v} ∪ NG+ (v)) of all vertices that cannot be reached
+from v by traversing at most 1 edge. Similarly, define the ”backward far-away set of v”, denoted F − (v),
+to be the set F − (v) = V (G) \ ({v} ∪ NG− (v)) of all vertices that cannot reach v by traversing at most
+1 edge.
+
+   We are now ready to define the additional constraints that we will have on the output of steps 1
+and 2 of AlgGlobalVertexCut. Specifically, in our implementation   of the algorithm, we will guarantee
+                                                    P         +   −
+that the set T of roots selected in Step 1 satisfies y∈T vol (F (y)) = O(m); as well as that each
+graph Gy generated in Step 2 satisfies |E(Gy )| = vol+ (F − (y)) + deg−
+                                                                      G (y). The next two claims state
+that steps 1 and 2 can be implemented in the correct running time, while satisfying these additional
+constraints.
+
+Claim 4.3 Step 1 of AlgGlobalVertexCut  P can be implemented in time Õ(m log W ), while also guaran-
+teeing that the selected set T satisfies y∈T vol+ (F − (y)) = O(m).
+
+Claim 4.4 Step 2 of AlgGlobalVertexCut can be implemented so that the constructed graph Gy for each
+y ∈ T satisfies |E(Gy )| = vol+ (F − (y)) + deg−
+                                               G (y), and the time required for constructing each graph
+Gy is Õ(|E(Gy )| + n).
+
+
+                                                      20
+   We defer the proof of Claim 4.3 to Section 4.2, and the proof of Claim 4.4 to Section 4.1. We now
+complete the proof of Theorem 1.4 using the above two claims.
+    We now specify our exact implementation of AlgGlobalVertexCut: we implement steps 1 and 2 using
+Claim 4.3 and Claim 4.4; steps 3 and 4 can then be implemented in a straightforward manner in time
+Õ(|T | · n), and we indeed implement them as such.
+    To complete the proof of Theorem 1.4, it now remains to prove that this implementation of
+AlgGlobalVertexCut guarantees that the graphs {Gy }y∈T on which we query the oracle have at most
+O(m) edges overall; and that there are at most O m
+                                                    
+                                                  n such graphs; as well as that the whole imple-
+mentation runs in time Õ(m log W ). The following claim shows that the total number of edges in
+these graphs is indeed O(m).
+                                                                                 P
+Claim 4.5 After implementing steps 1 and 2 as above, the total number of edges y∈T |E(Gy )| in
+the sparsified graphs {Gy }y∈T is O(m).
+
+   Proof: Indeed, by the guarantees of claim 4.4, the number of edges in each sparsified graph Gy is
+deg−           +   −
+   G (y) + vol (F (y)). Thus, the total number of edges in all sparsified graphs is
+                                                                     
+  X                                 X                   X                          X
+       deg−           +   −
+                                         deg−              vol+    −
+                                                                                     vol+   −
+                              
+           G (y) + volG (F (y) ≤            G (y)
+                                                 +
+                                                               G (F (y)
+                                                                        =m+
+                                                                                        G (F (y)).
+                                 
+  y∈T                                y∈V (G)                 y∈T                               y∈T
+
+                                                                    +
+                                                                        (F − (y)) = O(m), it then follows that
+                                                         P
+Since
+P     our implementation of Step 1 guarantees that        y∈T vol
+  y∈T |E(Gy )| = O(m).
+                                                                             m
+                                                                                 
+   Next, in the following claim, we prove that there are at most O           n       graphs in the set {Gy }y∈T .
+
+Claim 4.6 The size of the set |T | is |T | = O m
+                                                 
+                                               n .
+                                                  P
+    Proof: Since Claim 4.5 guarantees that y∈T |E(Gy )| = O(m), it suffices if we prove that each
+graph Gy contains Ω(n) edges; we indeed prove this next: consider some y ∈ T ; by Claim 4.4,
+the number of edges in the graph Gy is exactly vol+ (F − (y)) + deg−       G (y). It remains to prove that
+vol+ (F − (y)) + deg− G (y)  =  Ω(n).  Recall  that  we  are assuming   each  vertex of G has at least one
+                                     +
+outgoing edge, implying that vol (F (y)) ≥ |F (y)|. Furthermore, by the definition of F − (y), the
+                                         −            −
+
+size of this set is |F − (y)| = n − 1 − deg−
+                                           G (y), as it contains exactly those vertices of G that are not in
+the set NG− (y) ∪ {y}. To summarize, vol+ (F − (y)) + deg−              −           −
+                                                             G (y) ≥ |F (y)| + degG (y) ≥ n − 1 = Ω(n), as
+we needed. This concludes the proof of Claim 4.6.
+    Lastly, we must show that the running time of AlgGlobalVertexCut is Õ(m log W ). Our implemen-
+tation of Step 1 has the correct running time based on the statement of Claim 4.3. By the statement
+of Claim 4.4, and by our implementation of steps 3 and 4, the total time required for steps 2-4 is
+             P
+Õ |T | · n + y∈T |E(Gy )| – based on Claim 4.5 and Claim 4.6, this running time is Õ(m). This
+concludes the analysis of the running time. Now, to complete the proof of Theorem 1.4, it remains
+only to prove Claim 4.4 and Claim 4.3. We do this in the next two subsections. (We choose to prove
+Claim 4.4 first, as its proof is shorter.)
+
+4.1     Implementing Step 2: Proof of Claim 4.4
+To implement Step 2 of AlgGlobalVertexCut as specified by Claim 4.4, we construct each graph Gy
+so that it is equal to the graph obtained from G by removing all edges outgoing from vertices of
+                                                                                             −
+NG− (y) ∪ {y}, except those edges ending at y. In other words, V (Gy ) = V (G) and E(Gy ) = δG (y) ∪
+      −                                                                +   −         −
+EG (F (y), V (G)). Then, it is not hard to verify that |E(Gy )| = volG (F (y)) + degG (y) holds, as
+
+                                                    21
+                                                                −
+required by Claim 4.4. (Indeed, recall that the sets of edges δG  (y) and EG (F − (y), V (G)) are disjoint,
+                             −
+based on the definition of F (y).) Furthermore, it is also not hard to construct each graph Gy in time
+Õ(|E(Gy )| + n), as required in Claim 4.4: the set F − (y) can be computed in time O(n), and then the
+set of edges in Gy can be enumerated by going over the lists of outgoing edges of all vertices in F − (y),
+and the list of incoming edges of y.
+    Next, to complete the proof of Claim 4.4, we show that constructing the graphs Gy in this manner
+indeed satisfies the requirements of Step 2. Specifically, we must show that any feasible solution to
+the Rooted Minimum Vertex-Cut problem on graph Gy with root y is also a feasible solution to the
+Rooted Minimum Vertex-Cut problem on graph G with root y, and vice versa. We prove the first
+direction in the next claim.
+Claim 4.7 any feasible solution to the Rooted Minimum Vertex-Cut problem on Gy with root y must
+also be a feasible solution to the Rooted Minimum Vertex-Cut problem on G with root y.
+
+    Proof: Consider any feasible solution (L, S, R) to the Rooted Minimum Vertex-Cut problem on
+Gy with root y. We need to show that (L, S, R) is also a feasible solution to the Rooted Minimum
+Vertex-Cut problem on G with root y. Specifically, as y ∈ R clearly holds, it remains to show that
+(L, S, R) is valid vertex-cut in the graph G; that is, it remains to show that NG+ (L) ⊆ S. Since
+(L, S, R) is a valid vertex-cut in Gy , the graph Gy must satisfy NG+y (L) ⊆ S, so it suffices to prove that
+NG+y (L) = NG+ (L), which is what we will do. Indeed, recall that for every vertex v ∈ F − (y), the set of
+edges outgoing from v in Gy is exactly the same as the set of edges outgoing from v in G. Therefore,
+it suffices to show that L ⊆ F − (y): by the construction of Gy , every vertex outside of F − (y) belongs
+to NG−y (y), so it suffices to show that L ∩ NG−y (y) = ∅; indeed, this follows directly from the fact that
+(L, S, R) is a feasible solution to the Rooted Minimum Vertex-Cut problem on Gy with root y.
+    For the ”vice versa” direction, we need to prove that any feasible solution to the Rooted Minimum
+Vertex-Cut problem on G with root y must also be a feasible solution to the Rooted Minimum Vertex-
+Cut problem on Gy with root y. However, this holds trivially as E(Gy ) ⊆ E(G): indeed, consider any
+vertex-cut (L, S, R) in G, meaning that no edge of G goes from L to R; then, as E(Gy ) ⊆ E(G), it
+follows that no edge of Gy goes from L to R, so (L, S, R) is also a vertex-cut of Gy . This concludes
+the proof of Claim 4.4.
+
+4.2   Implementing Step 1: Proof of Claim 4.3
+In this section, we implement Step 1 of AlgGlobalVertexCut, with the added constraint imposed in
+Claim 4.3. Recall that, the goal of Step 1 of AlgGlobalVertexCut is to construct a set T ⊆ V (G) of
+vertices such that with probability at least 41 , at least one vertex of T belongs to R∗ , and furthermore,
+for every y ∈ T , the Rooted Minimum Vertex-Cut problem on G with root y must have a feasible
+solution. In order to satisfy the latter condition, we will guarantee that every vertex y ∈ T has a
+non-empty backward far-away set F − (y), as this guarantees that (F − (y), N − (y), {y}) is a feasible
+solution to the Rooted Minimum Vertex-Cut problem on G with root y. The main challenge lies in
+making
+     P sure that T satisfies the additional constraint imposed by Claim 4.3. That is, in making sure
+that y∈T vol+ (F − (y)) = O(m).
+    The procedure that we describe next for constructing T will only guarantee that y∈T vol+ (F − (y)) =
+                                                                                         P
+                                                                         hP                    i
+                                                                                    +    − (y)) ≤ 2m holds,
+O(m) holds in expectation. More formally, it will guarantee that E          y∈T vol   (F
+and
+P that + Pr [T ∩ R∗ ̸= ∅] ≥ 12 . To transform the obtained set T into one that is guaranteed to satisfy
+      vol (F − (y)) = O(m), we can simply remove all elements from T in the case where the quantity
+Py∈T     +   −                                                                                        1
+  y∈T vol (F (y)) exceeds 8m. By Markov’s inequality, this only occurs with probability at most 4 ,
+so the probability of the event T ∩ R∗ ̸= ∅ remains at least 41 . Furthermore, observe that the value of
+
+                                                    22
+            +
+            (F − (y)) can be computed in O(m) time, as the value of vol+ (F − (y)) can be computed for
+P
+  y∈T vol
+each vertex y in time O(deg(y)) using the equality vol+ (F − (y)) = m − v∈{y}∪N − (y) deg+ (v).
+                                                                            P
+                                                                                        G
+                                                                    hP                     i
+                                                                                +    −
+    Next, we describe how to construct the set T such that E            y∈T vol   (F   (y))  ≤ 2m. To do
+this, we guarantee that each vertex v ∈ V (G) belongs in expectation to at most two of the sets
+{F − (y)}y∈T . Specifically, observe that for every two vertices v, y ∈ V (G), the vertex v belongs to
+F−  (y) if and   only  if y belongs to the set F + (v) = V (G) \ {v} ∪ N + (v) . Thus, to guarantee that
+  hP                      i                                              G
+               +    − (y)) ≤ 2m, it suffices to choose T such that for every v ∈ V (G), the expected size
+E     y∈T  vol   (F
+of the intersection T ∩ F + (v) is at most 2. Our algorithm for constructing T works as follows:
+
+ 1.a. calculate the value w∗ = maxv∈V (G) w(F + (v));
+                                                                                              n         o
+ 1.b. construct T by selecting each vertex y ∈ V (G) into T independently with probability min 1, 2w(y)
+                                                                                                   w∗
+        (note that w∗ > 0 must hold5 ); and lastly,
+
+ 1.c. remove from T any vertex y with F − (y) = ∅.
+
+Based on the description of this algorithm, it is easy to see that for every vertex v ∈ Vh(G), the inequal- i
+                             +
+ity E [|T ∩ F + (v)|] ≤ 2w(Fw∗ (v)) ≤ 2 holds. By the above discussion, this means that E           +   −
+                                                                                          P
+                                                                                            y∈T vol (F (y)) ≤
+2m.
+     Next, we describe how to implement the above algorithm efficiently, and then prove that Pr [T ∩ R∗ ̸= ∅] ≥
+1                         ∗                                            +
+2 . Indeed, to calculate w in time O(m), it suffices to calculate w(F (v))
+                                                     +
+                                                                          P for each v ∈ V (G) in time
+O(deg(v)), which we can do using the equality w(F (v)) = w(V (G)) − u∈{v}∪N + (v) w(u). Step 1.b.
+can be implemented using standard techniques for generating Bernoulli random variables. Finally, to
+implement Step 1.c., we can check for each vertex y whether F − (y) = ∅ in time O(1) by using the
+equality |F − (y)| = n − 1 − deg−G (y), which takes O(n) ≤ O(m) time overall. (Observe that n ≤ m
+holds by the assumption that every vertex has out-degree at least 1.)
+    In order to complete the description of step 1, it remains only to prove that the set T obtained by
+the above procedure satisfies Pr [T ∩ R∗ ̸= ∅] ≥ 21 . Since vertices are selected into T with probability
+proportional to their weight, it is useful to first prove a lower-bound on w(R∗ ), which we do in the
+following claim.
+                          ∗
+Claim 4.8 w(R∗ ) ≥ w2 .
+
+    Proof: Recall that w∗ is defined as w∗ = maxv∈V (G) w(F + (v)), and consider the vertex v that
+attains this maximum. Since w(F + (v)) = w∗ > 0, it follows that F + (v) ̸= ∅, and thus the triplet
+({v} , N + (v), F + (v)) is a valid vertex-cut in G. Since (L∗ , S ∗ , R∗ ) was chosen to be a global minimum
+vertex-cut in G, it follows that w(S ∗ ) ≤ w(N + (v)), and thus that w(L∗ ∪R∗ ) ≥ w(V (G))−w(N + (v)) =
+w({v} ∪ F + (v)) ≥ w(F + (v)) = w∗ . Since we chose (L∗ , S ∗ , R∗ ) to be a global minimum vertex-cut
+                                                                ∗     ∗       ∗
+satisfying w(L∗ ) ≤ w(R∗ ), it follows that w(R∗ ) ≥ w(L 2∪R ) ≥ w2 , as we needed to prove. This
+concludes the proof of Claim 4.8.
+We are now ready to prove that Pr [T ∩ R∗ ̸= ∅] ≥ 12 .
+
+Claim 4.9 When choosing T according to steps 1.b.-1.c., the inequality Pr [T ∩ R∗ ̸= ∅] ≥ 12 holds.
+    Indeed, every vertex v ∈ L∗ must have R∗ ⊆ F + (v) and thus F + (v) ̸= ∅, which means that w(F + (v)) > 0 since we
+    5
+
+are assuming that vertex-weights are positive.
+
+
+
+
+                                                         23
+    Proof: Firstly, observe that if any vertex y ∈ R∗ is selected into T during Step 1.b. of the
+procedure, then it will not be removed during Step 1.c., since any such vertex satisfies L∗ ⊆ F − (y).
+Thus, it suffices to show that with probability at least 12 , some vertex of R∗ is selected into T in Step
+1.b.. In other words, if we let E denote the bad event in which no vertex of R∗ is selected into T in
+Step 1.b., nthen it suffices
+                     o       to show that Pr[E] ≤ 21 . We do this next. Indeed, for every vertex y ∈ R∗ , let
+py = min 1, 2w(y)
+              w∗    denote the probability of y being selected into T . Since each vertex y is selected
+into T independently with probability py , we get that
+                                                                           
+                                                       y
+                                Y               Y                   X
+                       Pr[E] =     (1 − py ) ≤      e−p = exp −         py  .
+                                  y∈R∗            y∈R∗                  y∈R∗
+
+
+Since exp(−1) ≤ 21 , it now suffices to prove that
+                                                     P
+                                                    y∈R∗ py ≥ 1, which we do next. Consider two cases:
+                                                                                              ∗)
+the first case is where every y ∈ R∗ satisfies py = w∗ , and in this case y∈R∗ py = 2w(R
+                                                   2w(y)                   P
+                                                                                           w∗    ≥ 1 holds
+                                                 ′   ∗           2w(y)
+by Claim 4.8;nthe second o case is where some y ∈ R has py ̸=          – in this case, since py′ is defined
+                                                            ′      ∗
+                   2w(y)                                      P w
+as py′ = min 1, w∗ , it follows that py′ = 1 and thus that y∈R∗ py ≥ 1, as needed. This concludes
+the proof of Claim 4.9, and thus concludes the proof of Claim 4.3.
+
+
+
+
+                                                     24
+A     Algorithm for Rooted Minimum Vertex-Cut: Proof of Theo-
+      rem 1.6
+In this section, we describe and analyze the algorithm implementing Theorem 1.6 – our main result
+for the Rooted Minimum Vertex-Cut problem. This algorithm is a fairly straightforward adaptation
+of the one from Section 3 to the vertex-cut setting – indeed, the only non-trivial task is in adapting the
+ApproxBatchSparsify subroutine, which we do in Section A.1. Recall that the input to the algorithm
+consists of a directed m-edge graph G with positive integer weights w(v) ≤ W on the vertices v ∈ V (G),
+as well as a precision parameter ϵ ∈ (0, 1), and a root vertex y ∗ ∈ V (G), such that there exists some
+vertex-cut (L′ , S ′ , R′ ) in G with y ∗ ∈ R′ . Let OPTV,y∗ denote the minimum value of a vertex-cut
+among all vertex-cuts (L′ , S ′ , R′ ) of G with y ∗ ∈ R′ . Furthermore, for the sake of the analysis, fix one
+such vertex-cut achieving this minimum value as the distinguished cut, and denote it by (L∗ , S ∗ , R∗ ).
+Our goal is to output a vertex-cut (L, S, R) of G with w(S) ≤ (1 + ϵ)OPTV,y∗ .
+
+Assumption that OPTV,y∗ > 0. As in Section 3, it will be convenient for us to assume that the
+value of the optimal solution is positive, and we indeed make this assumption in the remainder of
+this section. This assumption can be removed via the following standard technique: before running
+the algorithm, we check whether OPTV,y∗ > 0 by performing a BFS from y ∗ in the reverse graph G
+of G; if the BFS reaches all vertices of G, then OPTV,y∗ > 0 must hold, in which case we run the
+algorithm; otherwise, we can use the set of vertices reached by the BFS in order to construct and
+output a vertex-cut (L, S, R) of G with w(S) = 0 and y ∗ ∈ R – specifically, we let S = ∅, let R be the
+set of vertices reached by the BFS, and let L = V (G) \ R.
+
+Estimates of OPTV,y∗ and vol+            ∗
+                                     G (L ), and a Set of Terminals. Our algorithm begins by guessing
+an estimate OPT[ of OPTV,y∗ , and an estimate ν of vol+ (L∗ ), similarly to what was done in Section 3
+                                                                  G
+                         [ uniformly at random among the integral powers of 2 in the range [1, n · W ],
+– specifically, it picks OPT
+and it picks ν uniformly at random among the integral powers of 2 in the range [1, m]. Similarly to
+                                                                                                               +
+                                                                     OPTV,y∗         [ ≤ OPTV,y∗ and volG (L ) <
+                                                                                                                  ∗
+Section 3, let E estimates denote the good event in which                 2      <  OPT                       2
+ν ≤ vol+     ∗
+        G (L ) both hold, and observe that Pr[E
+                                                         estimates ] ≥ Ω           1
+                                                                             log2 (m·W )
+                                                                                           . Next, our algorithm picks
+                           m
+                             
+a set T ⊆ V (G) of O ν terminals, using the procedure from Lemma 2.5 with parameter ν and the
+set F = {y ∗ } ∪ NG− (y ∗ ) of forbidden vertices. (The difference compared to Section 3 is that the set F
+now also includes the vertices of NG− (y ∗ ).) Let E denote the good event that event E estimates occurred
+and T ∩ L∗ ̸= ∅ holds. By Lemma 2.5, Pr[E | E estimates ] ≥ 100         1
+                                                                           , and therefore
+                                                                                              
+                                          estimates          estimates                 1
+                        Pr[E] = Pr[E | E            ] · Pr[E           ]≥Ω                       .                  (3)
+                                                                                 log2 (m · W )
+
+Hierarchical Partition of the Terminals. Our algorithm constructs a hierarchical partition of
+the set T of terminals with z = ⌈log |T |⌉ levels, exactly as in Section 3.
+
+Main Loop of the Algorithm. As in Section 3, our algorithm consists of z phases, where for each
+1 ≤ i ≤ z, the goal of Phase i is to construct a sparsifier graph GB for each level-i batch B ∈ Bi . The
+properties that this sparsifier graph must satisfy are:
+
+                                                  m
+                                                         
+P’1. the graph GB contains at most Õ            2i ·ϵ
+                                                             edges and vertices, and no more than the number of
+     edges and vertices in G;
+
+
+                                                               25
+P’2. {y ∗ } ⊆ V (GB ) ⊆ V (G);
+
+P’3. for every set L′ ⊆ V (GB ) \ ({y ∗ } ∪ NG−B (y ∗ )), the inequality wB (NG+B (L′ )) ≥ w(NG+ (L′ )) holds
+             / NG+ (L′ ) – in particular, for every terminal x ∈ B ∩ V (GB ), the x-y ∗ vertex-connectivity
+     and y ∗ ∈
+     κGB (x, y ∗ ) in GB is at least as large as the vertex-connectivity κG (x, y ∗ ) in G;
+
+P’4. if there exists a terminal x∗ ∈ B ∩ L∗ and the good event E occurred, then x∗ ∈ V (GB ) \
+     NG−B (y ∗ ) holds and the x∗ -y ∗ vertex-connectivity κGB (x∗ , y ∗ ) in GB satisfies κGB (x∗ , y ∗ ) ≤
+       1 + iϵz OPTV,y∗ – furthermore, there exists an x∗ -y ∗ vertex-cut (L′ , S ′ , R′ ) in GB of value
+              
+
+     wB (S ′ ) ≤ 1 + iϵz OPTV,y∗ that additionally satisfies the condition vol+     ′
+                                                                                G (L ) ≤ 2ν.
+
+
+The following claim is analogous to Claim 3.2, and is the main technical component of our algorithm.
+The proof of this claim- and the description of procedure implementing it- are presented in Section A.1.
+
+Claim A.1 There is a deterministic procedure that we refer to as VertexApproxBatchSparsify, that,
+given an integer 1 ≤ i ≤ z, a batch B ∈ Bi , the parameters
+                                                           ϵ,
+                                                                  [ and access to the graph G,
+                                                               ν, OPT,     
+                                                            m1+o(1) ·log W
+computes the graph GB satisfying Properties P’1-P’4 in O        2i ·ϵ
+                                                                             time. If i > 1, then the
+procedure also requires access to the graph GB ′ corresponding to the level-(i − 1) parent batch B ′ of B.
+
+The following corollary of Claim A.1 summarizes the running time of each phase.
+                                                                           1+o(1)        
+                                                                                   ·log W
+Corollary A.2 Each phase of the algorithm can be implemented in time O m         ϵ          .
+
+
+   Proof: The proof is exactly the same as that of Corollary 3.3, except using the procedure
+VertexApproxBatchSparsify instead of ApproxBatchSparsify.
+
+Termination. We now describe how our algorithm proceeds after the final phase. This is exactly
+analogous to how the algorithm from Section 3 operates after its final phase. For each terminal x ∈ T ,
+let B (x) ∈ Bz denote the level-z batch that contains x. Furthermore, let T ′ ⊆ T denote the set of all
+terminals x such that x ∈ V (GB (x) ). After the final phase, for each terminal x ∈ T ′ , our algorithm uses
+Lemma 2.4 on the graph GB (x) in order to determine the vertex connectivity κG (x) (x, y ∗ ). Then, our
+                                                                                    B
+algorithm picks the terminal x̃ that achieves the minimum vertex-connectivity κG (x) (x, y ∗ ) among all
+                                                                                      B
+the terminals of T ′ ; computes a minimum x̃-y ∗ vertex-cut (L, S, R) in G using Lemma 2.4, and outputs
+this vertex-cut. (If the set T ′ is empty, then the algorithm instead outputs an arbitrary vertex-cut
+(L, S, R) with y ∗ ∈ R. Recall that, by the definition of the input of Theorem 1.6, such a vertex-cut is
+guaranteed to exist, and observe that it can be found in time O(n).) Observe the following.
+
+Observation A.3 If T ′ ̸= ∅, then the value of the vertex-cut (L, S, R) returned by the algorithm is at
+most minx∈T ′ κG (x) (x, y ∗ ).
+                 B
+
+
+
+    Proof: The proof of this observation is exactly the same as that of Observation 3.4, except using
+vertex connectivities instead of edge connectivities, and using Property P’3 instead of Property P3.
+   The next corollary follows from the above observation.
+
+Corollary A.4 If the good event E occurs, then the vertex-cut (L, S, R) returned by the algorithm has
+value at most (1 + ϵ) OPTV,y∗ .
+
+   Proof: The proof of this corollary is analogous to that of Corollary 3.5.
+
+
+                                                    26
+Running Time and Correctness Analysis. By the description of the algorithm, it always outputs
+a vertex-cut (L, S, R) in G such that y ∗ ∈ R. Furthermore, by Corollary A.4, whenever event E occurs,
+this
+   vertex-cut
+              has value at most (1 + ϵ)OPTV,y∗ ; by Equation (3), this happens with probability
+          1
+Ω             . Furthermore, an analogous running time analysis to the one from Section 3 shows
+    log2 (m·W )                                         1+o(1)        
+                                                                ·log W
+that the running time of the above algorithm is O m           ϵ          . Thus, the algorithm described
+                               1+o(1)        
+                                       ·log W
+in this section runs in time O m     ϵ          , and the output vertex-cut (L, S, R) satisfies w(S) ≤
+                                                1
+(1 + ϵ)OPTV,y∗ with probability at least polylog(mW ) . By repeating the algorithm polylog(mW ) times
+and choosing the lowest-value cut among the obtained vertex-cuts, we can boost the success      probability
+                     1                                                        m1+o(1) ·polylogW
+of the algorithm to 2 , at the cost of increasing the running time to O                ϵ         . As we did
+                                                                1+o(1)        
+                                                                        ·log W
+in Section 3, we can then reduce the running time back to O m         ϵ          using the reduction from
+Section B.
+
+A.1     Execution of a Single Iteration: proof of Claim A.1
+In this section, we describe the VertexApproxBatchSparsify procedure from Claim A.1. In the
+case where i = 1, this procedure simply returns the graph GB = G, as we did in the procedure
+ApproxBatchSparsify from Section 3.1. It can be easily verified that when i = 1, this choice of
+GB = G indeed satisfies Properties P’1-P’4. For the remainder of this section, we consider the case
+where i > 1. We begin with a short high-level discussion, explaining the few non-trivial differences
+between the implementation of VertexApproxBatchSparsify and that of ApproxBatchSparsify. We
+then formally present and analyze the subroutine VertexApproxBatchSparsify in Section A.1.1.
+
+High-Level Overview: Difference Between Edge-Version and Vertex-Version. The only
+non-trivial task when adapting the algorithm from Section 3.1 to the vertex-version, is the construction
+of the graph HB ′ . Recall that B ′ denotes the level-(i−1) parent batch of the input level-i batch B, and
+recall that, in the edge-version of the ApproxBatchSparsify procedure, we constructed a graph HB ′
+from GB ′ by introducing a new super-source vertex s, and connecting it to every vertex of B ∩ AB ′ via
+                     [ (Here, AB ′ denotes the intermediate set that was used to construct GB ′ in
+an edge of weight 4OPT.
+the previous phase. In the edge-version of this procedure, B ∩ AB ′ was equal to B ∩ V (GB ′ ), while in
+the vertex-version it will be equal to B ∩ (V (GB ′ ) \ NG− ′ (y ∗ )).) In the vertex-version of this procedure,
+                                                           B
+we will also construct a graph HB ′ that serves the same purpose – however, we can no longer give the
+edges outgoing from s a weight of 4OPT,[ as the graph HB ′ needs to be vertex-weighted rather than
+edge-weighted. One natural attempt at solving this would be the following: for each x ∈ B ∩ AB ′ ,
+we introduce the edge (s, x), and then subdivide this edge with a new vertex, whose weight is 4OPT.        [
+However, even this solution does not work, for a subtle reason that is described next. In the analysis
+from Section 3.1, it was crucial that for every vertex x ∈ B ∩ AB ′ , if the x-y ∗ edge-connectivity in HB ′
+                     [ then x will belong to the same side as s in every minimum s-y ∗ cut in HB ′ ;
+was smaller than 4OPT,
+conceptually, this happens because it is possible to ship min{λHB′ (x, y ∗ ), 4OPT}  [ units of flow from s
+     ∗
+to y using only flow-paths that exit s through the edge (s, x). (In reality, this condition by itself only
+suffices to prove that x is on the same side as s in some minimum s-y ∗ cut, rather than in every such
+cut. However, for the sake of simplicity, we will ignore this detail in this high-level overview.) Now,
+the issue in the vertex-capacitated setting is that, even if we subdivide the edge (s, x) with a vertex
+                                        [ and even if the x-y ∗ vertex-connectivity is large, we may
+xcopy of weight greater or equal to 4OPT,
+still not be able to ship much flow from s to y ∗ through x, because the vertex x itself may have very
+low weight. We solve this issue via the same tactic as was employed by [CMT26]: that is, rather than
+connecting the vertex xcopy to the vertex x, we instead connect xcopy directly to the out-neighbors
+
+
+                                                      27
+of x; it is then not hard to verify that min{κHB′ (x, y ∗ ), 4OPT}
+                                                              [ units of flow can be shipped from s
+    ∗
+to y via the edge (s, x  copy ). Intuitively, this helps us guarantee that xcopy will belong to the same
+side as s in the minimum s-y ∗ vertex-cut (LA , SA , RA ) that the procedure VertexApproxBatchSparsify
+computes (which is analogous to the edge-cut (A, A′ ) from ApproxBatchSparsify). Then, if x ∈      / LA ,
+we can simply move x from SA ∪ RA to LA , and it is not hard to see that the triple (LA , SA , RA ) still
+remains a valid s-y ∗ vertex-cut in HB ′ .
+
+A.1.1     Implementation of VertexApproxBatchSparsify for i > 1.
+
+Fix some 1 ≤ i ≤ z. We now formally describe how the algorithm computes the graph GB for a single
+batch B ∈ Bi during Phase i of the algorithm. The computation of the graph GB is performed in two
+steps. In the first step, we compute a set AB ⊆ V (G) \ ({y ∗ } ∪ NG− (y ∗ )) of vertices that satisfies the
+following two properties.
+
+Q’1. vol+                 m
+                                 
+        G (AB ) = Õ     2i ·ϵ
+                                     ; and
+
+Q’2. if there exists a terminal x∗ ∈ B ∩ L∗ and the good event E occurred, then there exists a subset
+     L′ ⊆ AB with x∗ ∈ L′ and vol+        ′
+                                      G (L ) ≤ 2ν such that the vertex-cut (L′ , NG+ (L′ ), V (G) \ (L′ ∪
+        +                           +
+     NG (L′ ))) in G has value w(NG (L′ )) ≤ 1 + z OPTV,y∗ .
+                                                  iϵ
+                                                     
+
+
+In the second step, we use this set AB in order to compute the graph GB satisfying Properties P’1-P’4
+in time Õ(vol+
+              G (AB )). The implementation of the second step is summed up by the following claim,
+whose proof is deferred to Section A.1.2.
+
+Claim A.5 There exists a procedure that, given a set AB ⊆ V (G) \ ({y ∗ } ∪ NG− (y ∗ )) satisfying Proper-
+ties Q’1-Q’2, computes   a graph GB satisfying Properties P’1-P’4. The running time of the procedure
+is O vol+                m
+                 
+         G (AB )   = Õ 2i ·ϵ
+                              .
+
+Obtaining the set AB . In the remainder of the current section, we describe the procedure for
+computing the set AB ⊆ V (G) \ ({y ∗ } ∪ NG− (y ∗ )) of vertices. Let B ′ ∈ Bi−1 denote the level-(i − 1)
+parent batch of B. In order to compute AB , we will use the graph GB ′ that we computed for batch
+B ′ in the previous phase. Furthermore, for the remainder of this section, we let AB ′ denote the set
+AB ′ = V (GB ′ )\({y ∗ }∪NG− ′ (y ∗ )). To compute AB , we first construct a graph HB ′ from GB ′ as follows:
+                            B
+we introduce a new ”super-source” vertex s, and, for every terminal x ∈ B ∩ AB ′ , we introduce a new
+vertex xcopy of weight 4OPT,
+                           [ as well as an edge (s, xcopy ), and edges from xcopy to all out-neighbors
+of x in GB ′ ; Furthermore, for every vertex v ∈ AB ′ (including those in B ∩ AB ′ ), we introduce a new
+                           \ ·deg+ (v)
+                         ϵ·OPT
+vertex v sink of weight       z·2ν
+                                     G
+                                         , as well as edges (v, v sink ) and (v sink , y ∗ );6 if v ∈ B ∩ AB ′ , then
+we additionally introduce an edge (v copy , v sink ). The next observation about the graph HB ′ follows
+immediately from the construction of this graph, and is analogous to Observation 3.7 from Section 3.
+                                                                    +
+Observation A.6 For every set L̂ ⊆ AB ′ of vertices, we have wB ′ (NH ′
+                                                                        (L̂)) − wB ′ (NG+ ′ (L̂)) =
+                                                                                      B                   B
+  \ ·vol+ (L̂)
+ϵ·OPT
+    z·2ν
+         G
+               .
+
+We will also use the following definition and observation, which do not have analogous versions in
+Section 3.
+   6
+     Observe that the weight of v sink is positive, as the assumption that OPTV,y∗ > 0 implies that every vertex v ∈
+V (G) \ {y ∗ } has deg+
+                      G (v) > 0.
+
+
+
+
+                                                         28
+Definition A.7 Let AcompleteB′      denote the set Acomplete
+                                                     B′       = AB ′ ∪ {xcopy | x ∈ B ∩ AB ′ } = V (HB ′ ) \
+              −                                              complete
+({y ∗ , s} ∪ NH ′ (y ∗ )). Furthermore, for every set L̂ ⊆ AB ′       , we define the completed version of L̂
+               B                  n                         o n                           o
+to be the set L̂ complete  = L̂ ∪ x copy | x ∈ B ∩ AB ′ ∩ L̂ ∪ x ∈ B ∩ AB ′ | xcopy ∈ L̂ that is obtained
+from L̂ by adding to it each vertex xcopy for which the corresponding vertex x ∈ B ∩ AB ′ belongs to L̂,
+as well as each vertex x ∈ B ∩ AB ′ for which the corresponding vertex xcopy belongs to L̂.
+Observation A.8 For every set L̂ ⊆ Acomplete
+                                    B′
+                                                                   +
+                                             of vertices, we have NH ′
+                                                                                        +
+                                                                       (L̂complete ) ⊆ NH ′
+                                                                                            (L̂).
+                                                                              B                   B
+
+
+
+   Proof: This observation follows from the fact that for every x ∈ B ∩ AB ′ , the vertices x and xcopy
+have the exact same out-neighbors in HB ′ , together with the fact that L̂ ⊆ L̂complete .
+
+Continuing the computation of AB . We now continue the description of the algorithm computing
+AB . The algorithm uses Lemma 2.4 in order to compute a minimum s-y ∗ vertex-cut (LA , SA , RA ) in
+                                                   cA complete \ V copy , where L
+the graph HB ′ , and chooses AB to be the set AB = L                            cA = LA \ {s} and where
+                                                       complete
+V copy = {xcopy | x ∈ B ∩ AB ′ }. (Observe that L
+                                                cA ⊆ A ′
+                                                            B    must hold because (LA , SA , RA ) is an
+s-y ∗ vertex-cut in HB ′ and because Acomplete
+                                          B′    = V (HB ′ ) \ ({y ∗ , s} ∪ NH −
+                                                                                   (y ∗ )).) This concludes the
+                                                                               B′
+description of how we compute AB . Furthermore, it is not hard to verify that AB ⊆ V (G) \ ({y ∗ } ∪
+NG− (y ∗ )) holds by using the fact that AB ⊆ AB ′ = V (G) \ ({y ∗ } ∪ NG− ′ (y ∗ )) as well as using Property
+                                                                          B
+P’3 of the graph GB ′ . It now remains to prove that this set indeed satisfies Properties Q’1-Q’2. The
+next two observation will be useful for this task; these are analogous to Observations 3.8 and 3.9 from
+Section 3.
+Observation
+         A.9 The value wB ′ (SA ) of the vertex-cut (LA , SA , RA ) in the graph HB ′ is wB ′ (SA ) =
+     \
+O m·OPT .
+      ν·2i
+
+
+    Proof: The proof of this observation is analogous to that of Observation 3.8: specifically, since
+(LA , SA , RA ) is chosen to be a minimum s-y ∗
+                                           vertex-cut in HB ′ , it suffices to prove that some s-
+                                        \
+y ∗ vertex-cut in H ′ has value O m·OPT ; furthermore, similarly to what we did in the proof
+                     B                     ν·2i
+of Observation 3.8, it can be verified that the triple ({s} , V copy , V (HB ′ ) \ ({s} ∪ V copy )) is such a
+vertex-cut, where V copy = {xcopy | x ∈ B ∩ AB ′ }.
+Observation A.10 The set LA contains every vertex xcopy ∈ V copy whose vertex-connectivity to y ∗
+in HB ′ satisfies κHB′ (xcopy , y ∗ ) < 4OPT.
+                                         [
+
+     Proof: Suppose towards contradiction that some vertex xcopy ∈ V copy does not belong to LA ,
+and yet has κHB′ (xcopy , y ∗ ) < 4OPT.
+                                     [ Furthermore, fix one such vertex xcopy for the remainder of the
+proof. We will demonstrate that in this case, there must exist an s-y ∗ vertex-cut (L̃, S̃, R̃) in HB ′ of
+weight smaller than that of (LA , SA , RA ), in contradiction to the choice of (LA , SA , RA ) as a minimum
+s-y ∗ vertex-cut in HB ′ . Specifically, by the assumption that κHB′ (xcopy , y ∗ ) < 4OPT,
+                                                                                       [ there must exist
+an xcopy -y ∗ vertex-cut (L̂, Ŝ, R̂) in HB ′ with wB ′ (Ŝ) < 4OPT;
+                                                                [ we define the set S̃ of the vertex-cut
+(L̃, S̃, R̃) to be S̃ = (SA \ {x  copy }) ∪ Ŝ. Before revealing the definition of the sets L̃ and R̃, we will
+prove that the weight of S̃ is smaller than that of SA : indeed, since S̃ = (SA \ {xcopy }) ∪ Ŝ and
+                     [ = wB ′ (xcopy ), it suffices to show that xcopy ∈ SA ; furthermore, recall that xcopy
+since wB ′ (Ŝ) < 4OPT
+was chosen as a vertex that does not belong to LA , and observe that xcopy ∈ LA ∪ SA holds because
+(LA , SA , RA ) is an s-y ∗ vertex-cut in the graph HB ′ , and this graph contains an edge (s, xcopy ). This
+concludes the proof that the weight of S̃ is smaller than that of SA .
+
+                                                      29
+      Next, we must show that there exist sets L̃, R̃ ⊆ V (HB ′ ) such that (L̃, S̃, R̃) is an s-y ∗ vertex-cut
+in HB ′ . By the definition of S̃, it is not hard to verify that s, y ∗ ∈   / S̃. Therefore, it suffices to show
+that every s-y ∗ path in HB ′ must traverse at least one vertex of S̃: we can then choose L̃ to be the
+set of vertices that are reachable from s via paths that do not traverse vertices of S̃, and choose R̃
+to be the set of remaining vertices in HB ′ . We show this now: indeed, consider any s-y ∗ path P in
+HB ′ ; since (LA , SA , RA ) is an s-y ∗ vertex-cut in HB ′ , it follows that P must traverse a vertex v of SA ;
+if v ̸= xcopy then v ∈ SA \ xcopy ⊆ S̃ and we are done; otherwise, v = xcopy , and as (L̂, Ŝ, R̂) is an
+xcopy -y ∗ vertex-cut, it follows that the path P must visit some vertex of Ŝ ⊆ S̃ on the way from v to
+y ∗ . This concludes the proof of Observation A.10.
+    The following corollary of Observation A.10 will also be useful.
+                                 complete
+Corollary A.11 The set L    cA         contains every terminal x ∈ B ∩ AB ′ whose vertex-connectivity
+    ∗                            ∗     [
+to y in HB ′ satisfies κHB′ (x, y ) < 4OPT.
+
+
+    Proof: Consider any terminal x ∈ B ∩ AB ′ with κHB′ (x, y ∗ ) < 4OPT.
+                                                                       [ Since the out-neighbors of
+x in HB ′ are exactly the same as the out-neighbors of xcopy , it follows that κHB′ (xcopy , y ∗ ) < 4OPT
+                                                                                                      [
+holds as well. Therefore, by Observation A.10, the set LA contains xcopy . Since L     cA is defined as
+cA = LA \ {s}, it follows that xcopy ∈ L
+L                                                        cA complete , as needed.
+                                       cA , and thus x ∈ L
+                                                     cA complete \ V copy satisfies Properties Q’1-Q’2.
+   Recall that it remains to prove that the set AB = L
+We begin by proving that it satisfies Property Q’1.
+
+Claim A.12 The set AB satisfies Property Q’1. That is, vol+                 m
+                                                                               
+                                                            G (AB ) = Õ 2i ·ϵ .
+
+
+    Proof: Recall that for every vertex v ∈ AB ⊆ AB ′ , the graph HB ′ contains a vertex v sink of weight
+                   \ ·deg+ (v)
+                 ϵ·OPT
+wB ′ (v sink ) =     z·2ν
+                          G
+                               , as well as edges (v, v sink ) and (v sink , y ∗ ); and, if v ∈ B ∩ AB ′ , then the
+graph HB ′ additionally contains the edge (v copy , v sink ). We begin the proof of the claim by showing
+                                            +
+that for each vertex v ∈ AB , the set NH      ′
+                                                (LA ) must include the vertex v sink . Indeed, recall that for
+                                              B
+
+each vertex v ∈ AB = L    cA complete \ V copy , the set LA must include either v, or possibly v copy in the
+case where v ∈ B ∩ AB ′ ; either way, the set LA contains some in-neighbor of v sink . Observe further
+that LA cannot contain the vertex v sink itself, since (LA , SA , RA ) is an s-y ∗ vertex-cut in HB ′ , and this
+                                                                                  +
+graph includes an edge (v sink , y ∗ ). Thus, for each such v ∈ AB , the set NH       (LA ) must include v sink .
+                                                                                   B′
+                                                                                             +
+The remainder of this proof is analogous to that of Claim 3.10; Specifically, as NH              (LA ) ⊆ SA , it
+                                                                                              B′
+                                                         \       +
+                                                       ϵ·OPT·volG (AB )
+                                                                        . This means that vol+
+                                 sink
+follows that wB ′ (SA ) ≥ wB ′ ( v      | v ∈ AB ) =        z·2ν                              G (AB 
+                                                                                                    ) is upper-
+                                                                                                              
+                 +                          z·2ν                                                       m· \
+                                                                                                          OPT
+bounded by volG (AB ) ≤ wB ′ (SA ) · \ . By plugging the upper-bound wB ′ (SA ) = O                      ν·2i
+                                          ϵ·OPT
+from Observation A.9 into this last inequality, we get that vol+                     z·m
+                                                                                         
+                                                                        G (AB ) ≤ O ϵ·2i . The corollary now
+follows as z = Õ(1).
+    Lastly, it remains to prove that the set AB satisfies Q’2, which we do in the next claim. The proof
+of this claim is similar to that of Claim 3.11.
+
+Claim A.13 The set AB satisfies Property Q’2.
+
+   Proof: Suppose that there exists a terminal x∗ ∈ B ∩ L∗ , and suppose that the good event E
+occurred. We need to prove that there exists a subset L′ ⊆ AB with x∗ ∈ L′ and vol+           ′
+                                                                                          G (L ) ≤ 2ν such
+                           +                       +                           +
+that the vertex-cut (L′ , NG (L′ ), V (G) \ (L′ ∪ NG (L′ ))) in G has value w(NG (L′ )) ≤ 1 + iϵz OPTV,y∗ .
+
+
+                                                        30
+    As x∗ ∈ B ∩ L∗ and as B ′ is the parent batch of B, it follows that x∗ ∈ B ′ ∩ L∗ . Thus, by
+Property P’4 of the graph GB ′ , x∗ ∈ V (GB ′ ) \ NG− ′ (y ∗ ) = AB ′ ∪ {y ∗ } holds, and there exists an x∗ -y ∗
+                                                       B               
+                     ′ , R′ ) in G ′ of value w ′ (S ′ ) ≤ 1 + (i−1)ϵ OPT
+vertex-cut (L′B ′ , SB ′  B ′     B            B    B  ′           z            V,y ∗ , that additionally satisfies
+vol+   ′
+   G (LB ′ ) ≤ 2ν.
+     Let L′ = AB ∩ L′B ′ . We now prove that x∗ ∈ L′ and vol+              ′
+                                                                       G (L ) ≤ 2ν,  and that the vertex-cut
+   ′   +     ′          ′     +   ′                           +    ′             iϵ
+(L , NG (L ), V (G) \ (L ∪ NG (L ))) in G has value w(NG (L )) ≤ 1 + z OPTV,y∗ . Indeed, the fact
+that vol+      ′                                    ′       ′                     +    ′
+          G (L ) ≤ 2ν follows from the fact that L ⊆ LB ′ , and that volG (LB ′ ) ≤ 2ν. It remains to
+                                                              +
+prove that x∗ ∈ L′ , as well as that the vertex-cut (L′ , NG (L′ ), V (G) \ (L′ ∪ NG+ (L′ ))) in G has value
+w(NG+ (L′ )) ≤ 1 + iϵz OPTV,y∗ . We begin by proving the latter statement. Specifically, this latter
+statement follows directly from the next claim.
+
+Claim A.14 The three inequalities w(NG+ (L′ )) ≤ wB ′ (NH     +
+                                                                  (L′ )) ≤ wB ′ (NH  +
+                                                                                         (L′B ′ )) ≤ 1 + iϵz OPTV,y∗
+                                                                                                            
+                                                               B′                     B′
+all hold.
+
+    Proof: We begin by proving the first inequality of the claim. That is, we begin by proving that
+w(NG+ (L′ )) ≤ wB ′ (NH
+                      +
+                           (L′ )). Indeed, by Property P’3 of the graph GB ′ , the weight w(NG+ (L′ ))
+                        B′
+is no larger than the weight wB ′ (NG+ ′ (L′ )) of the out-neighbors of L′ in GB ′ ; furthermore, by the
+                                        B
+                                                                                          +
+construction of the graph HB ′ , this latter value is no larger than the weight wB ′ (NH      (L′ )) of the
+                                                                                           B′
+                   ′
+out-neighbors of L in HB ′ . This concludes the proof of the first inequality.
+    Next, we prove the second inequality from Claim A.14. Consider the set L′A = L              cA complete ∪ {s}
+                                           ′ = N + (L′ ) and R′ = V (H ′ ) \ (L′ ∪ S ′ ). It is not
+of vertices in HB ′ , as well as the sets SA        HB ′  A            A          B         A     A
+                                   ′    ′
+hard to verify that the triple (LA , SA , RA′ ) is an s-y ∗ vertex-cut in H ′ ; we prove next that it is
+                                                                               B
+a minimum s-y ∗ vertex-cut in HB ′ , as well as that the equality L′ = L′A ∩ L′B ′ holds; the second
+inequality from Claim A.14 then follows from Lemma 2.2 (with L′B ′ , L′A , SA        ′ , and R′ in place of X,
+                                                                                               A
+L, S, and R). Thus, we must now prove that (L′A , SA       ′ , R′ ) is a minimum s-y ∗ vertex-cut in H ′ ,
+                                                                A                                              B
+which we do by proving that SA   ′ ⊆ S (Recall that (L , S , R ) is itself a minimum s-y ∗ vertex-cut
+                                       A                   A    A    A
+in HB ′ .): it is not hard to verify that S ′ ⊆ (N + (s) ∪ N + (L        cA complete )) \ L′ ; furthermore, by
+                                                A        HB ′        HB ′                     A
+
+Observation A.8, NH    +     cA complete ) ⊆ N + (L
+                            (L                     cA ); so, as LA ⊆ L′ , it follows that S ′ ⊆ (N + (s) ∪
+                        B ′                   HB ′                     A                   A       HB ′
+  +                    +                                           ′   ′    ′                   ∗
+NH ′ (LA ))\LA = NH ′ (LA ) ⊆ SA , as needed to show that (LA , SA , RA ) is a minimum s-y vertex-cut
+       c
+   B                     B
+in HB ′ . Next, we must prove that L′ = L′A ∩ L′B ′ : indeed, recall that L′ is defined as L′ = AB ∩ L′B ′ ;
+since L′B ′ ⊆ V (GB ′ ), it then suffices to show that L′A ∩ V (GB ′ ) = AB ∩ V (GB ′ ); this in turn holds
+because AB = L  cA complete \ V copy = (L′ \ {s}) \ V copy = L′ ∩ V (GB ′ ). This concludes the proof of the
+                                            A                   A
+second inequality from Claim A.14.
+    Lastly, we now prove the third inequality from Claim A.14. Recall we are assuming that event
+E occurred, which means that OPT     [ ≤ OPTV,y∗ ; therefore, since vol+ (L′ ′ ) ≤ 2ν, it follows from
+                                                                            G    B
+                                +     ′           +     ′        ϵ· \
+                                                                    OPT   ϵ·OPTV,y∗
+Observation A.6 that wB ′ (∂H ′ (LB ′ )) − wB ′ (∂G ′ (LB ′ )) ≤        ≤           . So, by the choice of
+                                 B                 B                z        z
+          ′ , R′ ) as a vertex-cut in G ′ whose value is at most 1 + (i−1)ϵ OPT
+(L′B ′ , SB ′  B′                       B                                 z         V,y ∗ , it follows that
+
+                                                                                                   
+                                                 ϵ · OPTV,y∗                 ϵ · OPTV,y∗         iϵ
+        +
+ wB ′ (NH    (L′B ′ )) ≤ wB ′ (NG+ ′ (L′B ′ )) +                      ′
+                                                             ≤ wB ′ (SB ′) +             ≤    1+      OPTV,y∗ .
+          B′                      B                 z                            z               z
+
+This concludes the proof of Claim A.14.
+   We now continue the proof of Claim A.13. The remainder of this proof is exactly analogous to
+the final part of the proof of Claim 3.11. Specifically, to prove the claim, it now remains to prove
+that x∗ ∈ L′ . As L′ = AB ∩ L′B ′ and x∗ ∈ L′B ′ , it suffices to prove that x∗ ∈ AB . We do this next,
+
+                                                        31
+by first proving that κHB′ (x∗ , y ∗ ) < 4OPT,
+                                           [ and then using Corollary A.11. Indeed since x∗ ∈ L′ ′
+                                                                                                       B
+      ∗             +
+and y ∈     ′             ′
+         / LB ′ ∪ NH ′ (LB ′ ), it follows by the third inequality of Claim A.14 that the x∗ -y ∗ vertex-
+                     B
+connectivity in HB ′ is
+                                                               
+                           ∗ ∗             +    ′            iϵ
+                   κHB′ (x , y ) ≤ wB ′ (NH ′ (LB ′ )) ≤ 1 +      OPTV,y∗ ≤ 2OPTV,y∗ .                (4)
+                                            B                z
+
+Recall also that we are assuming that event E occurred, which, by the definition of this event, means
+                  [ By plugging this inequality into Equation (4), it follows that κH ′ (x∗ , y ∗ ) <
+that OPTV,y∗ < 2OPT.                                                                      B
+                ∗          ′
+4OPT. Since x ∈ B ∩ L ′ ⊆ B ∩ AB ′ , it now follows from Corollary A.11 that x ∈ L
+ [                                                                                    ∗     cA complete .
+                             B
+                                                      complete
+Since x∗ ∈ V (G), it then follows that x∗ ∈ L
+                                            cA       \ V copy = AB . Thus, x∗ ∈ AB ∩ L′B ′ = L′ ,
+as we needed to prove. This concludes the proof of Claim A.13, and thus concludes the analysis of
+VertexApproxBatchSparsify.
+
+A.1.2    Step 2: Proof of Claim A.5
+
+Consider a set AB ⊆ V (G)\({y ∗ }∪NG− (y ∗ )) of vertices that satisfies Properties Q’1-Q’2. We construct
+the graph GB using AB as follows: choose the vertex-set of GB to be V (GB ) = AB ∪ NG+ (AB ) ∪ {y ∗ },
+and construct the edge-set of GB by beginning with the set EG (AB , AB ∪ NG+ (AB )) of all edges of G
+that originate inside AB , and then adding, for every vertex v ∈ NG+ (AB ), an edge (v, y ∗ ). Furthermore,
+set the weight wB (v) of each vertex v ∈ V (GB ) to be exactly the same as the weight w(v) of this
+vertex in G.
+    This kind of construction was also used in [CMT26], and they referred to the resulting graph as
+the graph derived from G via the vertex-set AB . It can easily verified that the above construction can
+be implemented in Õ(vol+G (AB )) time. The following observation is immediate from the construction
+of GB , and was also formally proved in [CMT26].
+
+Observation A.15 For every set L′ ⊆ AB , we have wB (NG+B (L′ )) = w(NG+ (L′ )).
+
+     Next, we show that the obtained graph GB indeed satisfies Properties P’1-P’4. Properties P’2
+and P’3 follow directly from the construction of GB and from Observation A.15. (Indeed, for every
+set X ′ ⊆ V (GB ) \ ({y ∗ } ∪ NG−B (y ∗ )) as described in Property P’3, it can be easily verified that
+X ′ ⊆ AB must hold, so Observation A.15 applies for this set.) We now consider Properties P’1 and
+P’4. It can be easily verified from the construction of GB that |E(GB )| = vol+                         +
+                                                                                           G (AB ) + |NG (AB )| ≤
+2 vol+G (AB ); so, the upper-bound on |E(GB )| required for Property P’1 of GB follows from Property Q’1
+of AB ; furthermore, a similar upper-bound on |V (GB )| follows as |V (GB )| = |AB | + |NG+ (AB )| + 1 ≤
+|E(GB )| + 1, where the last inequality is due to the fact that every vertex of AB must have at
+least one-outgoing edge in G, which in turn holds by the assumption OPTV,y∗ > 0. It remains
+to show that GB satisfies Property P’4, which we do next. Suppose that there exists a terminal
+x∗ ∈ B ∩ L∗ and the good event E occurred; we need to prove that in this case, x∗ ∈ V (GB )
+holds, and there exists an x∗ -y ∗ vertex-cut (L′ , S ′ , R′ ) in GB of value wB (S ′ ) ≤ 1 + iϵz OPTV,y∗ that
+additionally satisfies the condition vol+         ′
+                                              G (L ) ≤ 2ν. Indeed, in the aforementioned case, Property Q’2
+of the set AB guarantees that there exists a subset L′ ⊆ AB with x∗ ∈ L′ and vol+                   ′
+                                                                                                G (L ) ≤
+                                                                                                        2ν such
+                            ′    +    ′           ′    +   ′                       +     ′
+that the vertex-cut (L , NG (L ), V (G) \ (L ∪ NG (L ))) in G has value w(NG (L )) ≤ 1 + iϵz  OPTV,y∗ .
+Furthermore, by Observation A.15, this set L′ satisfies wB (NG+B (L′ )) = w(NG+ (L′ )) ≤ 1 + iϵz OPTV,y∗ .
+Thus, if we define S ′ as S ′ = NG+B (L′ ) and R′ as R′ = V (GB ) \ (L′ ∪ S ′ ), then the vertex-cut
+(L′ , S ′ , R′ ) in GB satisfies all the conditions required by Property P’4. Furthermore, since x∗ ∈ L′ and
+L′ ⊆ AB ⊆ V (GB ) \ NG−B (y ∗ ), it follows that x∗ ∈ V (GB ) \ NG−B (y ∗ ), as needed. This concludes the
+proof of Property P’4, and thus concludes the proof of Claim A.5.
+
+
+                                                       32
+B     Reducing Dependence on W
+In this section, we describe a standard method that we use in our algorithms for both the Rooted
+Minimum Edge-Cut and the Rooted Minimum Vertex-Cut problem, in order to reduce the dependence
+of the running time on the maximum weight W from polylogarithmic to logarithmic. For the sake of
+completion, we also provide a formal proof. Specifically, this methodallows us to transform
+                                                                                              any (1+ϵ)-
+                                                                      m1+o(1)
+approximation algorithm for these problems that runs in time O            ϵ   polylogW on an m-edge
+                                                                            1+o(1)
+                                                                                                         
+graph and has a success probability of 12 , to one that runs in time O m ϵ             polylog m
+                                                                                                  
+                                                                                                ϵ   log W
+and has the same
+              success probability.
+                                   As long as 1ϵ ≤ poly(m), the latter running time is upper-
+                  m1+o(1)
+bounded by O        ϵ     log W   , as required by both Theorem 1.5 and Theorem 1.6. In the case where
+the inequality 1ϵ ≤ poly(m) does not hold, and in particular whenever 1ϵ > m, we can instead solve
+the Rooted Minimum Edge-Cut (resp. Vertex-Cut) problem with root y ∗ by explicitly computing the
+minimum v-y ∗ edge-cut (resp. vertex-cut) for every vertex v, resulting in an algorithm with running
+                                                       1+o(1)
+time O(m1+o(1) · n · log W ) ≤ O(m2+o(1) log W ) ≤ O( m ϵ     log W ).
+   The method that we describe in this section is applicable for a general class of problems, and
+we will describe it using a general formulation that captures both the Rooted Minimum Edge-Cut
+problem and the Rooted Minimum Vertex-Cut problem. We now present this formulation:
+    Consider a fixed mapping φ that, given a universe U of elements and a bit-string s, maps these
+to a set φ(U, s) of feasible solutions, where each element F of φ(U, s) is a pair F = (Q, s′ ) consisting
+of a subset Q ⊆ U of elements, and a bit-string s′ . Now, consider the following optimization problem
+Pφ . In this problem, the input consists of a universe U , a bit-string s, a positive integer W , and
+weight-function w : U → {1, . . . , W } that assigns a positive integral weight w(e) ≤ W to each element
+e ∈ U ; the goal is finding a feasible solution F = (Q, s′ ) ∈ φ(U, s) that minimizes the sum of weights
+P
+   e∈Q w(e).
+   Since a graph can be represented as a bit-string, it is possible to formulate both the Rooted Mini-
+mum Edge-Cut and the Rooted Minimum Vertex-Cut problems as a problem Pφ for the appropriate
+mapping φ. For example, in the case of Rooted Minimum Edge-Cut, the string s represents the graph
+G and the root y ∗ ; the universe U is the set of edges U = E(G); and the set φ(U, s) of feasible solutions
+consists of all pairs (Q, s′ ) such that s′ is a bit-string representing an edge-cut (X, Y ) with y ∗ ∈ Y ,
+and Q is the set EG (X, Y ) of edges crossing this cut. The following theorem demonstrates that for
+any minimization problem that is captured by the above setup, it is possible to reduce the running
+time dependence of any algorithm on the parameter W from polylogarithmic to logarithmic.
+Theorem B.1 Consider an optimization problem Pφ as defined above, and suppose there exists an
+algorithm A that, given any instance (U, s, W, w) of this problem and any parameter ϵ ∈ (0, 1), outputs
+a feasible solution F ∈ φ(U, s) so that with probability at least 12 , F is a (1 + ϵ)-approximate solution to
+the instance (U, s, W, w) of the problem. Furthermore, suppose that there exists some function T (·, ·)
+such that the running time of algorithm A on any instance (U, s, W, w) and parameter ϵ ∈ (0, 1) is
+O (T (s, ϵ) ·polylog(W )). Then, there exists an algorithm      A′ that, given the same input as A, runs
+in time O (T (s, ϵ) + |U |) · polylog( |Uϵ | ) · log(W |U |) and computes a feasible solution F ∈ φ(U, s) so
+that with probability at least 12 , F is a (1 + O(ϵ))-approximate solution.
+
+    Essentially, the algorithm A′ promised by Theorem 1.1 works by reducing the input instance
+(U, s, W, w) to z ≈ log(W |U |) many instances (U, s, W ′ , w1 ), . . . , (U, s, W ′ , wz ) with a maximum weight
+of W ′ = poly( |Uϵ | ), and then calling A to solve each of these instances. Informally, for each i ∈ [z],
+the instance (U, s, W ′ , wi ) is designed to ”mimic” the original instance (U, s, W, w) in the case where
+the optimal solution value OPT of the original instance falls in the range [2i , 2i+1 ). Specifically, the
+
+                                                       33
+instance (U, s, W ′ , wi ) is designed so that, if OPT ∈ [2i , 2i+1 ), then any (1 + ϵ)-approximate solution
+to this instance is also a (1 + O(ϵ))-approximate solution to the original instance (U, s, W, w). Then,
+after using A on each of the instances (U, s, W ′ , w1 ), . . . , (U, s, W ′ , wz ), there is a probability of 21 that
+at least one of the obtained feasible solutions is also a (1 + O(ϵ))-approximate solution to the original
+instance (U, s, W, w). Next, we provide a formal proof of Theorem B.1.
+
+Proof of Theorem B.1. We begin by formally describing the algorithm A′ . Given an instance
+(U, s, W, w) for problem Pφ , the algorithm first computes and writes down the values z = ⌈log(W |U | + 1)⌉
+                                                                                |
+and W ′ , where W ′ is the smallest integral power of 2 that is larger than 4|U
+                                                                              ϵ . Then, for every i ∈ [z],
+the algorithm explicitly computes and writes down the weight function wi : U → [W ′ ] defined as
+follows:                                 (j w(e)·W ′ k
+                                              2i+2
+                                                            if w(e) < 2i+2 ,
+                                wi (e) =
+                                           W′               otherwise.
+We discuss later how to efficiently compute these weight functions w1 , . . . , wz . Now, we call algorithm
+A on each of the instances (U, s, W ′ , w1 ), . . . , (U, s, W ′ , wz ). For each i ∈ [z], let Fi = (Qi , s′i ) denote
+the feasible solution that A returnedP         when it was ran on instance (U, s, W ′ , wi ). Observe that explicitly
+computing the value val(Fi ) = e∈Qi w(e) of all z feasible solutions F1 , . . . , Fz w.r.t the weight function
+w would require time that is quadratic in log(W ), which we cannot afford. Thus, we take                P a slightly
+different approach, as described next. For each i ∈ [z], we compute the value vali (Fi ) = e∈Qi wi (e)
+of Fi w.r.t the weight function wi . Since the values wi (e) assigned by the weight function wi are
+written using just O(log(W ′ |U |)) bits, these computations together take a total time of only O(|U | ·
+log(W ′ |U |) · z) = O(|U | · log( |Uϵ | ) · log(W |U |)). Let i∗ be the smallest i ∈ [z] for which vali (Fi ) < W ′ .
+Then, for every i ∈ {i∗ , i∗ + 1, i∗ + 2}, our algorithm calculates the value val(Fi ) of Fi w.r.t the original
+weight function w. Since we are computing val(Fi ) for only a constant number of feasible solutions
+Fi , these computations can be performed in time O(|U | · log(W |U |)). The algorithm then outputs the
+feasible solution that minimizes val(Fi ) among the three solutions {Fi | i ∈ {i∗ , i∗ + 1, i∗ + 2}}, and
+outputs this feasible solution.
+    We now analyze the above algorithm. For the analysis, let OPT denote the optimal solution value
+                                                                                          ′              ′
+of the original input instance (U, s, W, w), and let i′ be the unique integer for which 2i ≤ OPT < 2i +1
+holds. Let E denote the good event in which the feasible solution Fi′ obtained from the call to A
+on the instance (U, s, W ′ , wi′ ) is a (1 + ϵ)-approximate solution to the instance (U, s, W ′ , wi′ ). By
+the guarantees of the algorithm A, event E happens with probability at least 12 . We will show that
+whenever event E happens, our algorithm outputs a (1 + O(ϵ))-approximate solution to the original
+instance. Since the output of the algorithm is the best feasible solution among Fi∗ , Fi∗ +1 , Fi∗ +2 , it
+suffices to prove the following claim.
+
+Claim B.2 Whenever event E happens, the feasible solution Fi′ must be a (1+2ϵ)-approximate solution
+to the original instance (U, s, W, w), and i′ ∈ {i∗ , i∗ + 1, i∗ + 2} must hold.
+
+    Proof: We begin by proving that if event E happens, then Fi′ is a (1 + 2ϵ)-approximate solution
+to the instance (U, s, W, w). In other words, we show next that if event E happens, then val(Fi′ ) ≤
+(1 + 2ϵ)OPT. To do this, we will first show that if E happens then vali′ (Fi′ ) must be small, and
+then we will relate val(Fi′ ) to vali′ (Fi′ ). Indeed, recall the definition of the weight function wi′ , and
+                                                                                           ′
+observe that by this definition, every element e ∈ U satisfies wi′ (e) ≤ w(e)·W     2i′ +2
+                                                                                             . Thus, the value
+                                                       ′
+of the optimal solution to the instance (U, s, W , w ′ ) must be at most          OPT   ·W ′
+                                                                                             . Recall also that
+                                                              i                         2i′ +2
+if event E happens, then Fi′ must be a (1 + ϵ)-approximate solution to the instance (U, s, W ′ , wi′ ),
+meaning that vali′ (Fi′ ) ≤ (1 + ϵ) OPT   ·W ′                                         ′
+
+                                     2i′ +2
+                                               . Since i′ is defined such that OPT < 2i +1 , and since ϵ < 1,
+
+
+                                                         34
+it follows in particular that vali′ (Fi′ ) < W ′ , meaning that Qi′ contains only elements e ∈ U with
+             ′                                                                   i′ +2
+w(e) < 2i +2 . Thus, by the definition of wi′ , it follows that w(e) ≤ 2W ′ (1 + wi′ (e)) holds for all
+                          i′ +2
+e ∈ Q ′ , so val(F ′ ) ≤ 2 (|U | + val ′ (F ′ )). Since we’ve seen that val ′ (F ′ ) ≤ (1 + ϵ) OPT·W , it follows
+                                                                                                    ′
+        i         i         W′         i   i                           i  i             2i′ +2
+                     ′
+                   2i +2 |U |                          ′                       i ′
+that val(Fi′ ) ≤ W ′ + (1 + ϵ)OPT. Now, since i is defined such that 2 ≤ OPT, it follows that
+vali′ (Fi′ ) ≤ 4OPT
+                 W′
+                     ·|U |
+                           + (1 + ϵ)OPT ≤ (1 + 2ϵ)OPT, as we needed. (In the last inequality, we used the
+definition of W ′ .)
+    It remains to show that if event E happens, then i′ ∈ {i∗ , i∗ + 1, i∗ + 2} must hold. Recall
+that i∗ is defined as the smallest integer i ∈ [z] for which vali (Fi ) < W ′ . Further recall that we’ve
+already shown that if event E happens, then vali′ (Fi′ ) < W ′ holds. Thus, it only remains to show
+that vali (Fi ) ≥ W ′ holds for every i < i′ − 2. Indeed, consider any i < i′ − 2, and consider the
+solution Fi = (Qi , s′i ). If Qi contains any element e ∈ U with w(e) ≥ 2i+2j, then w               ′
+                                                                                        k i (e) = W and
+                                                                                             ′
+thus vali (Fi ) ≥ W ′ holds. Otherwise, all elements e ∈ Qi satisfy wi (e) = w(e)·W
+                                                                               2i+2
+                                                                                    , meaning that
+                     ′
+val (F ) ≥ val(Fi )·W − |U | ≥ OPT·W − |U |. It remains to show that OPT·W − |U | ≥ W ′ . Indeed,
+                                     ′                                       ′
+    i    i    2i+2              2i+2                                     2i+2
+           ′                          ′                i+2   i ′ −1
+since i < i − 2, it must be that i ≤ i − 3, and thus 2     ≤2       ≤ OPT/2; it therefore follows that
+OPT·W ′ − |U | ≥ 2W ′ − |U | ≥ W ′ . This concludes the proof of Claim B.2.
+  2i+2
+   In order to conclude the proof of Theorem B.1, it remains to show how to efficiently compute the
+weight functions w1 , . . . , wz . We show this next.
+
+Efficient computation of the Weight Functions.              We now describe how the algorithm computes
+the weight functions w1 , . . . , wz in time O |U | · polylog( |Uϵ | ) · log(W |U |) . To do this, the algorithm
+first writes the weight w(e) of each element e ∈ U using the standard binary representation of natural
+numbers in ⌊1 + log W ⌋ bits, which can be done in time O(|U | · log W ). Furthermore, for each e ∈ U ,
+the algorithm locates the most-significant non-zero bit of this representation in order to determine
+the largest integer i for which w(e) ≥ 2i holds, and writes down this value, which we denote by ie .
+Observe that for every e ∈ U and every i ∈ [z], if ie ≤ i +1, then all but the first (leastjsignificant)  k i +2
+                                                                                                 w(e)·W ′
+bits in the binary representation of w(e) are zero; in this case, the choice of wi (e) =           2i+2
+                                                                                                           means
+that the binary representation of wi (e) is equal to the substring of the binary representation of w(e),
+beginning at the (i + 3 − log W ′ )’th least significant bit and ending at the (i + 2)’th least significant
+bit. In the remaining case where ie ≥ i + 2, it follows that w(e) ≥ 2i+2 and thus wi (e) = W ′ , so
+wi (e) can be computed by copying the value W ′ that the algorithm already wrote down beforehand.
+                                                                                                            ′
+    for a given element e,we can compute the values w1 (e), . . . , wz (e) in total time O(z · log(W )) =
+Thus,
+O polylog( |Uϵ | ) · log(W |U |) , as needed.
+
+
+C        Missing Proofs from Section 2
+Proof of Lemma 2.1. Consider a graph G with weights w(e) on the edges e ∈ E(G), as well as a
+pair s, t of vertices in G, and a minimum s-t edge-cut (S, T ) in G. Furthermore, let X ⊆ V (G) be any
+                                              +                 +
+set of vertices. We need to prove that w(∂G     (X ∩ S)) ≤ w(∂G   (X)). Indeed, as (S, T ) is a minimum
+                                  +           +
+s-t edge-cut in G, we have w(∂G (S)) ≤ w(∂G (S ∪ X)). Thus, the desired inequality follows if we can
+                  +                +                +             +
+prove that w(∂G     (X ∩ S)) + w(∂G  (S ∪ X)) ≤ w(∂G  (X)) + w(∂G   (S)). Indeed, it is not hard to verify
+that every edge that contributes its weight to the left side of this inequality must also contribute its
+weight to the right side of this inequality, and that every edge which contributes its weight twice to
+the left side of the inequality must also contribute its weight twice to the right side of the inequality.
+
+
+
+                                                       35
+Proof of Lemma 2.2 The proof of this lemma is essentially identical to that of Lemma 2.1, except
+it uses the operator w(NG+ (·)) instead of w(∂G
+                                              +
+                                                (·)).
+
+
+D     Missing Proofs from Section 3
+Proof of Claim 3.6. Consider a set AB ⊆ V (G) \ {y ∗ } of vertices that satisfies properties Q1-Q2,
+and define GB as stated in Claim 3.6. Specifically, GB is constructed from G by merging all vertices
+outside of AB into y ∗ and then removing any resulting self-loops, as well as any edges outgoing from
+y ∗ in the resulting graph. We need to prove that GB satisfies Properties P1-P4.
+   We begin with Properties P2 and P3, which follow easily from the definition of the graph GB :
+indeed, Property P2 holds because V (GB ) = AB ∪ {y ∗ }, and Property P3 is a special case of the next
+observation.
+                                                      +                +
+Observation D.1 For every set X ′ ⊆ AB , we have wB (∂G B
+                                                          (X ′ )) = w(∂G (X ′ )).
+
+   Proof: Indeed, each edge exiting X ′ in G induces a corresponding edge in GB that also exits X ′ ,
+and has the same weight; furthermore, each edge exiting X ′ in GB is induced by such an edge. This
+concludes the proof of the observation.
+    Next, we prove Property P1, which requires upper-bounding the number of edges and vertices in
+                                                +
+GB : it is easy to verify that |E(G   B )| = volG (AB ) holds; so, as the set AB satisfies Property Q1, it
+follows that |E(GB )| = Õ 2m
+                                 
+                             i ·ϵ , as needed for Property P1. To bound the number of vertices in GB ,
+we use the fact that V (GB ) = AB ∪ {y ∗ }, as well as the assumption that OPTE,y∗ > 0; based on this
+assumption, every vertex v ∈ V (G) \ {y ∗ } must have at least one outgoing edge in G, and so, by the
+construction of GB , every vertex of AB must have at least one outgoing edge in GB , meaning that
+|E(GB )| ≥ |AB | = |V (GB )| − 1, and thus that |V (GB )| ≤ |E(GB )| + 1 = Õ 2m     i ·ϵ . It is also easily
+verified that GB does not have more edges or vertices than G. This concludes the proof that GB
+satisfies Property P1.
+    It remains to prove that GB satisfies Property P4, which we do next. Suppose that there exists a
+terminal x∗ ∈ B ∩ X ∗ and the good event E occurred; we need to prove that in this case, x∗∈ V (GB )
+holds, and there exists an x∗ -y ∗ edge-cut (X ′ , Y ′ ) in GB of value wB (EGB (X ′ , Y ′ )) ≤ 1 + iϵz OPTE,y∗
+that additionally satisfies the condition vol+        ′
+                                              G (X ) ≤ 2ν. Indeed, in the aforementioned case, Property
+Q2 of the set AB guarantees that there exists a subset X ′ ⊆ AB with x∗ ∈ X ′ and vol+              G (X ′ ) ≤ 2ν
+                             ′            ′                                 ′          ′
+such that the edge-cut (X , V (G) \ X ) in G has value w(EG (X , V (G) \ X )) ≤ 1 + z OPTE,y∗ .    iϵ
+                                                                   +               +
+Furthermore, by Observation D.1, this set X ′ satisfies wB (∂G      B
+                                                                      (X ′ )) = w(∂G (X ′ )) = w(EG (X ′ , V (G) \
+X )) ≤ 1 + z OPTE,y∗ . Thus, if we define Y as Y = V (GB ) \ X , then the edge-cut (X ′ , Y ′ ) in
+  ′            iϵ                                      ′     ′                 ′
+                  
+
+GB satisfies all the conditions required by Property P4. Furthermore, since x∗ ∈ X ′ and X ′ ⊆ AB ⊆
+V (GB ), it follows that x∗ ∈ V (GB ), as needed. This concludes the proof of Property P4, and thus
+concludes the proof of Claim 3.6.
+
+
+E     Removing the Assumption w(L∗ ) ≤ w(R∗ ) in the Proof of Theo-
+      rem 1.4
+In Section 4, we designed a procedure AlgGlobalVertexCut that implements Theorem 1.4 under the
+following additional assumption:
+
+Assumption E.1 The graph G in the input to Theorem 1.4 has some global minimum vertex-cut
+(L∗ , S ∗ , R∗ ) with w(L∗ ) ≤ w(R∗ ).
+
+
+                                                       36
+This assumption can be removed using standard techniques: informally, we implement Theorem 1.4
+by running the procedure AlgGlobalVertexCut once on the input graph G, and once on the reversed
+graph G, and selecting the best of the two obtained solutions.
+    For the sake of completion, we now explain this in detail. Observe that, by the guarantees of the
+procedure AlgGlobalVertexCut, there exists some absolute constant C and some function T : N → N
+satisfying T (m) = Õ(m), so that, when the procedure is given an input satisfying Assumption E.1
+and oracle-access as described in Theorem 1.4, it runs in time at most T (m) · log W , and makes at
+most C · mn queries to the oracle, such that the total number of edges in these queries is at most C · m.
+Furthermore, in this case, the output of the procedure is a vertex-cut (L, S, R) in the input graph G
+so that, with probability at least 12 , its weight is at most (1 + ϵ)OPTG , where OPTG is the value of
+the global minimum vertex-cut in G.
+    Then, to implement Theorem 1.4, we run two instances of this procedure AlgGlobalVertexCut; one
+instance is given the input graph G, and the other is given the reversed graph G – this is the graph
+obtained from G by reversing the direction of each edge. Both instances are given the same vertex-
+weights, parameters, and oracle access. For each of these instances, we terminate it early if it: runs
+for longer than T (m) · log W time; makes more than C · m      n oracle queries; or, makes oracle queries
+whose total edge-count is larger than C · m. (If an instance is about to make a single query with more
+than C · m edges, then we terminate it before it makes this query.) If an instance was not terminated
+early, and if its output is a valid vertex-cut in G, then we say that it ”terminated naturally”. (Observe
+that we can check in time O(m) whether the output is a valid vertex-cut in G.) Next, we continue the
+description of the algorithm.
+   If the instance on G terminated naturally, then let (L′ , S ′ , R′ ) be the vertex-cut obtained by it;
+otherwise, let (L′ , S ′ , R′ ) be an arbitrary vertex-cut in G. Similarly, if the instance on G terminated
+naturally, then let (L′′ , S ′′ , R′′ ) be the vertex-cut obtained by it; otherwise, let (L′′ , S ′′ , R′′ ) be an
+arbitrary vertex-cut in G. Observe that (R′′ , S ′′ , L′′ ) must be a valid vertex-cut in G, and its weight,
+w(S ′′ ), is the same as the weight of the vertex-cut (L′′ , S ′′ , R′′ ) in G. The algorithm outputs the
+smaller-weight vertex-cut among the two cuts (L′ , S ′ , R′ ) and (R′′ , S ′′ , L′′ ) in G.
+    For the analysis, it is not hard to verify that the value of the global minimum vertex-cut of the
+reversed graph G is the same as of the original graph G, and that at least one of these two instances
+of the Global Minimum Vertex-Cut problem must satisfy Assumption E.1; thus, by the guarantees of
+AlgGlobalVertexCut, at least one of the calls to AlgGlobalVertexCut must terminate naturally, and, with
+probability at least 12 , the vertex-cut obtained by this call has weight at most (1 + ϵ)OPTG . Therefore,
+with probability at least 12 , at least one of the two vertex-cuts (L′ , S ′ , R′ ) and (L′′ , S ′′ , R′′ ) has weight
+at most (1 + ϵ)OPTG , in which case the output of the algorithm is a vertex-cut in G with weight at
+most (1 + ϵ)OPTG , as required.
+
+
+F     Extension to Non-Negative Weights
+In this section, we briefly explain how our main theorems can be extended to the setting in which
+edges and vertices are allowed to have weight 0. We first note that this extension is trivial to achieve
+for the Minimum Edge-Cut problem, as zero-weight edges do not affect the solution value or the set of
+feasible solutions, and can thus be ignored. In order to extend the algorithms for the Minimum Vertex-
+Cut problem to the setting of non-negative vertex-weights, we use a simple and standard reduction
+from this setting to the positive-weight setting. The same reduction was also used in, for example,
+[CMT26]; but we analyze the reduction again here in order to convince the reader that it also works for
+approximate algorithms, rather than just for exact algorithms as was shown in [CMT26]. For the sake
+of brevity, we will analyze only the Global Minimum Vertex-Cut problem, though the same reduction
+also works for the Rooted Minimum Vertex-Cut problem.
+
+                                                         37
+   Consider an instance (V, E, w) of the Global Minimum Vertex-Cut problem in the non-negative
+weight setting. To solve this instance, we transform it into an instance (V, E, w′ ) with only positive
+weights, by setting the new weight of each vertex v to w′ (v) ← 4n2 w(v) + 1.
+    Now, it is immediate to verify that any optimal solution of instance (V, E, w′ ) must also be an
+optimal solution of instance (V, E, w), meaning that solving the instance (V, E, w) exactly can be
+reduced to solving (V, E, w′ ) exactly. Demonstrating a similar relation for approximate solutions is
+only a little more complicated: specifically, we show next that if one wishes to find a (1+ϵ)-approximate
+solution to the original instance (V, E, w), then it suffices to find a (1 + ϵ′ )-approximate solution for
+the new instance (V, E, w′ ), where ϵ′ = ϵ/2.
+     Proof: Indeed, consider any optimal solution (L, S, R) of the original instance (V, E, w), and
+observe that 4n2 w(S) ≤ w′ (S) ≤ 4n2 w(S) + n must hold. Suppose first that the weight of (L, S, R)
+in the original instance (V, E, w) satisfies w(S) < 1ϵ – it is then easy to verify that every solution
+(L′ , S ′ , R′ ) of the original instance with weight w(S ′ ) ≥ w(S) + 1 must have its weight in the new
+instance satisfy w′ (S ′ ) ≥ 4n2 (w(S) + 1) > (1 + ϵ′ ) · (4n2 w(S) + n) ≥ (1 + ϵ′ )w′ (S), meaning that
+every non-optimal solution of the original instance is also not a (1 + ϵ′ )-approximate solution of the
+new instance. We now consider the remaining case, in which w(S) ≥ 1ϵ . In this case, w′ (S) ≤
+(1 + 4n ϵ
+            ) · 4n2 w(S) must hold, meaning that (1 − 4n ϵ
+                                                           )w′ (S) ≤ 4n2 w(S). It then follows that for every
+vertex-cut (L′ , S ′ , R′ ) in G with w(S ′ ) > (1 + ϵ)w(S), the inequality
+                                                                    ϵ
+                  w′ (S ′ ) > 4n2 · (1 + ϵ)w(S) ≥ (1 + ϵ) · (1 −      )w′ (S) ≥ (1 + ϵ′ )w′ (S)
+                                                                   4n
+holds, meaning that (L′ , S ′ , R′ ) is not a (1 + ϵ′ )-approximate solution of the new instance.
+
+
+
+
+                                                      38
+References
+[CLN+ 22]   Ruoxu Cen, Jason Li, Danupon Nanongkai, Debmalya Panigrahi, Thatchaphol Sara-
+            nurak, and Kent Quanrud. Minimum cuts in directed graphs via partial sparsification.
+            In 2021 IEEE 62nd Annual Symposium on Foundations of Computer Science (FOCS),
+            pages 1147–1158. IEEE, 2022.
+[CMT26]     Julia Chuzhoy, Ron Mosenzon, and Ohad Trabelsi. Faster algorithms for global min-
+            imum vertex-cut in directed graphs. In Proceedings of the 2026 Annual ACM-SIAM
+            Symposium on Discrete Algorithms (SODA), pages 5586–5623. SIAM, 2026.
+[CQ21]      Chandra Chekuri and Kent Quanrud. Faster Algorithms for Rooted Connectivity in
+            Directed Graphs. In Nikhil Bansal, Emanuela Merelli, and James Worrell, editors, 48th
+            International Colloquium on Automata, Languages, and Programming (ICALP 2021),
+            volume 198 of Leibniz International Proceedings in Informatics (LIPIcs), pages 49:1–
+            49:16, Dagstuhl, Germany, 2021. Schloss Dagstuhl – Leibniz-Zentrum für Informatik.
+[CT25]      Julia Chuzhoy and Ohad Trabelsi. Breaking the o(mn)-time barrier for vertex-weighted
+            global minimum cut. In Proceedings of the 57th Annual ACM Symposium on Theory
+            of Computing, pages 144–155, 2025.
+[FJMY26]    Olivier Fischer, Yonggang Jiang, Sagnik Mukhopadhyay, and Sorrachai Yingchareon-
+            thawornchai. Directed and undirected vertex connectivity problems are equivalent for
+            dense graphs. In 2026 SIAM Symposium on Simplicity in Algorithms (SOSA), pages
+            413–420. SIAM, 2026.
+[FNY+ 20]   Sebastian Forster, Danupon Nanongkai, Liu Yang, Thatchaphol Saranurak, and Sor-
+            rachai Yingchareonthawornchai. Computing and testing small connectivity in near-
+            linear time and queries via fast local cut algorithms. In Proceedings of the Fourteenth
+            Annual ACM-SIAM Symposium on Discrete Algorithms, pages 2046–2065. SIAM, 2020.
+[Gab91]     Harold N Gabow. A matroid approach to finding edge connectivity and packing ar-
+            borescences. In Proceedings of the twenty-third annual ACM symposium on Theory of
+            computing, pages 112–122, 1991.
+[JLSW25]    Yonggang Jiang, Yaowei Long, Thatchaphol Saranurak, and Benyu Wang. Crude ap-
+            proximation of directed minimum cut and arborescence packing in almost linear time.
+            arXiv preprint arXiv:2512.05300, 2025.
+[JNSY25]    Yonggang Jiang, Chaitanya Nalam, Thatchaphol Saranurak, and Sorrachai Yingchare-
+            onthawornchai. Deterministic vertex connectivity via common-neighborhood clustering
+            and pseudorandomness. In Proceedings of the 57th Annual ACM Symposium on Theory
+            of Computing, pages 2293–2304, 2025.
+[Kar00]     David R Karger. Minimum cuts in near-linear time. Journal of the ACM (JACM),
+            47(1):46–76, 2000.
+[LNP+ 25]   Jason Li, Danupon Nanongkai, Debmalya Panigrahi, Thatchaphol Saranurak, and Sor-
+            rachai Yingchareonthawornchai. Vertex connectivity in poly-logarithmic max-flows.
+            Journal of the ACM, 72(4):1–34, 2025.
+[LP20]      Jason Li and Debmalya Panigrahi. Deterministic min-cut in poly-logarithmic max-
+            flows. In 2020 IEEE 61st Annual Symposium on Foundations of Computer Science
+            (FOCS), pages 85–92. IEEE, 2020.
+
+                                              39
+[NSY19]      Danupon Nanongkai, Thatchaphol Saranurak, and Sorrachai Yingchareonthawornchai.
+             Computing and testing small vertex connectivity in near-linear time and queries. arXiv
+             preprint arXiv:1905.05329, 2019.
+
+[Qua26]      Kent Quanrud. Approximating directed connectivity in almost-linear time. In Proceed-
+             ings of the 58th Annual ACM Symposium on Theory of Computing, pages 1540–1547,
+             2026.
+
+[VDBCK+ 23] Jan Van Den Brand, Li Chen, Rasmus Kyng, Yang P Liu, Richard Peng, Maximil-
+            ian Probst Gutenberg, Sushant Sachdeva, and Aaron Sidford. A deterministic almost-
+            linear time algorithm for minimum-cost flow. In 2023 IEEE 64th Annual Symposium
+            on Foundations of Computer Science (FOCS), pages 503–514. IEEE, 2023.
+
+
+
+
+                                               40
+

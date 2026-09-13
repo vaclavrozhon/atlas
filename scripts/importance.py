@@ -18,7 +18,7 @@ METHOD = ('Importance ordering is an editorial assessment of foundational signif
           'and 50/20 category places respectively, all from the same ranking. '
           'Category positions include all candidates and remain fixed when filtering. '
           'Publication date, source date, and card detail do not increase importance. '
-          'Records marked resolved are placed after the remaining candidates, '
+          'Inactive cards, including resolved records, are archived outside the ranking '
           'without changing their historical importance score. Importance review '
           'does not establish that a saved question is still open.')
 

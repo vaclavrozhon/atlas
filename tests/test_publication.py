@@ -1,4 +1,4 @@
-"""Rebuild from canonical inputs and verify edits, imports and deletions."""
+"""Rebuild active inputs and verify edits, imports and reversible archival."""
 
 import copy
 import hashlib
@@ -74,13 +74,17 @@ def assert_export_parity(site, payload, *, independent_build=False):
 with tempfile.TemporaryDirectory(prefix='atlas-publication-') as directory:
     base = Path(directory)
     shutil.copytree(SOURCE / 'scripts', base / 'scripts', ignore=shutil.ignore_patterns('__pycache__'))
-    shutil.copytree(SOURCE / 'data', base / 'data')
+    shutil.copytree(SOURCE / 'data', base / 'data',
+                    ignore=lambda directory, names: ['cards']
+                    if Path(directory) == SOURCE / 'data/archive' else [])
     shutil.copytree(SOURCE / 'web', base / 'web')
     site = base / 'build'
     sys.path.insert(0, str(base / 'scripts'))
     import publish
     import import_cards
     import catalog_exports
+    import archive_cards
+    from card_activity import INDEX, ARCHIVED_CARDS, read_inactive
     from card_schema import canonical_record, reader_record, OBSOLETE_FIELDS, DERIVED_FIELDS
 
     def hashes():
@@ -147,7 +151,7 @@ with tempfile.TemporaryDirectory(prefix='atlas-publication-') as directory:
     registry_before = (base / 'data/id_registry.json').read_bytes()
     assert import_cards.import_cards([card]) == {'imported': [], 'skipped': [card['id']]}
     assert (base / 'data/id_registry.json').read_bytes() == registry_before
-    deleted_path = base / 'data/deleted_records.json'
+    deleted_path = INDEX
     deleted = read_json(deleted_path)
     retired_id = next(iter(deleted))
     registry = read_json(base / 'data/id_registry.json')
@@ -158,7 +162,7 @@ with tempfile.TemporaryDirectory(prefix='atlas-publication-') as directory:
         try:
             import_cards.import_cards([fixture], replace=True)
         except ValueError as error:
-            assert 'was deleted' in str(error)
+            assert 'is inactive' in str(error)
         else:
             raise AssertionError('Deleted identity was imported')
     assert not (base / 'data/cards' / (retired_id + '.json')).exists()
@@ -182,13 +186,101 @@ with tempfile.TemporaryDirectory(prefix='atlas-publication-') as directory:
     assert not (OBSOLETE_FIELDS | DERIVED_FIELDS | {'context'}) & imported_source.keys()
     added = publish.publish()
     assert 'TCS-1000000' in {c['id'] for c in added['cards']}
-    deleted['TCS-1000000'] = 'Regression fixture: permanent removal.'
-    deleted_path.write_text(json.dumps(deleted))
+
+    # Archival preserves complete bytes, removes focus membership and incoming
+    # related links, and emits the same removal delta as a former deletion.
+    fresh_id = 'TCS-1000000'
+    fresh_path = base / 'data/cards' / f'{fresh_id}.json'
+    fresh_bytes = fresh_path.read_bytes()
+    selection_path = base / 'data/benchmark_selection.json'
+    selection = read_json(selection_path)
+    area = next(area for area in selection['areas'] if area['area'] == card['area'])
+    area['selected'] = [dict(id=fresh_id, topic='Fixture', reason='Archival focus fixture')]
+    selection_path.write_text(json.dumps(selection))
+    linked = read_json(path)
+    linked.setdefault('related_problem_ids', []).append(fresh_id)
+    path.write_text(json.dumps(linked))
+    publish.publish()
+    assert archive_cards.change_activity([fresh_id], reason='Regression fixture: deactivate.') == {'archive': [fresh_id]}
+    archived_path = ARCHIVED_CARDS / fresh_path.name
+    assert not fresh_path.exists() and archived_path.read_bytes() == fresh_bytes
+    assert all(entry['id'] != fresh_id for area in read_json(selection_path)['areas'] for entry in area['selected'])
     removed = publish.publish()
-    assert 'TCS-1000000' not in {c['id'] for c in removed['cards']}
-    assert read_json(site / 'updates-delta.json')['removed_ids'] == ['TCS-1000000']
+    assert fresh_id not in {c['id'] for c in removed['cards']}
+    assert all(fresh_id not in c['related_problem_ids'] for c in removed['cards'])
+    assert read_json(site / 'updates-delta.json')['removed_ids'] == [fresh_id]
+    assert archived_path.read_bytes() == fresh_bytes
     assert_export_parity(site, removed)
     assert publish.publish()['changed_ids'] == []
+
+    # Neither explicit replacement nor a keyed import can reactivate it.
+    for fixture in [read_json(archived_path), fresh]:
+        try:
+            import_cards.import_cards([fixture], replace=True)
+        except ValueError as error:
+            assert 'is inactive' in str(error)
+        else:
+            raise AssertionError('Ordinary import reactivated a card')
+
+    # Restoration is explicit, preserves the file and does not restore focus.
+    archive_cards.change_activity([fresh_id], restore=True, reason='Regression fixture: reconsider.')
+    assert fresh_path.read_bytes() == fresh_bytes and not archived_path.exists()
+    assert fresh_id not in read_inactive()
+    restored = publish.publish()
+    assert fresh_id in {c['id'] for c in restored['cards']}
+    assert fresh_id in next(c for c in restored['cards'] if c['id'] == card['id'])['related_problem_ids']
+    assert all(entry['id'] != fresh_id for area in read_json(selection_path)['areas'] for entry in area['selected'])
+    events = [json.loads(line) for line in (INDEX.parent / 'activity.jsonl').read_text().splitlines()]
+    assert [event['action'] for event in events[-2:]] == ['archive', 'restore']
+    assert events[-1]['previous_reasons'][fresh_id] == 'Regression fixture: deactivate.'
+
+    # Invalid batches and destination collisions never destroy existing data.
+    before = hashes()
+    for identifiers in [[fresh_id, fresh_id], [fresh_id, 'TCS-9999999'], ['../../invalid']]:
+        try:
+            archive_cards.change_activity(identifiers, reason='Invalid batch fixture')
+        except ValueError:
+            pass
+        else:
+            raise AssertionError('Invalid archival batch accepted')
+        assert hashes() == before
+    archived_path.write_bytes(b'Historical content must not be overwritten')
+    try:
+        archive_cards.change_activity([fresh_id], reason='Collision fixture')
+    except ValueError as error:
+        assert 'destination already exists' in str(error)
+    else:
+        raise AssertionError('Archive was overwritten')
+    assert fresh_path.read_bytes() == fresh_bytes
+    archived_path.unlink()
+
+    archive_cards.change_activity([fresh_id], reason='Regression fixture: final archive.')
+    archived_path.write_text('{ invalid historical JSON is deliberately outside active validation')
+    before = hashes()
+    removed = publish.publish()
+    assert hashes() == before, 'Publication must not inspect or repair archived contents'
+    try:
+        archive_cards.change_activity([fresh_id], restore=True, reason='Invalid restoration fixture')
+    except ValueError:
+        pass
+    else:
+        raise AssertionError('Invalid archive content was reactivated')
+    assert hashes() == before
+
+    # A file in the archive reserves its ID even before indexing, without parsing
+    # old content, and must be excluded even if a stale active copy appears.
+    unindexed_id = 'TCS-1000001'
+    (ARCHIVED_CARDS / f'{unindexed_id}.json').write_text('unparsed historical fixture')
+    stale_path = base / 'data/cards' / f'{unindexed_id}.json'
+    stale_path.write_text('unparsed stale active fixture')
+    assert unindexed_id not in {c['id'] for c in publish.publish()['cards']}
+    try:
+        import_cards.import_cards([{**card, 'id': unindexed_id, 'key': 'unindexed-archive'}], replace=True)
+    except ValueError as error:
+        assert 'is inactive' in str(error)
+    else:
+        raise AssertionError('Unindexed archived identity was imported')
+    removed = publish.publish()
 
     # The standalone command rebuilds every generated file into an empty directory.
     clean = base / 'clean-output'
@@ -205,4 +297,6 @@ print(json.dumps({'records': len(original['cards']), 'checks': [
     'single-file statement and summary edits', 'invalid content cannot publish',
     'existing-card import protection', 'deleted IDs and source keys cannot return',
     'stale source files and outputs cannot resurrect deletions',
-    'deleted IDs stay reserved', 'deletion-only live updates']}))
+    'inactive IDs stay reserved', 'archival removal deltas', 'lossless archival and restoration',
+    'focus and related links follow activity', 'archive contents bypass ordinary validation',
+    'invalid batches and archive collisions preserve data']}))

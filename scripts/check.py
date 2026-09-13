@@ -16,7 +16,10 @@ def main():
         with (ROOT / '.publish.lock').open('a') as lock:
             fcntl.flock(lock, fcntl.LOCK_EX)
             for name in ['data', 'scripts', 'web']:
-                shutil.copytree(ROOT / name, snapshot / name, ignore=shutil.ignore_patterns('__pycache__'))
+                shutil.copytree(ROOT / name, snapshot / name,
+                    ignore=lambda directory, names: [item for item in names
+                        if item == '__pycache__' or
+                        (Path(directory) == ROOT / 'data/archive' and item == 'cards')])
             (snapshot / 'tests').mkdir()
             for path in (ROOT / 'tests').glob('*.py'):
                 shutil.copy2(path, snapshot / 'tests' / path.name)

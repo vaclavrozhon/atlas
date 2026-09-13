@@ -1,4 +1,4 @@
-"""Import complete problem cards, reserving stable IDs and honoring deletions."""
+"""Import active problem cards without reviving archived identities."""
 
 import argparse
 import datetime
@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 
 from paths import ROOT, DATA
-from deleted_records import read_deleted
+from card_activity import read_inactive
 from catalog_exports import atomic
 from publish import validate_record
 from card_schema import canonical_record, reader_record
@@ -20,9 +20,9 @@ def import_cards(records, replace=False):
         original_registry = registry_path.read_text()
         registry = json.loads(original_registry)
         criteria = json.loads((DATA / 'criteria.json').read_text())
-        deleted = read_deleted()
+        inactive = read_inactive()
         cards = DATA / 'cards'
-        reserved = set(registry.values()) | set(deleted) | {p.stem for p in cards.glob('*.json')}
+        reserved = set(registry.values()) | set(inactive) | {p.stem for p in cards.glob('*.json')}
         maximum = max((int(identifier.split('-')[-1]) for identifier in reserved), default=0)
         pending, seen, skipped = [], set(), []
         now = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='seconds')
@@ -37,8 +37,8 @@ def import_cards(records, replace=False):
             identifier = card.get('id') or known_id
             if known_id and identifier != known_id:
                 raise ValueError(f'{key}: source key is already assigned to {known_id}')
-            if identifier in deleted:
-                raise ValueError(f'{identifier} was deleted: {deleted[identifier]}')
+            if identifier in inactive:
+                raise ValueError(f'{identifier} is inactive: {inactive[identifier]}')
             if not identifier:
                 maximum += 1
                 identifier = f'TCS-{maximum:04d}'
@@ -62,7 +62,7 @@ def import_cards(records, replace=False):
             card.setdefault('updated_at', now)
             card = canonical_record(card)
             validate_record(reader_record(card, criteria), path, criteria)
-            # Deleted cards never reach this point; new source keys remain stable.
+            # Inactive cards never reach this point; new source keys remain stable.
             if key and not known_id:
                 registry['reviewed:' + key] = identifier
             pending.append((path, card))

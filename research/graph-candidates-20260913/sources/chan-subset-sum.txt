@@ -1,0 +1,792 @@
+                                                Derandomizing Pseudopolynomial Algorithms for Subset Sum
+                                                                                                Timothy M. Chan*
+
+                                                                                                  January 6, 2026
+
+
+
+                                                                                                       Abstract
+arXiv:2601.01390v1 [cs.DS] 4 Jan 2026
+
+
+
+
+                                                       We reexamine the classical subset sum problem: given a set X of n positive integers and a num-
+                                                   ber t, decide whether there exists a subset of X that sums to t; or more generally, compute the set OUT
+                                                   of all numbers y ∈ {0, . . . , t} for which there exists a subset of X that sums to y. Standard dynamic
+                                                   programming solves the problem in O(tn) time. In SODA’17, two papers appeared giving the current
+                                                   best deterministic and randomized     algorithms, ignoring polylogarithmic factors: Koiliaris and Xu’s de-
+                                                                                   e √n) time, while Bringmann’s randomized algorithm runs in O(t)
+                                                   terministic algorithm runs in O(t                                                               e time.
+                                                   We present the first deterministic algorithm running in O(t) time.
+                                                                                                             e
+                                                       Our technique has a number of other applications: for example, we can also derandomize the more
+                                                   recent output-sensitive algorithms by Bringmann and Nakos        [STOC’20] and Bringmann, Fischer, and
+                                                   Nakos [SODA’25] running in O(|                     e OUT|√n) time, and we can derandomize a previous
+                                                                                    e OUT|4/3 ) and O(|
+                                                   fine-grained reduction from 0-1 knapsack to min-plus convolution by Cygan et al. [ICALP’17].
+
+
+                                        1        Introduction
+                                        This paper studies one of the textbook problems in algorithm design, the subset sum problem: given a
+                                        (multi)set X of n positive integers and a target number t, decide whether there exists a subset of X that
+                                        sums to t. The problem is weakly NP-complete. Standard algorithms achieve roughly O(2n/2 ) time (by
+                                        the meet-in-the-middle trick [HS74]) and O(tn) time (by dynamic programming [Bel57]). Although it has
+                                        remained open whether the exponential bound 2n/2 could be improved in the worst case, the pseudopoly-
+                                        nomial bound O(tn) has been improved: in two concurrent SODA’17 papers, Koiliaris and Xu [KX19]
+                                                                  e √n)-time algorithm,1 and Bringmann [Bri17] described a randomized (Monte
+                                        described a deterministic O(t
+                                        Carlo) O(t)-time
+                                                e         algorithm. Another elegant randomized (Monte Carlo) O(t)-time
+                                                                                                                    e         algorithm was found by
+                                        Jin and Wu [JW19].
+                                            All of these pseudopolynomial algorithms can solve a stronger “all-targets” version of the problem:
+                                        compute OUT = {y ∈ {0, . . . , t} : there exists a subset of X that sums to y}. They can also compute a
+                                        representation of a feasible subset for each y ∈ OUT (so that a subset may subsequently be reported in
+                                        O(1)
+                                         e    time per element). For the all-targets version of the problem, the randomized O(t)-time
+                                                                                                                             e          algorithms are
+                                        clearly near optimal since the output size is Ω(t) in the worst case. For the original version of the problem,
+                                        Abboud, Bringmann, Hermelin, and Shabtay [ABHS22] also ruled out algorithms with time bounds of the
+                                        form O(t1−ε 2o(n) ) for any constant ε > 0, assuming SETH (see also [CDL+ 16] for an earlier conditional
+                                        lower bound under a different hypothesis).
+                                            * Siebel School of Computing and Data Science, University of Illinois at Urbana–Champaign, USA (tmc@illinois.edu)
+                                            1
+                                                Throughout this paper, the O
+                                                                           e notation hides factors polylogarithmic in n and t.
+
+
+
+                                                                                                            1
+    In recent years, numerous other algorithms have been proposed for the subset sum problem that take
+into account different parameters (e.g., the output size |OUT| [BN20, BFN25], the largest input value
+max(X) [PRW21, CLMZ24a, CLMZ24b], the density [BW21], space usage [LN10, Bri17, JVW21, NW21,
+BCKM24], . . . ). Many variants have also been explored (e.g., unbounded subset sum [Bri17], modular sub-
+set sum [ABJ+ 19, ABB+ 21, CI21], approximate subset sum [KMPS03, CLMZ24a], . . . ), and the problem
+is connected to other fundamental problems such as knapsack and coin changing, forming a very active topic
+of current research.
+
+Derandomization? The results in the two SODA’17 papers naturally raise the question of whether there
+exists a deterministic O(t)-time
+                        e         algorithm for subset sum, and this question has remained open for the last
+8 years. Bringmann’s randomized algorithm uses a color-coding technique [AYZ95], and although some
+past algorithms based on color-coding have been successfully derandomized (e.g., for computing k-simple
+paths/cycles in graphs), the overhead for derandomizing color-coding seems too big for the application to
+subset sum (our desired O(t)
+                           e bound doesn’t leave much room to absorb the overhead). If the number of
+elements k allowed in a sum is sublogarithmic, the cost of derandomization is tolerable, but not when k is
+large. It is unclear how to apply standard techniques such as the method of limited independence or the
+method of conditional probabilities/expectations without blowing up the time bound. Jin and Wu’s alter-
+native randomized algorithm [JW19] seems even tougher to derandomize—it computes counts modulo a
+random prime, and there is no obvious efficient way to guarantee that a correct prime is selected. Just con-
+verting these Monte Carlo randomized algorithms to Las Vegas is already open. On the other hand, Koiliaris
+and Xu’s deterministic approach [KX19] (see also [KX18] for an alternative) seems difficult to improve
+upon—they did give a variant with O(t e 4/3 ) running time but there is no clear path towards O(t1+ε ). By
+contrast, for variants such as unbounded subset sum2 [Bri17] and modular subset sum [ABB+ 21], efficient
+derandomization is not as difficult and is already known.
+
+New algorithm. We present the first deterministic algorithm for subset sum running in O(t)     e time. It also
+solves the all-targets version of the problem.
+    Our algorithm may be viewed as a derandomization of a variant of Bringmann’s [Bri17]. Instead of
+partitioning the input set into multiple disjoint subsets via color-coding, we recursivly partition the input
+set into two subsets, in such a way that the desired√subset for each target is split roughly evenly into two
+halves in terms of their cardinalities (with about k additive error if the subset has about k elements).
+This reinterpretation of Bringman’s algorithm as a divide-and-conquer via “halvers” (or similar randomized
+partitioning) is not new, and has appeared in other subsequent randomized algorithms for subset sum and
+knapsack (e.g., see [BN20, BDP24, BFN25]). However, although the existence of a good halver is guaran-
+teed by the probabilistic method (via standard Chernoff or discrepancy bound), its deterministic construction
+seems to require knowing the subsets for all targets, i.e., knowing all the answers in the first place! Our new
+approach is to speed up the halver construction by worsening its quality.3 So long as the additive error is
+kept slightly sublinear (bounded by k/ log k), the divide-and-conquer would still be efficient. To this end,
+we show that for any subset, there is an equivalent subset (with the same sum) that can be divided into
+a sublinear number of small “canonical” subsets; we then naively construct a halver with respect to these
+   2
+      In the unbounded subset sum problem, we may use an element multiple times to sum to the target. This tends to be easier, as
+much of the challenge in the original problem is in preventing an element from being used more than once.
+    3
+      The idea is very loosely inspired by work on derandomization in computational geometry concerning “ε-nets” and “ε-
+approximations” [Cha01, Mat00]. One specific inspiration is the author’s derandomization of a recursive algorithm for linear
+programming in low dimensions [Cha18], which builds a lower-quality ε-net (sufficient for this recursive algorithm) simply by
+dividing the input set into small subsets and applying a slow ε-net algorithm to each subset.
+
+
+                                                               2
+canonical subsets. The quality of the halver with respect to the original subsets would indeed suffer, but
+since there are not too many canonical subsets overall and their sizes are small, the construction is cheaper.
+But how to generate good canonical subsets? Our idea is to adapt Koiliaris and Xu’s deterministic algorithm
+for this purpose! Putting these pieces together in the right way, the whole solution turns out to be relatively
+simple, describable in 3 pages (see Section 2).
+
+Other consequences. Our new idea on halver construction can help derandomize other algorithms, too.
+We mention two applications:
+    1. Bringmann and Nakos [BN20] and Bringmann, Fischer, and Nakos [BFN25] recently obtained ran-
+       domized output-sensitive algorithms for the all-targets version of the subset sum problem, running in
+                         e OUT|√n) time respectively. (Standard dynamic programming [Bel57] can be
+       e OUT|4/3 ) and O(|
+       O(|
+                      e OUT|n) time.) Our technique can derandomize both algorithms with the same time
+       made to run in O(|
+       bound up to polylogarithmic factors in n and t.
+
+    2. Cygan, Mucha, W˛egrzycki, and Włodarczyk [CMWW19] gave a randomized reduction showing that
+       if the min-plus convolution problem for n elements could be solved in O(n2−ε ) time, then the 0-1
+       knapsack problem for items with positive integer weights bounded by t and positive real profits could
+       be solved in randomized O(t  e 2−ε′ ) time. Our technique provides a derandomization of this result.
+       (Derandomizing reductions have gained more attention√        recently; e.g., see [CH20, CX24, FKP24].)
+                                                      2
+       In particular, this implies a deterministic O(t /2Ω(  log t) )-time algorithm for 0-1 knapsack, by using
+       Chan and Williams’ deterministic min-plus matrix multiplication algorithm [CW21] together with a
+       known reduction from min-plus matrix multiplication to convolution [BCD+ 14].
+The second application above follows immediately by our technique (see Appendix A). The first application
+is more interesting, however, and requires additional new ideas, as we can no longer apply Koiliaris and
+Xu’s approach to generate canonical subsets (see Section 3).
+                                                                                     P
+Notation.    Let [u] denote {0, 1, . . . , u}. For a set S of integers, let σ(S) =   s∈S s. Define
+
+                            Σi (X) = {y : ∃S ⊆ X with |S| = i and σ(S) = y}.
+                  S
+Let Σ≤k (X) := i∈[k] Σi (X), and Σ(X) = Σ≤∞ (X). The all-targets version of the subset sum problem
+is to compute Σ(X) ∩ [t] for a given t.
+
+
+2     An O(t)-Time
+         e         Algorithm
+In this section, we present a deterministic O(t)-time
+                                            e         algorithm for all-targets subset sum.
+
+2.1    Preliminaries: Review of Koiliaris and Xu’s algorithm
+Many previous work on subset sum starts by considering the related problem of computing Σ≤k (X) (or a
+superset) for a given k. Bringmann [Bri17] solved this version of the problem in randomized O(ku)e      time,
+                                                                                          2
+where u = max(X), whereas Koiliaris and Xu [KX19] solved it in deterministic O(k u) time. We first
+                                                                                      e
+review Koiliaris and Xu’s solution, as we will need it later. Their approach is a binary divide-and-conquer,
+                                                                                         e 3 u) time, which
+using convolutions as a subroutine. We describe a simplified version below, running in O(k
+is good enough for our application; we reinterpret the divide-and-conquer in terms of dyadic intervals.
+
+                                                         3
+Lemma 2.1. Given a set X of integers in [u] and a number k, we can compute Σi (X) for all i ∈ [k], in
+e 3 u) deterministic time.
+O(k
+   Afterwards, for any given i ∈ [k] and y ∈ Σi (X), we can report one subset S ⊆ X with |S| = i and
+σ(S) = y, in O(k)
+             e    time.
+
+Proof. W.l.o.g., assume that u is a power of 2. A dyadic interval is an interval of the form (a, a + ℓ] where
+the length ℓ is a power of 2 and a is divisible by ℓ. For each dyadic interval I = (a, a + ℓ] ⊆ (0, u], we want
+to compute {Σi (X ∩ I)}i∈[k] .
+    Decompose I into two dyadic subintervals I ′ = (a, a + ℓ/2] and I ′′ = (a + ℓ/2, a + ℓ]. We can compute
+{Ci :=SΣi (X ∩ I)}i∈[k] from {Ai′ := Σi′ (X ∩ I ′ )}i′ ∈[k] and {Bi′′ := Σi′′ (X ∩ I ′′ )}i′′ ∈[k] by the formula
+Ci = i′ ,i′′ : i′ +i′′ =i (Ai′ + Bi′′ ). Since Ai′ ⊆ (ai′ , (a + ℓ/2)i′ ] and Bi′′ ⊆ ((a + ℓ/2)i′′ , (a + ℓ)i′′ ] are
+contained in intervals of length O(kℓ) for each i′ , i′′ ∈ [k], we can compute each sumset Ai′ + Bi′′ via a
+convolution of two Boolean vectors of length O(kℓ) in O(kℓ log(kℓ)) time. For each element z ∈ Ai′ +Bi′′ ,
+we can also compute a witness (x, y) ∈ Ai′ × Bi′′ with x + y = z, in O(kℓ logO(1) (kℓ)) time using the
+deterministic witness-finding technique by Alon and Naor [AN96].4 The total cost over all O(k 2 ) choices
+of (i′ , i′′ ) is O(k 3 ℓ logO(1) ℓ). For each element z ∈ Ci , we can also record an (i′ , i′′ ) with i′ + i′′ = i and
+z ∈ Ai′ + Bi′′ .
+    Proceeding bottom-up over all dyadic intervals, which have total length O(u log u), we obtain a total
+running time of O(k   e 3 u). For the root interval I0 = (0, u], we can report a subset corresponding to a given
+i ∈ [k] and y ∈ Σi (X ∩ I0 ) in O(k)   e    time by backtracking using the witnesses to the convolutions.
+
+ (Note. Koiliaris and Xu’s original version of the algorithm [KX19] achieved O(k         e 2 u) time instead of
+O(k  3
+ e u), essentially by observing that the Ci ’s can be computed by a single convolution of vectors of length
+O(k 2 ℓ), instead of O(k 2 ) convolutions of vectors of length O(kℓ). Also, they performed the divide-and-
+conquer slightly differently, by sorting the elements x1 , . . . , xn of X and computing {Σi ({xj : j ∈ I})}i∈[k]
+for dyadic intervals I ⊆ (0, n]. This allows some log u factors to be replaced by log n, which isn’t important
+to us, although this alternative will be useful later in Section 3.)
+
+2.2    Halver
+The key idea behind our algorithm concerns the construction of a halver, which we define below:
+
+Definition 2.2. Given a set X of positive integers, and numbers k and ∆, a (k, ∆)-halver of X is a partition
+of X into two disjoint subsets X ′ and X ′′ with the following property:
+
+       For every subset S ⊆ X with |S| ≤ k, there exists a subset Ŝ ⊆ X with |Ŝ| ≤ k, σ(Ŝ) = σ(S),
+       and |Ŝ ∩ X ′ |, |Ŝ ∩ X ′′ | ≤ |Ŝ|/2 + ∆.
+
+    Note the slight subtlety with the existential quantifier in the above definition (since there could be multi-
+ple subsets with the same cardinality and the same sum as S). We recall a well-known fact from discrepancy
+theory:
+
+Lemma 2.3. Given a set X and a collection C of subsets of X each of size at most k,pwe can compute a
+partition of X into two subsets X ′ and X ′′ such that |S ∩ X ′ |, |S ∩ X ′′ | ≤ |S|/2 + O( |S| log |C|) for all
+S ∈ C, in O(k|C| + |X|) deterministic time.
+   4
+    Alon and Naor’s witness-finding technique was originally described for matrix multiplication, but the technique is general and
+applies to convolution.
+
+
+
+                                                                4
+Proof. The existence of such a partition (X ′ , X ′′ ) is a basic fact in discrepancy theory [Cha01]. (A random
+partition works with high probability by a simple application of the Chernoff bound.) A deterministic
+construction of (X ′ , X ′′ ) can be obtained by the method of conditional expectation; see [Cha01, Theorem
+1.2] for a good description.5
+                                                               √
+    The above lemma implies the existence of a (k, O(       e k))-halver: for each y ∈ [ku], we simply fix
+one subset S ⊆ X with |S| ≤ k and σ(S) = y, if exists, and add it to the collection C, and then apply
+Lemma 2.3 to this collection. However, the construction time is too large (we would have to solve the subset
+sum problem in order to construct the collection√C in the first√place!). To improve the construction time, we
+worsen the additive error of our halver from O( e k) to O(k/e       b) for a parameter b ≤ k. We accomplish this
+by building a collection of small “canonical” subsets of sizes at most b, generated from Koiliaris and Xu’s
+algorithm, and then apply Lemma 2.3 to construct a halver for this collection:
+
+Lemma 2.4 (Canonical subset generation). Given a set X of integers in [u] and a number b, we can generate
+                    e 2 u) “canonical” subsets of X each of size at most b, in O(b
+a collection C of O(b                                                           e 3 u) deterministic time,
+satisfying the following property:
+
+       For every subset S ⊆ X, there exists a subset Ŝ ⊆ X such that |Ŝ| = |S|, σ(Ŝ) = σ(S), and
+       Ŝ is expressible as a union of O((|S|/b + 1) log u) disjoint canonical subsets in C.
+
+Proof. Run the algorithm from the proof of Lemma 2.1 with k = b. For each dyadic interval I = (a, a + ℓ],
+i ∈ [b], and y ∈ Σi (X ∩ I), find one subset SI [i, y] ⊆ X ∩ I with |SI [i, y]| = i and σ(SI [i, y]) = y, and
+add the subset to the collection C. The number of such subsets is O(b2 ℓ) per I (since there are b choices of
+i and O(ℓb) choices of y ∈ (ai, (a + ℓ)i]), each of which can be generated in O(b)     e   time. Over all dyadic
+intervals I (which have total length O(u log u)), the total number of subsets is O(b2 u).
+                                                                                      e
+     To prove that C satisfies the stated property, consider an arbitrary subset S ⊆ X. First partition (0, u]
+into a collection I(S) of disjoint dyadic intervals, each containing at most b points of S: namely, we start
+by visiting the root dyadic interval, and when we visit a dyadic interval containing more than b points of S,
+we recursively visit its two child intervals. The number of dyadic intervals visited per level is O(|S|/b + 1).
+Thus, the number of dyadic intervals generated is |I(S)| ≤ O((|S|/b+1) log u). For each interval I ∈ I(S),
+let iI = |S ∩ I| ∈ [b] and yI = σ(S ∩ I) ∈ Σi (X ∩ I). Define Ŝ to be the union of SI [iI , yI ] over all
+I ∈ I(S); these sets SI [iI , yI ] ⊆ X ∩ I are obviously disjoint because the intervals in I(S) are disjoint;
+and |SI [iI , yI ]| = |S ∩ I| and σ(SI [iI , yI ]) = σ(S ∩ I). Therefore, |Ŝ| = |S| and σ(Ŝ) = σ(S).
+
+Lemma √  2.5 (Fast halver construction). Given a set X of integers in [u] and b ≤ k, we can compute a
+(k, O(k/
+    e                         e 3 u) deterministic time.
+           b))-halver of X in O(b
+
+Proof. Apply Lemma 2.4 to construct a collection C of O(b    e 2 u) canonical subsets in O(be 3 u) time. Then
+apply Lemma 2.3 to this collection C, with k replaced                                   ′    ′′    e 3
+                     ′   ′′
+                                                  √ by b, to compute a partition (X , X ) in O(b u) time.
+    To prove that (X , X ) satisfies the (k, O(k/
+                                             e       b))-halver property, consider an arbitrary subset S ⊆ X
+with |S| ≤ k. Let Ŝ ⊆ X be such that |Ŝ| = |S| ≤ k, σ(Ŝ) = σ(S), and Ŝ is expressible as      √ a union of
+O((k/b) log u) disjoint canonical subsets Sj ∈ C. We have |Sj ∩ X ′ |, |Sj ∩ X ′′ | ≤ |Sj |/2 + O(
+                                                                                                e b) for each
+                                                                                    √
+such subset Sj . Summing over Sj gives |Ŝ ∩ X ′ |, |Ŝ ∩ X ′′ | ≤ |Ŝ|/2 + O(k/b
+                                                                            e     · b).
+   5
+     The time bound stated there was O(|X||C|), but because all our subsets have sizes at most k, the running time of the algorithm
+is actually O(k|C| + |X|).
+
+
+
+
+                                                                5
+2.3   Putting everything together
+Finally, we use halvers to obtain a deterministic divide-and-conquer algorithm for subset sum (which may
+be viewed as a variant of Bringmann’s randomized algorithm [Bri17]):
+
+Lemma 2.6. Given a set X of integers in [u] and a number k, we can compute a set OUT ⊆ [ku] such that
+Σ≤k (X) ⊆ OUT ⊆ Σ(X), in O(ku)
+                          e       deterministic time.
+
+Proof. The algorithm proceeds as follows:
+
+    1. Compute a (k, k/ log k)-halver (X ′ , X ′′ ) of X in O(u)
+                                                             e    time, by applying Lemma 2.5 with b =
+          c
+       log (ku) for a sufficiently large constant c (assuming k > b).
+
+    2. Recursively solve the problem for the input set X ′ and number k/2 + k/ log k; let OUT′ ⊆ [ku] be
+       the output set. Recursively solve the problem for the input set X ′′ and number k/2 + k/ log k; let
+       OUT ′′ ⊆ [ku] be the output set.
+
+    3. Return the clipped sumset OUT = (OUT′ + OUT′′ ) ∩ [ku], which can be computed by a convolution
+       two Boolean vectors of length O(ku) in O(ku)
+                                              e     time.
+
+The running time satisfies the recurrence:
+
+                               T (k, u) = 2 T (k/2 + k/ log k, u) + O(ku).
+                                                                    e
+
+For the base case k ≤ b (which implies k ≤ logO(1) u), we can use Lemma 2.1 to compute Σ≤k (X) in O(u)   e
+time and thus get T (k, u) = O(u).
+                              e       The recurrence solves to T (k, u) = O(ku).
+                                                                          e
+    To prove correctness, consider a subset S ⊆ X with |S| ≤ k and σ(S) = y. By definition of halver,
+there exists a subset Ŝ ⊆ X with |Ŝ| ≤ k, σ(Ŝ) = y, and |Ŝ ∩ X ′ |, |Ŝ ∩ X ′′ | ≤ k/2 + k/ log k. Then
+σ(Ŝ ∩ X ′ ) ∈ OUT′ and σ(Ŝ ∩ X ′′ ) ∈ OUT′′ by induction, and so y = σ(Ŝ ∩ X ′ ) + σ(Ŝ ∩ X ′′ ) ∈ OUT.
+
+Theorem 2.7. Given a set X of n integers in [t], we can compute Σ(X) ∩ [t] in O(t)
+                                                                              e deterministic time.
+
+Proof. For each i ∈ [⌈log t⌉], let Xi = X ∩ (t/2i , t/2i−1 ]. Compute Σ(Xi ) ∩ [t] by applying Lemma 2.6
+with u = t/2i−1 and k = 2i in O(2e i · t/2i−1 ) = O(t)
+                                                  e time (this is because Σ(Xi ) ∩ [t] = Σ≤2i (Xi ) ∩ [t]
+                i
+when Xi ⊆ (t/2 , ∞)). We return the clipped sumset ((Σ(X0 ) ∩ [t]) + (Σ(X1 ) ∩ [t]) + · · ·) ∩ [t], which
+can be computed by O(log t) convolutions of Boolean vectors of length O(t) in O(t)
+                                                                                e time.
+
+
+3     Output-Sensitive Algorithms
+In this section, we describe another application of our technique: the derandomization of a recent output-
+sensitive algorithm for all-targets subset sum by Bringmann, Fischer, and Nakos [BFN25], which runs in
+                 √
+O(|Σ(X)
+ e         ∩ [t]| n) time. An earlier output-sensitive algorithm by Bringmann and Nakos [BN20], which
+runs in O(|Σ(X)
+         e         ∩ [t]|4/3 ) time, can also be derandomized in a similar way, as we will briefly mention at
+the end.
+
+
+
+
+                                                     6
+3.1   Preliminaries
+We begin with a known subroutine on output-sensitive computation of sumsets. This subproblem was first
+solved by Cole and Hariharan [CH02] with randomization, which was later derandomized/improved in a
+series of subsequent papers [CL15, BFN21, BFN22, JX24]:
+
+Lemma 3.1. Given two sets A and B of integers in [t], we can compute the sumset A + B in O(|A
+                                                                                         e    + B|)
+deterministic time.
+
+   Output-sensitive computation of clipped sumsets is more expensive. Bringmann and Nakos [BN20]
+described a simple approach yielding the following (using the subroutine in Lemma 3.1):
+
+Lemmap 3.2. Given two sets A and Bp
+                                  of integers in [t], we can compute the clipped sumset C = (A+B)∩[t]
+   e |A||B||C|) ≤ O((|A|
+in O(               e       + |C|) |B|) deterministic time.
+
+    The next lemma below, observed by Bringmann, Fischer, and Nakos [BFN25, Lemma 3.1] (but stated
+in a different form), derandomizes the small k case using Bringmann’s color-coding approach [Bri17]. For
+completeness, we include a quick proof sketch:
+
+Lemma 3.3. Given a set X of n integers in [t], a set A of integers in [t], and a number k, we can compute
+a set OUT such that (A + Σ≤k (X)) ∩ [t] ⊆ OUT ⊆ (A + Σ(X)) ∩ [t], in O(k    e O(1) |(A + Σ(X)) ∩ [t]|√n)
+deterministic time.
+    Afterwards, for any given y ∈ OUT, we can report one number a ∈ A and one subset S ⊆ X with
+a + σ(S) = y, in O(|S|)
+                   e     time.
+
+Proof. There exists a family H of O(k O(1) log n) “perfect” hash functions from X to {1, . . . , k 2 } satisfying
+the following property: for every subset S ⊆ X with |S| ≤ k, there exists h ∈ H such that {h(x) : x ∈ S}
+are all distinct. The family can be constructed in O(k O(1) logO(1) n) time. E.g., see [AYZ95, Section 4].
+    Fix h ∈ H. For each j ∈ {1, . . . , k 2 }, let Xh,j = {x ∈ X : h(x) = j}. Compute the clipped sumset
+
+                         OUT h = (A + (Xh,1 ∪ {0}) + · · · + (Xh,k2 ∪ {0})) ∩ [t]
+
+
+by applying Lemma 3.2 O(k 2 ) times in O(ke O(1) |(A + Σ(X)) ∩ [t]|√n) time. Then OUT = S
+                                                                                             h∈H OUT h
+fulfills the output requirement. For any given y ∈ OUT, we can report a corresponding number a ∈ A and
+subset S ⊆ X again using the deterministic witness-finding technique by Alon and Naor [AN96].
+
+3.2   Halver
+As before, the key idea is the construction of a halver. We now need a “weighted” variant that halves the
+sum of a subset rather than its cardinality:
+
+Definition 3.4. Given a set X of positive integers, and numbers t and ∆, a weighted (t, ∆)-halver of X is
+a partition of X into two disjoint subsets X ′ and X ′′ with the following property:
+
+      For every subset S ⊆ X with σ(S) ≤ t, there exists a subset Ŝ ⊆ X with σ(Ŝ) = σ(S), and
+      σ(Ŝ ∩ X ′ ), σ(Ŝ ∩ X ′′ ) ≤ σ(Ŝ)/2 + ∆.
+
+     As before, we will generate a collection of small canonical subsets, to which we will then apply
+Lemma 2.3 to construct a halver. Unforunately, Koiliaris and Xu’s algorithm is no longer applicable, since
+it is not output-sensitive. Instead, we will use the algorithm from Lemma 3.3 for small k for this purpose.
+
+                                                       7
+However, it is not clear how canonical subsets can be obtained from this algorithm, since it does not work
+via divide-and-conquer or dyadic intervals. Our new idea is to invoke the algorithm for Lemma 3.3 multiple
+times on different inputs associated with different dyadic intervals. Bounding the total cost of these multi-
+ple invocations may at first appear problematic, but luckily the following simple observation comes to the
+rescue:
+
+Observation 3.5. Let X be a sorted list of numbers. Suppose X is partitioned into contiguous sublists
+X1 , . . . , Xm . Then |Σ≤k (X1 ) ∩ [t]| + · · · + |Σ≤k (Xm ) ∩ [t]| ≤ O(k)|Σ(X) ∩ [t]|.
+
+Proof. For a fixed i, Σi (X1 ), . . . , Σi (Xm ) are disjoint, since every element in Σi (Xj ) is smaller than every
+element in Σi (Xj+1 ) for every j. Thus, |Σi (X1 )∩[t]|+· · ·+|Σi (Xm )∩[t]| ≤ |Σi (X)∩[t]|. The observation
+then follows by summing over all i ∈ [k].
+
+Lemma 3.6 (Canonical subset generation). Given a constant δ ∈ (0, 1], a set X of n integers in [u/(1 +
+δ), u], and numbers t and b, we can generate a collection C of O(b|Σ(X)
+                                                               e         ∩ [t]|) “canonical” subsets of
+                                       O(1)             √
+X each of size at most (1 + δ)b, in O(b
+                                    e       |Σ(X) ∩ [t]| n) deterministic time, satisfying the following
+property:
+
+      For every subset S ⊆ X with σ(S) ≤ t, there exists a subset Ŝ ⊆ X such that σ(Ŝ) = σ(S)
+      and Ŝ is expressible as a union of O((|S|/b + 1) log n) disjoint canonical subsets in C.
+
+Proof. W.l.o.g., assume that n is a power of 2. Sort the elements x1 , . . . , xn of X. For each dyadic interval
+I = (a, a + ℓ] ⊆ (0, n], run the algorithm in Lemma 3.3 with A = ∅, k = b, and t replaced by min{t, bu},
+on the input set XI := {xj : j ∈ I}, to get output set OUTI . For each dyadic interval I and each y ∈
+OUT I ⊆ Σ(XI ) ∩ [min{t, bu}], find one subset SI [y] ⊆ XI with σ(SI [y]) = y, and add the subset
+to the collection C. Note that |SI [y]| ≤ bu/(u/(1 + δ)) = (1 + δ)b. By Observation 3.5, the sum of
+|Σ(XI ) ∩ [min{t, bu}]| = |Σ≤(1+δ)b (XI ) ∩ [min{t, bu}]| over all dyadic intervals I of a fixed length is at
+most O(b|Σ(X) ∩ [min{t, bu}]|); thus, the sum over all dyadic intervals I of all lengths is O(b|Σ(X) ∩
+[min{t, bu}]| log n). So, the total number of subsets in C is bounded by O(b|Σ(X) ∩ [t]| log n), and the
+computation time is O(be O(1) |Σ(X) ∩ [t]|√n).
+    To prove that C satisfies the stated property, consider an arbitrary subset S ⊆ X. First partition (0, n] into
+a collection I(S) of disjoint dyadic intervals, each containing at most b indices of {j : xj ∈ S}: namely, we
+start by visiting the root dyadic interval, and when we visit a dyadic interval containing more than b indices
+of {j : xj ∈ S}, we recursively visit its two child intervals. The number of dyadic intervals visited per level
+is O(|S|/b + 1). Thus, the number of dyadic intervals generated is |I(S)| ≤ O((|S|/b + 1) log n). For each
+interval I ∈ I(S), let yI = σ(S ∩ XI ) ∈ Σ≤b (XI ) ∩ [min{t, bu}] ⊆ OUTI . Define Ŝ to be the union of
+SI [yI ] over all I ∈ I(S); these sets SI [yI ] ⊆ XI are obviously disjoint because the intervals in I(S) are
+disjoint; and σ(SI [yI ]) = σ(S ∩ XI ). Therefore, σ(Ŝ) = σ(S).
+
+Lemma 3.7 (Fast halver construction).
+                                 √            Given a set X of n integers in [u] and numbers t and b, we can
+compute a weighted (t, O(t/ b + bu))-halver of X in O(b
+                          e                                   e O(1) |Σ(X) ∩ [t]|√n) deterministic time.
+                     √
+Proof. Let δ = 1/ b. For each ℓ ∈ [⌈log1+δ u⌉], let X (ℓ) = X ∩[(1+δ)ℓ , (1+δ)ℓ+1 ). Apply Lemma 3.6 to
+the input set X (ℓ) (with u replaced by (1+δ)ℓ+1 ) toSconstruct a collection C (ℓ) of O(b|Σ(X)∩[t]|)
+                                                                                       e                canonical
+               O(1)                √                         (ℓ)
+subsets in O(b
+            e        |Σ(X) ∩ [t]| n) time. Let C = ℓ C . Then apply Lemma 2.3 to this collection C, with
+k = (1 + δ)b, to compute a partition (X ′ , X ′′ ) in O(b
+                                                       e O(1) |Σ(X) ∩ [t]|) time.
+                                                                 √
+    To prove that (X ′ , X ′′ ) satisfies the weighted (t, O(t/
+                                                           e       b + bu))-halver property, consider an arbitrary
+subset S ⊆ X with σ(S) ≤ t. Let Ŝ (ℓ) ⊆ X (ℓ) be such that σ(Ŝ (ℓ) ) = σ(S ∩ X (ℓ) ) and Ŝ (ℓ) is expressible
+
+                                                         8
+                                                                              (ℓ)                (ℓ)         (ℓ)
+as a union of O((|S ∩ X (ℓ) |/b + 1) log n) disjoint canonical subsets Sj ∈ C (ℓ) . We have |Sj ∩ X ′ |, |Sj ∩
+           (ℓ)       √
+                   e b) for each such subset Sj . Summing over S (ℓ) gives
+X ′′ | ≤ |S |/2 + O(
+          j                                                               j
+                                                                                               √
+                max{|Ŝ (ℓ) ∩ X ′ |, |Ŝ (ℓ) ∩ X ′′ |} ≤ |Ŝ (ℓ) |/2 + O((|S
+                                                                       e     ∩ X (ℓ) |/b + 1) · b)
+                                                                                      √     √
+                                                       = |Ŝ (ℓ) |/2 + O(|S
+                                                                       e    ∩ X (ℓ) |/ b + b).
+                                             1
+Let Ŝ = ℓ Ŝ (ℓ) . Then σ(Ŝ) = σ(S). Now, 1+δ σ(Ŝ ∩ X ′ ) ≤ ℓ (1 + δ)ℓ |Ŝ (ℓ) ∩ X ′ |, and 1+δ
+                                                                                                1
+                                                                                                   σ(Ŝ ∩ X ′′ ) ≤
+         S                                                     P
+           ℓ (ℓ) ∩ X ′′ |. Thus,
+P
+  ℓ (1 + δ) |Ŝ
+                                      X                                        √      √ 
+max{σ(Ŝ ∩ X ′ ), σ(Ŝ ∩ X ′′ )} ≤       (1 + δ)ℓ |Ŝ (ℓ) |/2 + O(|S
+                                                                e    ∩ X (ℓ) |/ b + b) + O(δt)
+                                         ℓ
+                                                                      !
+                                                      √    X        √
+                                   ≤ σ(Ŝ)/2 + O
+                                               e σ(S)/ b +  (1 + δ)ℓ b + O(δt)
+                                                                      ℓ
+                                                   √    √                           √
+                                   = σ(Ŝ)/2 + O(t/
+                                               e     b + bu/δ + δt) = σ(Ŝ)/2 + O(t/
+                                                                                e     b + bu).
+
+
+
+3.3   Putting everything together
+We are now ready to derandomize Bringmann, Fischer, and Nakos’ algorithm [BFN25]. The algorithm is a
+multi-way divide-and-conquer, so we first extend halvers to split into r parts:
+
+Definition 3.8. Given a set X of positive integers, and numbers t and ∆, a weighted r-way (t, ∆)-splitter
+of X is a partition of X into r disjoint subsets X1 , . . . , Xr with the following property:
+
+      For every subset S ⊆ X with σ(S) ≤ t, there exists a subset Ŝ ⊆ X with σ(Ŝ) = σ(S), and
+      σ(Ŝ ∩ Xj ) ≤ σ(Ŝ)/r + ∆ for each j ∈ {1, . . . , r}.
+
+Corollary 3.9 (Fast r-way splitter construction).
+                                             √ Given a set X of n integers in [u]O(1)
+                                                                                  and numbers t, b, r,
+                                                                                                  √
+we can compute a weighted r-way (t, O((t/ b + bu) log r))-splitter of X in O(rb
+                                       e                                   e          |Σ(X) ∩ [t]| n)
+deterministic time.
+
+Proof. Just apply Lemma 3.7 recursively for log r levels.
+                                                                                             √
+Theorem 3.10. Given a set X of n integers in [t], we can compute Σ(X) ∩ [t] in O(|Σ(X)
+                                                                               e       ∩ [t]| n)
+deterministic time.
+
+Proof. Let uS = ⌈t/(r6 logc t)⌉ for a sufficiently large constant c. Let XS = X∩[uS ] and XL = X∩(uS , t].
+The following is a reinterpretation of Bringmann, Fischer, and Nakos’ algorithm [BFN25]:
+                                                                               e O(1) |Σ(X) ∩ [t]|√n) deter-
+   1. Compute a weighted r-way (t, t/r2 )-splitter (X1 , . . . , Xr ) of XS in O(r
+      ministic time, by √applying Corollary 3.9 with b = O(re 4 ) and u replaced by uS (the parameters are
+      chosen so that (t/ b + buS ) log r ≪ t/r ).2
+
+
+   2. Recursively compute Aj = Σ(Xj ) ∩ [t/r + t/r2 ] for each j ∈ {1, . . . , r}.
+
+   3. Compute the sumset A = A1 + · · · + Ar by applying Lemma 3.1 O(r) times in O(r|A|)
+                                                                                 e       deterministic
+      time.
+
+
+                                                        9
+    4. Return (A + Σ(XL )) ∩ [t], which can be computed by applying Lemma 3.3 with k = r6 logc t in
+       e O(1) |Σ(X) ∩ [t]|√n) deterministic time (this is because Σ(XL ) ∩ [t] = Σ≤r6 logc t (XL ) ∩ [t] when
+       O(r
+       XL ⊆ (t/(r6 logc t), ∞)).
+
+     Bringmann, Fischer, and Nakos [BFN25] proved that
+
+    |(Σ(X1 ) ∩ [t/r(1 + 1/r)]) + · · · + (Σ(Xr ) ∩ [t/r(1 + 1/r)])| ≤ |Σ(X1 ∪ · · · ∪ Xr ) ∩ [t]|1+1/(r−1)
+
+by using a “submultiplicativity” property for sumsets due to Gyarmati, Matolcsi, and Ruzsa [GMR10].
+Thus, |A| = |A1 + · · · + Ar | ≤ |Σ(X) ∩ [t]|1+1/(r−1) . Bringmann, Fischer, and Nakos further noted that
+|A1 | + · · · + |Ar | ≤ |A1 + · · · + Ar | + r − 1.
+    Thus, the running time for µ = |Σ(X) ∩ [t]| satisfies the recurrence
+                                                                 
+  T (n, t, µ) ≤                            max                     T (n1 , t/r + t/r2 , µ1 ) + · · · + T (nr , t/r + t/r2 , µr )
+                             n1 , . . . , nr , µ1 , . . . , µr :
+                                 n1 + · · · + nr ≤ n,                                                                        √ 
+                                               1+1/(r−1)                                   +  e O(1) · (µ1+1/(r−1) + µ n)) .
+                                                                                              O(r
+                      µ1 + · · · + µr ≤ µ                      +r−1
+
+                                                                    2
+By choosing r = log2 t+1, we have µ1/(r−1) ≤ 2log µ/ log t ≤ 21/ log t = 1+O(1/ log t), and the recurrence
+                        e √n).
+solves to T (n, t, µ) = O(µ
+
+    To close, we mention that another output-sensitive subset sum algorithm by Bringmann and Nakos [BN20]
+can be similarly derandomized. They described a (more complicated) alternative to Lemma 3.2 on output-
+sensitive construction of clipped sumsets, running in O(|C|
+                                                       e     4/3 ) time (their construction is deterministic, if
+
+a deterministic version of Lemma 3.1 is used). By replacing Lemma 3.2, keeping the rest of the algorithm
+the same, and straightforwardly modifying the above analysis, we immediately obtain:
+
+Theorem 3.11. Given a set X of n integers in [t], we can compute Σ(X) ∩ [t] in O(|Σ(X)
+                                                                               e       ∩ [t]|4/3 )
+deterministic time.
+
+
+4     Remarks
+In the O(t)-time
+        e          algorithm in Section 2, we have not tried to optimize (and thus have not written out) the
+number of log t factors. It is larger than the previous randomized algorithms (Bringmann’s algorithm [Bri17]
+had 4 log factors, and Jin and Wu’s algorithm [JW19] had 2), but is not gigantic (probably below 20).
+    In the output-sensitive algorithms in Section 3, we reiterate that the hidden extra factors are polylogarith-
+mic in n and t. The previous randomized algorithms by Bringmann, Fischer, and Nakos [BFN25] actually
+got factors that are polylogarithmic in the output size |Σ(X) ∩ [t]| rather than in t; this seems harder to do
+from the derandomization perspective (but would not make a big difference except in some extreme cases).
+    Like previous work, our algorithms easily adapt to the setting when X is a multiset—a subset of X
+cannot use an element more times than its original multiplicity. (Note that n could be larger than t here, and
+to avoid an O(n) term in the running time, we may need to assume that X is represented as a list of distinct
+elements with given multiplicities.)
+    In the O(t)-time
+            e          algorithm in Section 2, we generate canonical subsets by adapting Koiliaris and Xu’s
+algorithm [KX19], but in Section 3, we have realized that Koiliaris and Xu’s algorithm is not essential to
+our technique (though it is convenient, since it already incorporates dyadic intervals). This realization may
+potentially help in future applications.
+
+
+                                                              10
+    We hope that our technique may find many further applications in derandomizing other algorithms in this
+area, since a number of previous algorithms used randomized
+                                                      √       partitioning similar to halvers—to name just
+two examples, Chen, Lian, Mao, and Zhang’s O(ne + ut)-time subset sum algorithm [CLMZ24b] (where
+u = max(X)) and Bringmann, Dürr, and Polak’s knapsack algorithm [BDP24]. We leave the question
+of their derandomization to future work (these algorithms have other components that may pose additional
+challenges to derandomize).
+
+Acknowledgement. I thank Karl Bringmann for suggesting potential applications of the technique, in-
+cluding derandomization of the output-sensitive subset sum algorithms.
+
+
+References
+[ABB+ 21]   Kyriakos Axiotis, Arturs Backurs, Karl Bringmann, Ce Jin, Vasileios Nakos, Christos Tzamos, and
+            Hongxun Wu. Fast and simple modular subset sum. In Proc. 4th Symposium on Simplicity in Algorithms
+            (SOSA), pages 57–67, 2021. doi:10.1137/1.9781611976496.6.
+[ABHS22]    Amir Abboud, Karl Bringmann, Danny Hermelin, and Dvir Shabtay. SETH-based lower bounds for sub-
+            set sum and bicriteria path. ACM Trans. Algorithms, 18(1):6:1–6:22, 2022. doi:10.1145/3450524.
+[ABJ+ 19]   Kyriakos Axiotis, Arturs Backurs, Ce Jin, Christos Tzamos, and Hongxun Wu. Fast modular subset sum
+            using linear sketching. In Proc. 30th Annual ACM–SIAM Symposium on Discrete Algorithms (SODA),
+            pages 58–69, 2019. doi:10.1137/1.9781611975482.4.
+[AN96]      Noga Alon and Moni Naor. Derandomization, witnesses for Boolean matrix multiplication and construc-
+            tion of perfect hash functions. Algorithmica, 16(4/5):434–449, 1996. doi:10.1007/BF01940874.
+[AYZ95]     Noga Alon, Raphael Yuster, and Uri Zwick. Color-coding. J. ACM, 42(4):844–856, 1995. doi:
+            10.1145/210332.210337.
+[BCD+ 14]   David Bremner, Timothy M. Chan, Erik D. Demaine, Jeff Erickson, Ferran Hurtado, John Iacono, Stefan
+            Langerman, Mihai Pătraşcu, and Perouz Taslakian. Necklaces, convolutions, and X + Y . Algorithmica,
+            69(2):294–314, 2014. doi:10.1007/S00453-012-9734-3.
+[BCKM24]    Tatiana Belova, Nikolai Chukhin, Alexander S. Kulikov, and Ivan Mihajlin. Improved space bounds for
+            subset sum. In Proc. 32nd Annual European Symposium on Algorithms (ESA), pages 21:1–21:17, 2024.
+            doi:10.4230/LIPICS.ESA.2024.21.
+[BDP24]     Karl Bringmann, Anita Dürr, and Adam Polak. Even faster knapsack via rectangular monotone min-
+            plus convolution and balancing. In Proc. 32nd Annual European Symposium on Algorithms (ESA), pages
+            33:1–33:15, 2024. doi:10.4230/LIPICS.ESA.2024.33.
+[Bel57]     Richard E. Bellman. Dynamic Programming. Princeton University Press, 1957.
+[BFN21]     Karl Bringmann, Nick Fischer, and Vasileios Nakos. Sparse nonnegative convolution is equivalent
+            to dense nonnegative convolution. In Proc. 53rd Annual ACM Symposium on Theory of Computing
+            (STOC), pages 1711–1724, 2021. doi:10.1145/3406325.3451090.
+[BFN22]     Karl Bringmann, Nick Fischer, and Vasileios Nakos. Deterministic and Las Vegas algorithms for sparse
+            nonnegative convolution. In Proc. 33rd ACM–SIAM Symposium on Discrete Algorithms (SODA), pages
+            3069–3090, 2022. doi:10.1137/1.9781611977073.119.
+[BFN25]     Karl Bringmann, Nick Fischer, and Vasileios Nakos. Beating Bellman’s algorithm for subset sum. In
+            Proc. 36th Annual ACM–SIAM Symposium on Discrete Algorithms (SODA), pages 4596–4612, 2025.
+            doi:10.1137/1.9781611978322.157.
+
+
+
+                                                      11
+[BN20]       Karl Bringmann and Vasileios Nakos. Top-k-convolution and the quest for near-linear output-sensitive
+             subset sum. In Proc. 52nd Annual ACM Symposium on Theory of Computing (STOC), pages 982–995,
+             2020. doi:10.1145/3357713.3384308.
+[Bri17]      Karl Bringmann. A near-linear pseudopolynomial time algorithm for subset sum. In Proc. 28th Annual
+             ACM–SIAM Symposium on Discrete Algorithms (SODA), pages 1073–1084, 2017. doi:10.1137/
+             1.9781611974782.69.
+[BW21]       Karl Bringmann and Philip Wellnitz. On near-linear-time algorithms for dense subset sum. In Proc.
+             32nd ACM–SIAM Symposium on Discrete Algorithms (SODA), pages 1777–1796, 2021. doi:10.
+             1137/1.9781611976465.107.
+[CDL+ 16]    Marek Cygan, Holger Dell, Daniel Lokshtanov, Dániel Marx, Jesper Nederlof, Yoshio Okamoto, Ra-
+             mamohan Paturi, Saket Saurabh, and Magnus Wahlström. On problems as hard as CNF-SAT. ACM
+             Trans. Algorithms, 12(3):41:1–41:24, 2016. doi:10.1145/2925416.
+[CH02]       Richard Cole and Ramesh Hariharan. Verifying candidate matches in sparse and wildcard matching.
+             In Proc. 34th Annual ACM Symposium on Theory of Computing (STOC), pages 592–601, 2002. doi:
+             10.1145/509907.509992.
+[CH20]       Timothy M. Chan and Qizheng He. Reducing 3SUM to Convolution-3SUM. In Proc. 3rd Symposium
+             on Simplicity in Algorithms (SOSA), pages 1–7, 2020. doi:10.1137/1.9781611976014.1.
+[Cha01]      Bernard Chazelle. The Discrepancy Method: Randomness and Complexity. Cambridge University
+             Press, 2001. URL: https://www.cs.princeton.edu/~chazelle/book.html.
+[Cha18]      Timothy M. Chan. Improved deterministic algorithms for linear programming in low dimensions. ACM
+             Trans. Algorithms, 14(3):30:1–30:10, 2018. doi:10.1145/3155312.
+[CI21]       Jean Cardinal and John Iacono. Modular subset sum, dynamic strings, and zero-sum sets. In
+             Proc. 4th Symposium on Simplicity in Algorithms (SOSA), pages 45–56, 2021. doi:10.1137/1.
+             9781611976496.5.
+[CL15]       Timothy M. Chan and Moshe Lewenstein. Clustered integer 3SUM via additive combinatorics. In
+             Proc. 47th Annual ACM on Symposium on Theory of Computing (STOC), pages 31–40, 2015. doi:
+             10.1145/2746539.2746568.
+[CLMZ24a] Lin Chen, Jiayi Lian, Yuchen Mao, and Guochuan Zhang. Approximating partition in near-linear time.
+          In Proc. 56th Annual ACM Symposium on Theory of Computing (STOC), pages 307–318, 2024. doi:
+          10.1145/3618260.3649727.
+[CLMZ24b] Lin Chen, Jiayi Lian, Yuchen Mao, and Guochuan Zhang. An improved pseudopolynomial time al-
+          gorithm for subset sum. In Proc. 65th IEEE Annual Symposium on Foundations of Computer Science
+          (FOCS), pages 2202–2216, 2024. doi:10.1109/FOCS61266.2024.00129.
+[CMWW19] Marek Cygan, Marcin Mucha, Karol W˛egrzycki, and Michał Włodarczyk. On problems equivalent to
+         (min, +)-convolution. ACM Trans. Algorithms, 15(1):14:1–14:25, 2019. doi:10.1145/3293465.
+[CW21]       Timothy M. Chan and R. Ryan Williams. Deterministic APSP, orthogonal vectors, and more: Quickly
+             derandomizing Razborov–Smolensky. ACM Trans. Algorithms, 17(1):2:1–2:14, 2021. doi:10.
+             1145/3402926.
+[CX24]       Timothy M. Chan and Yinzhan Xu. Simpler reductions from Exact Triangle. In Proc. 7th Symposium on
+             Simplicity in Algorithms (SOSA), pages 28–38. SIAM, 2024. doi:10.1137/1.9781611977936.
+             4.
+[FKP24]      Nick Fischer, Piotr Kaliciak, and Adam Polak. Deterministic 3SUM-hardness. In Proc. 15th Innova-
+             tions in Theoretical Computer Science Conference (ITCS), pages 49:1–49:24, 2024. doi:10.4230/
+             LIPICS.ITCS.2024.49.
+
+
+                                                      12
+[GMR10]      Katalin Gyarmati, Máté Matolcsi, and Imre Z. Ruzsa. A superadditivity and submultiplicativity property
+             for cardinalities of sumsets. Comb., 30(2):163–174, 2010. doi:10.1007/S00493-010-2413-6.
+[HS74]       Ellis Horowitz and Sartaj Sahni. Computing partitions with applications to the knapsack problem. J.
+             ACM, 21(2):277–292, 1974. doi:10.1145/321812.321823.
+[JVW21]      Ce Jin, Nikhil Vyas, and Ryan Williams. Fast low-space algorithms for subset sum. In Proc. 32nd
+             ACM–SIAM Symposium on Discrete Algorithms (SODA), pages 1757–1776, 2021. doi:10.1137/
+             1.9781611976465.106.
+[JW19]       Ce Jin and Hongxun Wu. A simple near-linear pseudopolynomial time randomized algorithm for subset
+             sum. In Proc. 2nd Symposium on Simplicity in Algorithms (SOSA), pages 17:1–17:6, 2019. doi:
+             10.4230/OASICS.SOSA.2019.17.
+[JX24]       Ce Jin and Yinzhan Xu. Shaving logs via large sieve inequality: Faster algorithms for sparse convolution
+             and more. In Proc. 56th Annual ACM Symposium on Theory of Computing (STOC), pages 1573–1584,
+             2024. doi:10.1145/3618260.3649605.
+[KMPS03]     Hans Kellerer, Renata Mansini, Ulrich Pferschy, and Maria Grazia Speranza. An efficient fully poly-
+             nomial approximation scheme for the subset-sum problem. J. Comput. Syst. Sci., 66(2):349–370, 2003.
+             doi:10.1016/S0022-0000(03)00006-0.
+[KPS17]      Marvin Künnemann, Ramamohan Paturi, and Stefan Schneider. On the fine-grained complexity of one-
+             dimensional dynamic programming. In Proc. 44th International Colloquium on Automata, Languages,
+             and Programming (ICALP), pages 21:1–21:15, 2017. doi:10.4230/LIPICS.ICALP.2017.21.
+[KX18]       Konstantinos Koiliaris and Chao Xu. Subset sum made simple. CoRR, abs/1807.08248, 2018. arXiv:
+             1807.08248.
+[KX19]       Konstantinos Koiliaris and Chao Xu. Faster pseudopolynomial time algorithms for subset sum. ACM
+             Trans. Algorithms, 15(3):40:1–40:20, 2019. Preliminary version in SODA 2017. doi:10.1145/
+             3329863.
+[LN10]       Daniel Lokshtanov and Jesper Nederlof. Saving space by algebraization. In Proc. 42nd ACM Symposium
+             on Theory of Computing (STOC), pages 321–330, 2010. doi:10.1145/1806689.1806735.
+[Mat00]      Jirí Matoušek. Derandomization in computational geometry. In Jörg-Rüdiger Sack and Jorge Urrutia,
+             editors, Handbook of Computational Geometry, pages 559–595. North Holland / Elsevier, 2000. doi:
+             10.1016/B978-044482537-7/50014-0.
+[NW21]       Jesper Nederlof and Karol W˛egrzycki. Improving Schroeppel and Shamir’s algorithm for subset sum
+             via orthogonal vectors. In Proc. 53rd Annual ACM Symposium on Theory of Computing (STOC), pages
+             1670–1683, 2021. doi:10.1145/3406325.3451024.
+[PRW21]      Adam Polak, Lars Rohwedder, and Karol W˛egrzycki. Knapsack and subset sum with small items.
+             In Proc. 48th International Colloquium on Automata, Languages, and Programming (ICALP), pages
+             106:1–106:19, 2021. doi:10.4230/LIPICS.ICALP.2021.106.
+
+
+A    Reducing 0-1 Knapsack to Min-Plus Convolution
+In the all-capacities version of the 0-1 knapsack problem, we are given n items where the j-th item has
+
+                            P           P                               o a number t. For each i ∈ [t], we want
+positive integer weight wnj and positive real profit pj , and we are given
+to compute f [i] = max         j∈J pj :  j∈J wj = i, J ⊆ {1, . . . , n} .
+    0-1 knapsack may be viewed as a two-dimensional variant of subset sum. More precisely, we map each
+item to a point (wj , pj ) in two dimensions. For a set of two-dimensional points A ⊆ [t] × R+ , define the
+
+
+                                                        13
+                                                    
+operator P - MAX(A) =       (w, p∗ ) ∈ A : p∗ = max p . The problem is then equivalent to the following:
+                                                (w,p)∈A
+given a set of n two-dimensional points X ⊂ [t] × R+ , compute P - MAX(Σ(X) ∩ ([t] × R+ )), where Σ(·)
+is defined exactly as before (additions are now performed in two dimensions). We may assume that n ≤ t
+after an initial O(n)-time preprocessing (replacing X with P - MAX(X ∩ ([t] × R+ ))).
+    Cygan, Mucha, W˛egrzycki, and Włodarczyk [CMWW19] and Künnemann, Paturi, and Schneider [KPS17]
+gave deterministic reductions from min-plus convolution to all-targets 0-1 knapsack. In the reverse direc-
+tion, Cygan et al. [CMWW19] gave a randomized reduction from all-targets 0-1 knapsack to min-plus
+convolution, by modifying Bringmann’s randomized algorithm for subset sum [Bri17]. We can obtain a
+deterministic reduction from all-targets 0-1 knapsack to min-plus convolution by modifying the algorithm
+in Section 2.
+    The modification is mostly straightforward. We mention some of the main changes:
+
+    • Expressions such as X ∩ I should be reinterpreted as X ∩ (I × R+ ).
+
+    • Most occurrences of Σi (X) should be changed to P - MAX(Σi (X)).
+
+    • Each sumset A + B should be changed to P - MAX(A + B). Given A, B ⊆ [t] × R+ , the computation
+      of P - MAX(A + B) is equivalent to max-plus convolution over two real vectors of length O(t), which
+      is equivalent to min-plus convolution by negation.
+
+    • In Definition 2.2 on halvers, the property is now:
+
+           For every subset S ⊆ X with |S| ≤ k and σ(S) ∈ P - MAX(Σ≤k (X)), there exists a subset
+           Ŝ ⊆ X with |Ŝ| ≤ k, σ(Ŝ) = σ(S), and |Ŝ ∩ X ′ |, |Ŝ ∩ X ′′ | ≤ |Ŝ|/2 + ∆.
+
+    • In Lemma 2.4 on canonical subset generation, the property is now:
+
+           For every subset S ⊆ X with σ(S) ∈ P - MAX(Σ|S| (X)), there exists a subset Ŝ ⊆ X such
+           that |Ŝ| = |S|, σ(Ŝ) = σ(S), and Ŝ is expressible as a union of O((|S|/b + 1) log u)
+           disjoint canonical subsets in C.
+
+      Note that if σ(S) ∈ P - MAX(Σ|S| (X)), then for any interval I, we must also have σ(S ∩ (I × R+ )) ∈
+      P - MAX |S∩(I×R+ )| (X ∩ (I × R+ )).
+
+    • In Lemma 2.6, we are now computing a set OUT ⊆ [ku]×R+ such that P - MAX(Σ≤k (X)) ⊆ {(w, p′ ) :
+      p′ ≥ p, (w, p) ∈ OUT} and OUT ⊆ Σ(X).
+
+The rest of the changes are easy to work out.
+
+Theorem A.1. If min-plus convolution for two real vectors of length n could be computed in T (n) de-
+terministic time, then the all-capacities version of the 0-1 knapsack problem could be solved in O(T
+                                                                                                 e (t))
+deterministic time.
+
+
+
+
+                                                      14
+

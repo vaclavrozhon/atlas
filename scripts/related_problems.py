@@ -7,7 +7,7 @@ def is_active(card):
     return not card.get('scope_exclusion') and card['status'] not in {'resolved', 'excluded'}
 
 
-def apply_related_problems(cards, deleted=()):
+def apply_related_problems(cards, inactive=()):
     by_id = {card['id']: card for card in cards}
     active = {identifier for identifier, card in by_id.items() if is_active(card)}
     neighbors = {identifier: set() for identifier in active}
@@ -22,9 +22,9 @@ def apply_related_problems(cards, deleted=()):
         if len(targets) != len(set(targets)) or identifier in targets:
             raise ValueError(f'{identifier}: duplicate or self-referencing related problem')
         for target in targets:
-            if target not in by_id and target not in deleted:
+            if target not in by_id and target not in inactive:
                 raise ValueError(f'{identifier}: unknown related problem {target}')
-            # Deleting or retiring a card also removes every incoming reader link.
+            # Archival or retirement also removes every incoming reader link.
             if identifier in active and target in active:
                 neighbors[identifier].add(target)
                 neighbors[target].add(identifier)

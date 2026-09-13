@@ -18,6 +18,12 @@ Scientific selection, precise statements, sources, categories and benchmark
 success are defined in [docs/RULES.md](docs/RULES.md).
 All project-authored content is English.
 
+Only **active** cards in `data/cards/` receive routine editorial work. Inactive
+cards keep their full contents in `data/archive/cards/` and are absent from the
+reader, exports and benchmark selection. Pruning archives a card instead of
+erasing it; reactivation requires an explicit user request. See the
+[manifest](docs/MANIFEST.md) for this policy.
+
 ## Everyday work
 
 Python 3.10+ and Make are sufficient for publication and data checks.
@@ -37,7 +43,7 @@ opens directly from [build/index.html](build/index.html).
 
 | Path | Contents |
 | --- | --- |
-| [data/](data/README.md) | One complete JSON file per problem, category and selection registries, deleted IDs. |
+| [data/](data/README.md) | Active cards, a separate inactive archive, category and selection registries. |
 | [web/](web/README.md) | Reader source assets. |
 | [services/notes/](services/notes/README.md) | Account-free public notes API and durable storage. |
 | `build/` | Generated reader and exports, ignored by Git and safe to rebuild. |

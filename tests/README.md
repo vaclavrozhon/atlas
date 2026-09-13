@@ -6,6 +6,10 @@ ranking, publication, import and deployment regressions. It leaves the working
 reader and canonical source files untouched. The deployment test uses a temporary
 local bare Git repository.
 
+Inactive card contents are excluded from the routine check snapshot and are not
+reviewed or validated. Archival regressions use small isolated fixtures to check
+lossless moves, explicit restoration, reserved IDs and removal from live exports.
+
 `make check-web` exercises the reader under a project URL prefix, direct file
 opening, category selection, community forms, mobile layout and live deletions.
 It checks full-catalogue fallback after missed updates and safe retries while
